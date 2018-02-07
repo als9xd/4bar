@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>4BAR - Home</title>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
+
+    <link rel="stylesheet" href="/public.css">
+    <link rel="stylesheet" href="/home.css">
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script type="text/javascript">
+      let socket = io();
+    </script>
+ </head>
+
+  <body>
+
+    <nav class="navbar navbar-toggleable-md navbar-inverse bg-inverse">
+      <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target=".navbar-collapse" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <a class="navbar-brand" href="/home">4BAR</a>
+
+      <div class="collapse navbar-collapse" >
+        <form class="form-inline my-2 my-md-0">
+          <input class="form-control mr-sm-2" type="text" placeholder="Search">
+          <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+        </form>
+        <ul class="navbar-nav ml-auto">
+          <li class="nav-item active">
+            <a class="nav-link" href="/home">Home <span class="sr-only">(current)</span></a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/cc_wizard">Community Creation</a>
+          </li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="dropdown01" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{{username}}}'s Profile</a>
+            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdown01">
+              <a class="dropdown-item" href="\profile">View</a>
+              <a class="dropdown-item" href="\logout">Logout</a>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </nav>
+
+    <div class="jumbotron">
+      <div class="container">
+        <h1 class="display-3">Hello, {{{username}}}!</h1>
+        <p>It looks like you haven't added any communities yet. Community interaction is a great way to build your profile.</p>
+        <p><a class="btn btn-primary btn-lg" href="#" role="button">Learn more »</a></p>
+      </div>
+    </div>
+
+    <div class="container">
+        <div class="row">
+          <table class="table table-responsive">
+            <h2>Popular Communities</h2>
+            <thead>
+                  <tr>
+                    <th scope="col"></th>
+                    <th scope="col" style="min-width: 150px"></th>
+                    <th scope="col">Description</th>
+                    <th scope="col">Active Members</th>
+                    <th scope="col">Recent Activity</th>
+                  </tr>
+            </thead>
+            <tbody id="c_table">
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+  <script type="text/javascript">
+    const c_table = document.getElementById('c_table');
+    socket.on('communities',function(coms){
+      while (c_table.firstChild) {
+          c_table.removeChild(c_table.firstChild);
+      }
+      for(let com in coms){
+        if(coms.hasOwnProperty(com)){
+          let new_row = document.createElement('tr');
+          new_row.classList.add('clickable_row');
+          new_row.setAttribute('href',coms[com].url);
+
+
+          let new_icon_col = document.createElement('td');
+          let new_icon = document.createElement('img');
+          if(coms[com].icon){
+            new_icon.src = coms[com].icon;
+          }
+          new_icon_col.appendChild(new_icon);
+          new_row.appendChild(new_icon_col);
+
+          let new_name_col = document.createElement('th');
+          new_name_col.scope = "row";
+          new_name_col.innerHTML = coms[com].name;
+          new_row.appendChild(new_name_col);
+
+          let new_description_col = document.createElement('td');
+          new_description_col.innerHTML = coms[com].description;
+          new_row.appendChild(new_description_col);
+
+          let new_members_col = document.createElement('td');
+          new_members_col.innerHTML = coms[com].members.toString();
+          new_row.appendChild(new_members_col);
+
+          let new_recent_activity_col = document.createElement('td');
+          new_recent_activity_col.innerHTML = coms[com].recent_activity.toString();
+          new_row.appendChild(new_recent_activity_col);
+          
+          new_row.onclick = function(){window.location = coms[com].url};
+
+          c_table.appendChild(new_row);
+        }
+      }
+        
+    });
+  </script>
+  <script src="https://code.jquery.com/jquery-3.1.1.slim.min.js" integrity="sha384-A7FZj7v+d/sdmMqp/nOQwliLvUsJfDHW+k9Omg/a/EheAdgtzNs3hpfag6Ed950n" crossorigin="anonymous"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb" crossorigin="anonymous"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script>
+  </body>
+
+</html>

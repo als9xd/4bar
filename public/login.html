@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>4BAR - Sign In</title>
+
+    <!-- Bootstrap core CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
+
+    <!-- Custom styles for this template -->
+    <link href="/public.css" rel="stylesheet">
+    <link href="/css/login.css" rel="stylesheet">
+  </head>
+
+  <body>
+
+    <div class="container">
+      <form class="form-signin" id="signin" method="post" action="/login" name="login">
+        <h2 class="form-signin-heading">Please sign in</h2>
+        <label for="inputUsername" class="sr-only">Username</label>
+        <input type="username" name="username" id="inputUsername" class="form-control" placeholder="Username" required autofocus>
+        <label for="inputPassword" class="sr-only">Password</label>
+        <input name="password" type="password" id="inputPassword" class="form-control" placeholder="Password" required>
+        <div class="form-footer">
+          <label>
+            <input type="checkbox" value="remember-me"> Remember me
+          </label>
+          <a href="/register" style="float: right;">Register</a>            
+        </div>
+        <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+        <div id="success_container" style="margin-top:20px;">
+        </div>
+        <div id="error_container" style="margin-top:20px;">
+        </div>
+      </form>
+    </div>
+    <script src="/js/url_parser.js"></script>
+    <script>
+      const msg = get_url_parameter('message');
+      if(msg){
+        let msg_alert = document.createElement('div');
+        msg_alert.classList.add('alert','alert-success');
+        msg_alert.setAttribute('role','alert');
+        msg_alert.innerHTML = msg;
+        document.getElementById('success_container').appendChild(msg_alert);
+      }
+      const error = get_url_parameter('error');
+      if(error){
+        let error_alert = document.createElement('div');
+        error_alert.classList.add('alert','alert-danger');
+        error_alert.setAttribute('role','alert');
+        error_alert.innerHTML = '<strong>Error: </strong>'+error;
+        document.getElementById('error_container').appendChild(error_alert);
+      }
+    </script> 
+    <script src="https://code.jquery.com/jquery-3.1.1.slim.min.js" integrity="sha384-A7FZj7v+d/sdmMqp/nOQwliLvUsJfDHW+k9Omg/a/EheAdgtzNs3hpfag6Ed950n" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script>
+  </body>
+</html>

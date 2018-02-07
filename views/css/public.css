@@ -1,0 +1,15 @@
+.btn-primary{
+   background-color: #575a5b;
+}
+
+.btn-primary:hover{
+   background-color: #464849;
+}
+
+.btn-primary:focus,.btn-primary:active {
+ 	background-color: #313435;
+  outline: none !important;
+  -webkit-box-shadow: inset 0px 0px 7px black;
+     -moz-box-shadow: inset 0px 0px 7px black;
+          box-shadow: inset 0px 0px 7px black;
+}
