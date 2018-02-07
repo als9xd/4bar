@@ -75,7 +75,7 @@ Note: The username and password were shared in the discord channel
 ### Download the Repository
 
 - First time download
-    1. type ```git clone https://git.mst.edu/als9xd/4BAR``` from within the directory that you want it downloaded to
+    1. type ```git clone https://github.com/als9xd/4BAR``` from within the directory that you want it downloaded to
 
 - Download and overwrite local files
     1. cd '4bar\'
