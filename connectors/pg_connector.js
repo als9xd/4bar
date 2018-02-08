@@ -26,13 +26,15 @@ module.exports = function(config){
 	}
 
 	pg_conn.build = function(){
+		let salt_length = config.crypto.password.salt_bytes*(4/3);
+		let base_64_salt_legth = Math.ceil(salt_length/4) * 4;
 		pg_conn.client.query(
 			'CREATE TABLE users('+
 				'id SERIAL PRIMARY KEY,'+
 				'username VARCHAR(20) UNIQUE not null,'+
 				'name VARCHAR(50),'+
 				'password BYTEA not null,'+
-				'password_salt VARCHAR(171) not null,'+ // (4*128 btyes)/3 = 170+2/3
+				'password_salt VARCHAR('+base_64_salt_legth+') not null,'+
 				'password_iterations NUMERIC not null,'+
 				'email VARCHAR(50)'+
 			')'
