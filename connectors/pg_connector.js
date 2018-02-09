@@ -1,4 +1,7 @@
 module.exports = function(config){
+
+	const tables_definitions = require('./pg_table_definitions')(config);
+
 	const pg = require('pg');
 	const readline = require('readline-sync');
 
@@ -17,32 +20,34 @@ module.exports = function(config){
 		console.log(config.pg);
 	});
 
-	pg_conn.table_exists = function(table_name,callback){
-		if(pg_conn.client){
-			pg_conn.client.query('SELECT EXISTS (SELECT 1 FROM pg_tables WHERE schemaname = \'public\' AND tablename = $1)',[table_name],function(err,results){
-				callback(err,results.rows[0].exists);
-			});
-		}
-	}
-
 	pg_conn.build = function(){
-		let salt_length = config.crypto.password.salt_bytes*(4/3);
-		let base_64_salt_legth = Math.ceil(salt_length/4) * 4;
-		pg_conn.client.query(
-			'CREATE TABLE users('+
-				'id SERIAL PRIMARY KEY,'+
-				'username VARCHAR(20) UNIQUE not null,'+
-				'name VARCHAR(50),'+
-				'password BYTEA not null,'+
-				'password_salt VARCHAR('+base_64_salt_legth+') not null,'+
-				'password_iterations NUMERIC not null,'+
-				'email VARCHAR(50)'+
-			')'
-			,function(err){
-			if(err){
-				console.log(err);
+
+		let __build_promises = function(){
+			let promises = [];
+			for (let table_name in tables_definitions){
+				if(tables_definitions.hasOwnProperty(table_name)){
+					promises.push(new Promise((resolve,reject) => {
+							pg_conn.client.query(tables_definitions[table_name],function(err){
+								if(err){
+									reject("Building table \""+table_name+"\" failed: "+err.message);
+								}else{
+									resolve();
+								}
+							})
+						}
+					));				
+				}
 			}
-		});
+			return promises;
+		}
+
+		Promise.all(__build_promises()).catch(
+			err => {
+				console.log(err);
+				process.exit(1);
+			}
+		);
+		
 	};
 
 	return pg_conn;

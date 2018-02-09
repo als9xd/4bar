@@ -47,9 +47,35 @@
 
     <div class="jumbotron" style="padding: 10px">
       <div class="container">
-        <h4 style="text-align: center;">Welcome to the {{{c_name}}} community!</h4>
+        <h4 style="text-align: center;">Welcome to the {{{c_name}}} community! 
+          <form method="post" role="form" action="/c_join:{{{c_name}}}" encType="multipart/form-data" style="display:inline-block;"><button class="btn btn-primary">Join</button>
+        </h4>
+        <div id="success_container" style="margin-top:20px;">
+        </div>
+        <div id="error_container" style="margin-top:20px;">
+        </div>
       </div>
+
     </div>
+    <script src="/js/url_parser.js"></script>
+    <script>
+      const msg = get_url_parameter('message');
+      if(msg){
+        let msg_alert = document.createElement('div');
+        msg_alert.classList.add('alert','alert-success');
+        msg_alert.setAttribute('role','alert');
+        msg_alert.innerHTML = msg;
+        document.getElementById('success_container').appendChild(msg_alert);
+      }
+      const error = get_url_parameter('error');
+      if(error){
+        let error_alert = document.createElement('div');
+        error_alert.classList.add('alert','alert-danger');
+        error_alert.setAttribute('role','alert');
+        error_alert.innerHTML = '<strong>Error: </strong>'+error;
+        document.getElementById('error_container').appendChild(error_alert);
+      }
+    </script> 
 
     <script src="https://code.jquery.com/jquery-3.1.1.slim.min.js" integrity="sha384-A7FZj7v+d/sdmMqp/nOQwliLvUsJfDHW+k9Omg/a/EheAdgtzNs3hpfag6Ed950n" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb" crossorigin="anonymous"></script>

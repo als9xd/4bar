@@ -67,7 +67,13 @@
             </tr>
             <tr>
               <th scope="row">Communities</th>
-              <td>Overwatch, Dota 2</td>
+              <td>
+                <ul>
+                  {{#each c_names}}
+                      <li>{{ this }}</li>
+                  {{/each}}
+                </ul>
+              </td>
             </tr>
           </tbody>
         </table>

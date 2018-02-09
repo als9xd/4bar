@@ -67,7 +67,6 @@
                     <th scope="col"></th>
                     <th scope="col" style="min-width: 150px"></th>
                     <th scope="col">Description</th>
-                    <th scope="col">Active Members</th>
                     <th scope="col">Recent Activity</th>
                   </tr>
             </thead>
@@ -107,12 +106,8 @@
           new_description_col.innerHTML = coms[com].description;
           new_row.appendChild(new_description_col);
 
-          let new_members_col = document.createElement('td');
-          new_members_col.innerHTML = coms[com].members.toString();
-          new_row.appendChild(new_members_col);
-
           let new_recent_activity_col = document.createElement('td');
-          new_recent_activity_col.innerHTML = coms[com].recent_activity.toString();
+          new_recent_activity_col.innerHTML = coms[com].last_activity;
           new_row.appendChild(new_recent_activity_col);
           
           new_row.onclick = function(){window.location = coms[com].url};
