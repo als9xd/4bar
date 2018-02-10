@@ -557,6 +557,18 @@ app.post('/cc_submit',check_auth,function(req,res){
 						}
 
 						let tags_split = req.body.tags.split(',');
+						
+						let invalid_tag_lengths = []
+						for(let i = 0; i < tags_split.length;i++){
+							if(tags_split[i].length >  config[env].pg.varchar_limits.community_tags.tag){
+								invalid_tag_lengths.push('Tags must be less than ' + config[env].pg.varchar_limits.community_tags.tag + ' characters');
+							}
+						}
+						if(invalid_tag_lengths.length){
+							res.redirect('/cc_wizard?error='+invalid_tag_lengths.join(','));
+							return;
+						}
+
 						let community_ids_arr = Array(tags_split.length).fill(community_id.rows[0].id);
 						pg_conn.client.query(
 							"INSERT INTO community_tags (community_id,tag) SELECT * FROM UNNEST ($1::integer[], $2::text[])",

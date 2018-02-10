@@ -1,5 +1,6 @@
 .btn-primary{
    background-color: #575a5b;
+   border:1px solid black;
 }
 
 .btn-primary:hover{
