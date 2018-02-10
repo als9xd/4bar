@@ -556,30 +556,46 @@ app.post('/cc_submit',check_auth,function(req,res){
 							return;
 						}
 
-						app.get(community_url, check_auth, function(com_req, com_res){
-						  com_res.render(
-						  	'private/cc_template',
-						  	{
-						  		username: com_req.session.username,
-						  		c_name: req.body.c_name,
-						  		c_wallpaper: wallpaper_url, 
-						  		c_id: community_id.rows[0].id
-						  	});
-						});
-
+						let tags_split = req.body.tags.split(',');
+						let community_ids_arr = Array(tags_split.length).fill(community_id.rows[0].id);
 						pg_conn.client.query(
-							"SELECT name,description,icon,wallpaper,last_activity,url FROM communities",
-							function(err,community_info){
+							"INSERT INTO community_tags (community_id,tag) SELECT * FROM UNNEST ($1::integer[], $2::text[])",
+							[
+								community_ids_arr,
+								tags_split
+							],
+							function(err){
 								if(err){
-									console.log(err)
-									res.render('public/error',{error:'Could not load communities'});
-									return;
-								}else{
-									io.sockets.emit('communities',community_info.rows);
+									console.log(err);
+									res.render('public/error',{error:'Could not insert tags for community'});
+									return;									
 								}
+						
+								app.get(community_url, check_auth, function(com_req, com_res){
+								  com_res.render(
+								  	'private/cc_template',
+								  	{
+								  		username: com_req.session.username,
+								  		c_name: req.body.c_name,
+								  		c_wallpaper: wallpaper_url, 
+								  		c_id: community_id.rows[0].id
+								  	});
+								});
+
+								pg_conn.client.query(
+									"SELECT name,description,icon,wallpaper,last_activity,url FROM communities",
+									function(err,community_info){
+										if(err){
+											console.log(err)
+											res.render('public/error',{error:'Could not load communities'});
+											return;
+										}
+										io.sockets.emit('communities',community_info.rows);	
+									}
+								);
+								res.redirect(community_url);
 							}
 						);
-						res.redirect(community_url);
 					}
 				);
 			}else{

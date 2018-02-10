@@ -90,11 +90,10 @@ Note: this won't remove untracked files or folders
 
 #### Upload Code to the Repository
 
-1. Change directory to 4bar\ 
-2. type ```git pull``` to try to merge your local code with the newest available code on the repository
-3. type ```git add .``` to add all the files in your current directory
-4. type ```git commit -m "commit message"``` where 'commit message' is what you have updated or changed
-5. type ```git push``` to push your local code to the repository
+Its probably best to create a new branch for your project and then do a pull request. Here are a couple of links that I used to understand this functionality.
+
+[How a github workflow should look](https://guides.github.com/introduction/flow/)
+[How brances work](https://git-scm.com/book/id/v2/Git-Branching-Branches-in-a-Nutshell)
 
 Note: before you push your code make sure you aren't pushing any icons/wallpapers
 
