@@ -307,6 +307,9 @@ app.all('*',http_redirect); // Add http to https redirect middlware to all route
 pg_conn.client.query(
 	"SELECT name,url,wallpaper,id FROM communities",
 	function(err,results){
+		if(err){
+			console.log(err);
+		}
 		for(let i in results.rows){
 			app.get(results.rows[i].url, check_auth, function(com_req, com_res){
 			  com_res.render('private/cc_template',{username: com_req.session.username,c_name: results.rows[i].name, c_wallpaper: results.rows[i].wallpaper, c_id: results.rows[i].id});
@@ -330,23 +333,37 @@ app.get('/register',function(req, res){
 
 app.get('/home', check_auth, function(req, res){
 
-	pg_conn.client.query("SELECT name,description,icon,last_activity,url FROM communities",
-		function(err,results){
+	pg_conn.client.query(
+		"SELECT name,description,icon,last_activity,url FROM communities",
+		function(err,community_info){
 			if(err){
-				console.log(err)
+				console.log(err);
+				res.render('public/error',{error:'Could not get community'});
+				return;
 			}else{
 				pg_conn.client.query(
 					"SELECT 1 FROM community_members "+
 					"INNER JOIN communities ON communities.id = community_members.community_id "+
 					"INNER JOIN users ON community_members.user_id = users.id AND users.username = $1 "+
 					"LIMIT 1",
-					[req.session.username],
+					[
+						req.session.username
+					],
 					function(err,is_member){
 						if(err){
 							console.log(err)
+							res.render('public/error',{error:'Could not get community'});
+							return;
 						}else{
-							res.render('private/home',{username: req.session.username,communities: results.rows, is_member: is_member.rowCount});
-							io.sockets.emit('communities',results.rows);
+							res.render(
+								'private/home',
+								{
+									username: req.session.username,
+									is_member: is_member.rowCount
+								}
+							);
+							io.sockets.emit('communities',community_info.rows);
+							return;
 						}
 					}
 				);
@@ -359,18 +376,19 @@ app.get('/profile', check_auth, function(req, res){
 	pg_conn.client.query(
 		"SELECT communities.name FROM community_members "+
 		"INNER JOIN communities ON communities.id = community_members.community_id "+
-		"INNER JOIN users ON community_members.user_id = users.id AND users.username = $1;",
-		[req.session.username],
-		function(err,results){
+		"INNER JOIN users ON community_members.user_id = users.id AND users.username = $1",
+		[
+			req.session.username
+		],
+		function(err,community_names){
 			if(err){
 				console.log(err)
+				res.render('public/error',{error:'Could not get community membership information'});
+				return;
 			}else{
-				let c_names = results.rows;
 				let c_names_arr = [];
-				for(let c_name in c_names){
-					if(c_names.hasOwnProperty(c_name)){
-						c_names_arr.push(c_names[c_name].name);
-					}
+				for(let i in community_names.rows){
+					c_names_arr.push(community_names.rows[i].name);
 				}
 				res.render('private/profile',{
 					username: req.session.username,
@@ -378,6 +396,7 @@ app.get('/profile', check_auth, function(req, res){
 					email: req.session.email,
 					c_names: c_names_arr
 				});	
+				return;
 			}
 		}
 	);	
@@ -390,137 +409,185 @@ app.get('/cc_wizard', check_auth, function(req, res){
 app.post('/c_join:*',check_auth,function(req,res){
 
 	pg_conn.client.query(
-		"SELECT communities.url,users.id FROM communities,users where communities.id = $1 AND users.username = $2 LIMIT 1 "
+		"SELECT communities.url,users.id FROM communities,users "+
+		"WHERE communities.id = $1 AND users.username = $2 "+
+		"LIMIT 1"
 		,[
 			Number(req.params[0]),
 			req.session.username
-		],function(err,results){
+		],
+		function(err,community_and_user_info){
 			if(err){
 				console.log(err);
-			}else if(results.rows && results.rows[0] != null  && results.rows[0].url && results.rows[0].id){
-
-				pg_conn.client.query("INSERT INTO community_members (user_id,community_id,privilege_level) VALUES ($1,$2,1)",[results.rows[0].id,Number([req.params[0]])],function(err){
-					if(err && err.code == '23505'){
-						res.redirect(results.rows[0].url+'?error=You are already a member of this community');
-						return;
+				res.render('public/error',{error:'Could not get community/user information'});
+				return;
+			}else if(community_and_user_info.rows && community_and_user_info.rows[0] != null  && community_and_user_info.rows[0].url && community_and_user_info.rows[0].id){
+				pg_conn.client.query(
+					"INSERT INTO community_members (user_id,community_id,privilege_level) "+
+					"VALUES ($1,$2,1)",
+					[
+						community_and_user_info.rows[0].id,
+						Number([req.params[0]])
+					],
+					function(err){
+						if(err && err.code == '23505'){
+							res.redirect(community_and_user_info.rows[0].url+'?error=You are already a member of this community');
+							return;
+						}
+						if(err){
+							console.log(err);
+							res.redirect(community_and_user_info.rows[0].url+'?error=Could not add to community');
+							return;
+						}else{
+							res.redirect(community_and_user_info.rows[0].url+'?message=Successfully joined community');
+							return;
+						}
 					}
-					if(err){
-						res.redirect(results.rows[0].url+'?error=Could not add to community');
-						console.log(err);
-					}else{
-						res.redirect(results.rows[0].url+'?message=Successfully joined community');
-					}
-				});	
+				);	
 			}else{
-				res.render('public/error',{error:'Could not find community with id or username'})
+				res.render('public/error',{error:'Could not find community with id or username'});
+				return;
 			}
 		}
 	);
 });
 
 app.post('/cc_submit',check_auth,function(req,res){
-	let unique_name = sanitize(req.body.c_name).replace(/\s/g,'_').replace(/|\.|\,|\%|\#/g,'').toLowerCase();
+
+	let unique_name = sanitize(req.body.c_name).replace(/\s/g,'_').replace(/[^a-zA-Z0-9 ]/g,'').toLowerCase();
 	if(!unique_name.length){
 		res.redirect('/cc_wizard?error=Invalid Name');
 		return 0;
 	}
 
-	pg_conn.client.query("SELECT 1 FROM communities where unique_name = $1",[unique_name],function(err,results){
-		if(err){
-			console.log(err);
-			res.redirect('/cc_wizard?error=Internal Error');
-		}else if(results && results.rows.length == 0){
+	pg_conn.client.query(
+		"SELECT 1 FROM communities where unique_name = $1 LIMIT 1",
+		[
+			unique_name
+		],
+		function(err,community_exists){
+			if(err){
+				console.log(err);
+				res.render('public/error',{error:'Could not check if community already exists'});
+				return;
+			}else if(community_exists && community_exists.rows.length == 0){
 
-			let icon_url;
-			let wallpaper_url;
+				let icon_url;
+				let wallpaper_url;
 
-			if(req.files){
-				if(req.files.c_icon){
-					icon_url = '/icons/'+unique_name+'.'+req.files.c_icon.name.split('.').pop();
-					req.files.c_icon.mv('community_data/'+icon_url,function(err){
-						if(err){
-							console.log(err);				
-						}else{
-							pg_conn.client.query("SELECT name,description,icon,wallpaper,last_activity,url FROM communities",
-								function(err,results){
-									if(err){
-										console.log(err)
-									}else{
-										io.sockets.emit('communities',results.rows);
-									}
-								}
-							);
-						}
-					});	
-				}
-				if(req.files.c_wallpaper){
-					wallpaper_url = '/wallpapers/'+unique_name+'.'+req.files.c_wallpaper.name.split('.').pop();
-					req.files.c_wallpaper.mv('community_data/'+wallpaper_url,function(err){
-						if(err){
-							console.log(err);					
-						}
-					});				
-				}				
-			}
-
-			let community_url = '/b/'+unique_name;
-			let d = new Date;
-			let date = (d.getMonth()+1)+'/'+d.getDate()+'/'+d.getFullYear();
-			let invalid_lengths = pg_conn.invalid_lengths(
-				'communities',
-				[
-					[req.body.c_name,'name'],
-					[unique_name,'unique_name'],
-					[date,'last_activity'],
-				]
-			);
-
-			if(invalid_lengths.length){
-				let errors = [];
-				for(var i in invalid_lengths){
-					let table_name = invalid_lengths[i].table_name;
-					errors.push(table_name.charAt(0).toUpperCase()+table_name.slice(1) + ' must be less than ' + invalid_lengths[i].limit + ' characters');
-				}
-				res.redirect('/cc_wizard?error='+errors.join(','));
-			}	
-
-			pg_conn.client.query("INSERT INTO communities (name,url,icon,wallpaper,layout,last_activity,description,unique_name) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id",
-				[
-					req.body.c_name,
-					community_url,
-					icon_url,
-					wallpaper_url,
-					req.body.c_layout,
-					date,
-					req.body.c_description,
-					unique_name
-				],
-				function(err,results){
-					if(err){
-						console.log(err);
-					}
-
-					app.get(community_url, check_auth, function(com_req, com_res){
-					  com_res.render('private/cc_template',{username: com_req.session.username,c_name: req.body.c_name, c_wallpaper: wallpaper_url, c_id: results.rows[0].id});
-					});
-
-					pg_conn.client.query("SELECT name,description,icon,wallpaper,last_activity,url FROM communities",
-						function(err,results){
+				if(req.files){
+					if(req.files.c_icon){
+						icon_url = '/icons/'+unique_name+'.'+req.files.c_icon.name.split('.').pop();
+						req.files.c_icon.mv('community_data/'+icon_url,function(err){
 							if(err){
-								console.log(err)
+								console.log(err);				
+								res.render('public/error',{error:'Could not upload icon'});
+								return;
 							}else{
-								io.sockets.emit('communities',results.rows);
+								pg_conn.client.query(
+									"SELECT name,description,icon,wallpaper,last_activity,url FROM communities",
+									function(err,community_info){
+										if(err){
+											console.log(err)
+											res.render('public/error',{error:'Could not get community information'});
+											return;
+										}else{
+											io.sockets.emit('communities',community_info.rows);
+										}
+									}
+								);
 							}
-						}
-					);
-					res.redirect(community_url);
+						});	
+					}
+					if(req.files.c_wallpaper){
+						wallpaper_url = '/wallpapers/'+unique_name+'.'+req.files.c_wallpaper.name.split('.').pop();
+						req.files.c_wallpaper.mv('community_data/'+wallpaper_url,function(err){
+							if(err){
+								console.log(err);					
+								res.render('public/error',{error:'Could not upload wallpaper'});
+								return;
+							}
+						});				
+					}				
 				}
-			);
-		}else{
-			res.redirect('/cc_wizard?error=Community already exists')
-		}
 
-	});
+				let d = new Date;
+				let date = (d.getMonth()+1)+'/'+d.getDate()+'/'+d.getFullYear();
+				let invalid_lengths = pg_conn.invalid_lengths(
+					'communities',
+					[
+						[req.body.c_name,'name'],
+						[unique_name,'unique_name'],
+						[date,'last_activity'],
+					]
+				);
+
+				if(invalid_lengths.length){
+					let errors = [];
+					for(var i in invalid_lengths){
+						let table_name = invalid_lengths[i].table_name;
+						errors.push(table_name.charAt(0).toUpperCase()+table_name.slice(1) + ' must be less than ' + invalid_lengths[i].limit + ' characters');
+					}
+					res.redirect('/cc_wizard?error='+errors.join(','));
+					return;
+				}	
+
+				let community_url = '/b/'+unique_name;
+
+				pg_conn.client.query(
+					"INSERT INTO communities (name,unique_name,url,description,icon,wallpaper,layout,last_activity) "+
+					"VALUES ($1,$2,$3,$4,$5,$6,$7,$8) "+
+					"RETURNING id",
+					[
+						req.body.c_name,
+						unique_name,
+						community_url,
+						req.body.c_description,
+						icon_url,
+						wallpaper_url,
+						req.body.c_layout,
+						date,
+					],
+					function(err,community_id){
+						
+						if(err){
+							console.log(err);
+							res.render('public/error',{error:'Could not insert into communities'});
+							return;
+						}
+
+						app.get(community_url, check_auth, function(com_req, com_res){
+						  com_res.render(
+						  	'private/cc_template',
+						  	{
+						  		username: com_req.session.username,
+						  		c_name: req.body.c_name,
+						  		c_wallpaper: wallpaper_url, 
+						  		c_id: community_id.rows[0].id
+						  	});
+						});
+
+						pg_conn.client.query(
+							"SELECT name,description,icon,wallpaper,last_activity,url FROM communities",
+							function(err,community_info){
+								if(err){
+									console.log(err)
+									res.render('public/error',{error:'Could not load communities'});
+									return;
+								}else{
+									io.sockets.emit('communities',community_info.rows);
+								}
+							}
+						);
+						res.redirect(community_url);
+					}
+				);
+			}else{
+				res.redirect('/cc_wizard?error=Community already exists');
+				return;
+			}
+		}
+	);
 });
 
 app.post('/login',function(req,res){
@@ -535,36 +602,43 @@ app.post('/login',function(req,res){
 		return;
 	}
 
-	pg_conn.client.query('SELECT * FROM users WHERE username = $1',[req.body.username],function(err,results){
-		if(err){
-			console.log(err);
-		}else{
-			if(results.rows.length == 1){
-				pwd_h.validate(
-						req.body.password,
-						results.rows[0].password,
-						results.rows[0].password_salt,
-						results.rows[0].password_iterations,
-						//success_callback
-						function(){									
-							req.session.username = results.rows[0].username;
-							req.session.full_name = results.rows[0].name;
-							req.session.email = results.rows[0].email;								
-							res.redirect('/home');	
-						},
-						//fail callback
-						function(){
-							res.redirect('/login?error=Invalid username or password');
-							return;
-						}
-				);
-			}else{
-				res.redirect('/login?error=Invalid username or password');
+	pg_conn.client.query(
+		"SELECT * FROM users WHERE username = $1 LIMIT 1",
+		[
+			req.body.username
+		],
+		function(err,user_info){
+			if(err){
+				console.log(err);
+				res.render('public/error',{error:'Could not get user'});
 				return;
+			}else{
+				if(user_info && user_info.rows.length){
+					pwd_h.validate(
+							req.body.password,
+							user_info.rows[0].password,
+							user_info.rows[0].password_salt,
+							user_info.rows[0].password_iterations,
+							//success_callback
+							function(){									
+								req.session.username = user_info.rows[0].username;
+								req.session.full_name = user_info.rows[0].name;
+								req.session.email = user_info.rows[0].email;								
+								res.redirect('/home');	
+							},
+							//fail callback
+							function(){
+								res.redirect('/login?error=Invalid username or password');
+								return;
+							}
+					);
+				}else{
+					res.redirect('/login?error=Invalid username or password');
+					return;
+				}
 			}
 		}
-	});
-	
+	);
 });
 
 
@@ -606,6 +680,7 @@ app.post('/register',function(req,res){
 			errors.push(table_name.charAt(0).toUpperCase()+table_name.slice(1) + ' must be less than ' + invalid_lengths[i].limit + ' characters');
 		}
 		res.redirect('/register?error='+errors.join(','));
+		return;
 	}	
 
 
@@ -615,35 +690,50 @@ app.post('/register',function(req,res){
 		return;	
 	}
 
-	pg_conn.client.query('SELECT username FROM users WHERE username = $1',[req.body.username],function(err,results){
-		if(err){
-			console.log(err);
+	pg_conn.client.query(
+		"SELECT username FROM users "+
+		"WHERE username = $1 "+
+		"LIMIT 1",
+		[
+			req.body.username
+		],
+		function(err,results){
+			if(err){
+				console.log(err);
+				res.render('public/error',{error:'Could check if username is already used'});
+				return;
+			}
+			if(results && results.rows.length == 0){
+				pwd_h.hash(req.body.password,function(password){
+					pg_conn.client.query(
+						"INSERT INTO users (username,name,password,password_salt,password_iterations,email) "+
+						"VALUES ($1,$2,$3,$4,$5,$6)",
+						[
+							req.body.username,
+							req.body.full_name,
+							password.hash,
+							password.salt,
+							password.iterations,
+							req.body.email
+						],
+						function(err){
+							if(err){
+								console.log(err);
+								res.render('public/error',{error:'Could not create user'});
+								return;
+							}else{
+								res.redirect('/login?message=Successfully registered!');
+								return;
+							}
+						}
+					);						
+				});
+			}else{
+				res.redirect('/register?error=User already exists');
+				return;
+			}
 		}
-		if(!results.rows.length){
-			pwd_h.hash(req.body.password,function(password){
-				pg_conn.client.query('INSERT INTO users (username,name,password,password_salt,password_iterations,email) VALUES ($1,$2,$3,$4,$5,$6)',
-					[
-						req.body.username,
-						req.body.full_name,
-						password.hash,
-						password.salt,
-						password.iterations,
-						req.body.email
-					]
-					,function(err){
-					if(err){
-						console.log(err);
-					}else{
-						res.redirect('/login?message=Successfully registered!');
-					}
-				});						
-			});
-		}else{
-			res.redirect('/register?error=User already exists');
-		}
-	});
-
-		
+	);
 });
 
 app.get('/logout',function(req,res){
@@ -666,12 +756,15 @@ server.listen(config[env].server.https.port,function(){
 //////////////////////////////////////////////////////////////////////
 
 io.on('connection',function(socket){
-	pg_conn.client.query("SELECT name,description,icon,wallpaper,last_activity,url FROM communities",
-		function(err,results){
+	pg_conn.client.query(
+		"SELECT name,description,icon,wallpaper,last_activity,url FROM communities",
+		function(err,community_info){
 			if(err){
 				console.log(err)
+				res.render('public/error',{error:'Could not get communities'});
+				return;
 			}else{
-				io.sockets.emit('communities',results.rows);
+				io.sockets.emit('communities',community_info.rows);
 			}
 		}
 	);
