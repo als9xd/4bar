@@ -20,6 +20,17 @@ module.exports = function(config){
 		console.log(config.pg);
 	});
 
+	pg_conn.invalid_lengths = function(table_name,lengths_obj){
+		let inv_lens = [];
+		for(let i in lengths_obj){
+			if(lengths_obj[i][0].length > config.pg.varchar_limits[table_name][lengths_obj[i][1]]){
+				inv_lens.push({table_name: lengths_obj[i][1],limit: config.pg.varchar_limits[table_name][lengths_obj[i][1]]})
+			}
+			
+		}
+		return inv_lens;
+	}
+
 	pg_conn.build = function(){
 
 		let __build_promises = function(){
@@ -44,7 +55,6 @@ module.exports = function(config){
 		Promise.all(__build_promises()).catch(
 			err => {
 				console.log(err);
-				process.exit(1);
 			}
 		);
 		

@@ -17,7 +17,28 @@ const config = {
 			password: 'pass',
 			ip: 'localhost',
 			port: 5432,
-			database_name: '4bar'
+			database_name: '4bar',
+			varchar_limits: {
+				users: {
+					username: 20,
+					name: 226,
+					email: 254
+				},
+				communities: {
+					name: 30,
+					unique_name: 255,
+					last_activity: 10
+				},
+				community_tags: {
+					tag: 20
+				},
+				community_members: {
+				},
+				community_stats: {
+					stat_name: 30,
+					stat_value: 255
+				}
+			}
 		},
 		crypto: {
 			password: {
@@ -55,7 +76,28 @@ const config = {
 			//password: '', // Disabling this enables a prompt for the password
 			ip: 'localhost',
 			port: 5432,
-			database_name: '4bar'	
+			database_name: '4bar',
+			varchar_limits: {
+				users: {
+					username: 20,
+					name: 226,
+					email: 254
+				},
+				communities: {
+					name: 30,
+					unique_name: 255,
+					last_activity: 10
+				},
+				community_tags: {
+					tag: 20
+				},
+				community_members: {
+				},
+				community_stats: {
+					stat_name: 30,
+					stat_value: 255
+				}
+			}
 		},
 		crypto: {
 			password: {

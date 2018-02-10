@@ -10,8 +10,8 @@
 
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
 
-    <link rel="stylesheet" href="/public.css">
-    <link rel="stylesheet" href="/cc_wizard.css">
+    <link rel="stylesheet" href="/css/public.css">
+    <link rel="stylesheet" href="/css/cc_wizard.css">
   </head>
 
   <body>
@@ -76,12 +76,18 @@
               <div class="form-group">
                   <input class="btn btn-primary" type="submit" name="submit_reg" value="Submit">
               </div>
-
+              <div id="success_container" style="margin-top:20px;">
+              </div>
+              <div id="error_container" style="margin-top:20px;">
+              </div>
+              </div>
             </fieldset>
           </form>
-        </div>
       </div>
     </div>
+
+    <script src="/js/url_parser.js"></script>
+    <script src="/js/url_message.js"></script> 
 
     <script src="https://code.jquery.com/jquery-3.1.1.slim.min.js" integrity="sha384-A7FZj7v+d/sdmMqp/nOQwliLvUsJfDHW+k9Omg/a/EheAdgtzNs3hpfag6Ed950n" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb" crossorigin="anonymous"></script>

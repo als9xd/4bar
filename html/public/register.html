@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
 
     <!-- Custom styles for this template -->
-    <link href="/public.css" rel="stylesheet">
+    <link href="/css/public.css" rel="stylesheet">
     <link href="/css/register.css" rel="stylesheet">
   </head>
 
@@ -42,15 +42,8 @@
       </form>
     </div>
     <script src="/js/url_parser.js"></script>
+    <script src="/js/url_message.js"></script>
     <script>
-      const error = get_url_parameter('error');
-      if(error){
-        let error_alert = document.createElement('div');
-        error_alert.classList.add('alert','alert-danger');
-        error_alert.setAttribute('role','alert');
-        error_alert.innerHTML = '<strong>Error: </strong>'+error;
-        document.getElementById('error_container').appendChild(error_alert);
-      }
       const req_errors_string = get_url_parameter('req_errors');
       if(req_errors_string){
         let req_errors = req_errors_string.split(',');
