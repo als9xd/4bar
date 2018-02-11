@@ -181,7 +181,6 @@ const urlencodedParser = bodyParser.urlencoded({
 //////////////////////////////////////////////////////////////////////
 
 const fileUpload = require("express-fileupload");
-const sanitize = require("sanitize-filename");
 
 //////////////////////////////////////////////////////////////////////
 // Handlebars Templating Engine
@@ -306,13 +305,21 @@ app.all('*',http_redirect); // Add http to https redirect middlware to all route
 // Load all community routes from database
 pg_conn.client.query(
 	"SELECT name,url,wallpaper,id FROM communities",
-	function(err,results){
+	function(err,community_info){
 		if(err){
 			console.log(err);
 		}
-		for(let i in results.rows){
-			app.get(results.rows[i].url, check_auth, function(com_req, com_res){
-			  com_res.render('private/cc_template',{username: com_req.session.username,c_name: results.rows[i].name, c_wallpaper: results.rows[i].wallpaper, c_id: results.rows[i].id});
+		for(let i in community_info.rows){
+			app.get(community_info.rows[i].url, check_auth, function(req, res){
+				res.render(
+					'private/cc_template',
+					{
+						username: com_req.session.username,
+						c_name: community_info.rows[i].name,
+						c_wallpaper: community_info.rows[i].wallpaper,
+						c_id: community_info.rows[i].id
+					}
+				);
 			});				
 		}
 	}
@@ -340,34 +347,31 @@ app.get('/home', check_auth, function(req, res){
 				console.log(err);
 				res.render('public/error',{error:'Could not get community'});
 				return;
-			}else{
-				pg_conn.client.query(
-					"SELECT 1 FROM community_members "+
-					"INNER JOIN communities ON communities.id = community_members.community_id "+
-					"INNER JOIN users ON community_members.user_id = users.id AND users.username = $1 "+
-					"LIMIT 1",
-					[
-						req.session.username
-					],
-					function(err,is_member){
-						if(err){
-							console.log(err)
-							res.render('public/error',{error:'Could not get community'});
-							return;
-						}else{
-							res.render(
-								'private/home',
-								{
-									username: req.session.username,
-									is_member: is_member.rowCount
-								}
-							);
-							io.sockets.emit('communities',community_info.rows);
-							return;
-						}
-					}
-				);
 			}
+			pg_conn.client.query(
+				"SELECT 1 FROM community_members "+
+				"INNER JOIN communities ON communities.id = community_members.community_id "+
+				"INNER JOIN users ON community_members.user_id = users.id AND users.username = $1 "+
+				"LIMIT 1",
+				[
+					req.session.username
+				],
+				function(err,is_member){
+					if(err){
+						console.log(err)
+						res.render('public/error',{error:'Could not get community'});
+						return;
+					}
+					res.render(
+						'private/home',
+						{
+							username: req.session.username,
+							is_member: is_member.rowCount
+						}
+					);
+					io.sockets.emit('communities',community_info.rows);
+				}
+			);
 		}
 	);	
 });
@@ -385,19 +389,19 @@ app.get('/profile', check_auth, function(req, res){
 				console.log(err)
 				res.render('public/error',{error:'Could not get community membership information'});
 				return;
-			}else{
-				let c_names_arr = [];
-				for(let i in community_names.rows){
-					c_names_arr.push(community_names.rows[i].name);
-				}
-				res.render('private/profile',{
-					username: req.session.username,
-					full_name: req.session.full_name,
-					email: req.session.email,
-					c_names: c_names_arr
-				});	
-				return;
 			}
+
+			// Convert the community names rows to object an array so it is iterable by handlebars on the front end.
+			let c_names_arr = [];
+			for(let i in community_names.rows){
+				c_names_arr.push(community_names.rows[i].name);
+			}
+			res.render('private/profile',{
+				username: req.session.username,
+				full_name: req.session.full_name,
+				email: req.session.email,
+				c_names: c_names_arr
+			});				
 		}
 	);	
 });
@@ -406,6 +410,10 @@ app.get('/cc_wizard', check_auth, function(req, res){
   res.render('private/cc_wizard',{username: req.session.username});
 });
 
+// This route is special because the id of the community that the user wants to join is passed by the user within the url. 
+// For example: '4bar.org/c_join:5' will join the user the community with the id of 5. 
+//
+// The reason for designing it this way is that this way the user_id can be stored within the community page's and doesn't have to be entered manually by the user.
 app.post('/c_join:*',check_auth,function(req,res){
 
 	pg_conn.client.query(
@@ -427,9 +435,13 @@ app.post('/c_join:*',check_auth,function(req,res){
 					"VALUES ($1,$2,1)",
 					[
 						community_and_user_info.rows[0].id,
-						Number([req.params[0]])
+						Number([req.params[0]]) // Gets the first variable within the url (community id)
 					],
 					function(err){
+						// Error 23505 means the users insert breaks the UNIQUE requirement of a column. Another way to do this would be to check before hand using a SELECT.
+						//
+						// The reason that this method can be is because there are only two columns that are UNIQUE so there is no situation in which the UNIQUE error code would be thrown for another UNIQUE column that isn't user_id or community_id.
+						// The reason I decided to use this method is because I believe is should be faster as the database only needs to be accessed once.
 						if(err && err.code == '23505'){
 							res.redirect(community_and_user_info.rows[0].url+'?error=You are already a member of this community');
 							return;
@@ -438,15 +450,12 @@ app.post('/c_join:*',check_auth,function(req,res){
 							console.log(err);
 							res.redirect(community_and_user_info.rows[0].url+'?error=Could not add to community');
 							return;
-						}else{
-							res.redirect(community_and_user_info.rows[0].url+'?message=Successfully joined community');
-							return;
 						}
+						res.redirect(community_and_user_info.rows[0].url+'?message=Successfully joined community');
 					}
 				);	
 			}else{
 				res.render('public/error',{error:'Could not find community with id or username'});
-				return;
 			}
 		}
 	);
@@ -454,10 +463,16 @@ app.post('/c_join:*',check_auth,function(req,res){
 
 app.post('/cc_submit',check_auth,function(req,res){
 
-	let unique_name = sanitize(req.body.c_name).replace(/\s/g,'_').replace(/[^a-zA-Z0-9 ]/g,'').toLowerCase();
+	// This unique name is used for a number of things including:
+	//   - url path
+	//   - icon filename
+	//   - wallaper filename
+	//
+	//  How this unique is generated is all white spaces are replaced with underscores and then all non alphanumeric characters are removed
+	let unique_name = req.body.c_name.replace(/\s/g,'_').replace(/[^a-zA-Z0-9 ]/g,'').toLowerCase();
 	if(!unique_name.length){
 		res.redirect('/cc_wizard?error=Invalid Name');
-		return 0;
+		return;
 	}
 
 	pg_conn.client.query(
@@ -475,6 +490,7 @@ app.post('/cc_submit',check_auth,function(req,res){
 				let icon_url;
 				let wallpaper_url;
 
+				// Upload files
 				if(req.files){
 					if(req.files.c_icon){
 						icon_url = '/icons/'+unique_name+'.'+req.files.c_icon.name.split('.').pop();
@@ -483,20 +499,21 @@ app.post('/cc_submit',check_auth,function(req,res){
 								console.log(err);				
 								res.render('public/error',{error:'Could not upload icon'});
 								return;
-							}else{
-								pg_conn.client.query(
-									"SELECT name,description,icon,wallpaper,last_activity,url FROM communities",
-									function(err,community_info){
-										if(err){
-											console.log(err)
-											res.render('public/error',{error:'Could not get community information'});
-											return;
-										}else{
-											io.sockets.emit('communities',community_info.rows);
-										}
-									}
-								);
 							}
+							// The communities have to be emitted once the icon has finished being upload because usually the community will finish being inserted into the database and then emmited before the icon finishes uploading.
+							// This results in the community being displayed on /home without an icon
+							pg_conn.client.query(
+								"SELECT name,description,icon,wallpaper,last_activity,url FROM communities",
+								function(err,community_info){
+									if(err){
+										console.log(err)
+										res.render('public/error',{error:'Could not get community information'});
+										return;
+									}else{
+										io.sockets.emit('communities',community_info.rows);
+									}
+								}
+							);
 						});	
 					}
 					if(req.files.c_wallpaper){
@@ -513,22 +530,32 @@ app.post('/cc_submit',check_auth,function(req,res){
 
 				let d = new Date;
 				let date = (d.getMonth()+1)+'/'+d.getDate()+'/'+d.getFullYear();
+
+				// This is a custom function I wrote that makes it easier to check whether the lengths of input strings are within the assigned VARCHAR limits
 				let invalid_lengths = pg_conn.invalid_lengths(
-					'communities',
+					'communities', // Table name
 					[
-						[req.body.c_name,'name'],
-						[unique_name,'unique_name'],
-						[date,'last_activity'],
+						[
+							req.body.c_name, // Input string #1
+							'name' // Check input string #1's length against the VARCHAR limits for column 'name'
+						],
+						[
+							unique_name,
+							'unique_name'
+						],
+						[
+							date,
+							'last_activity'
+						]
 					]
 				);
-
 				if(invalid_lengths.length){
-					let errors = [];
+					let invalid_length_errors = [];
 					for(var i in invalid_lengths){
 						let table_name = invalid_lengths[i].table_name;
-						errors.push(table_name.charAt(0).toUpperCase()+table_name.slice(1) + ' must be less than ' + invalid_lengths[i].limit + ' characters');
+						invalid_length_errors.push(table_name.charAt(0).toUpperCase()+table_name.slice(1) + ' must be less than ' + invalid_lengths[i].limit + ' characters');
 					}
-					res.redirect('/cc_wizard?error='+errors.join(','));
+					res.redirect('/cc_wizard?error='+invalid_length_errors.join(','));
 					return;
 				}	
 
@@ -569,7 +596,9 @@ app.post('/cc_submit',check_auth,function(req,res){
 							return;
 						}
 
+						// This creates an array that is the same length as the split tags. Each element is filled with the community id.
 						let community_ids_arr = Array(tags_split.length).fill(community_id.rows[0].id);
+
 						pg_conn.client.query(
 							"INSERT INTO community_tags (community_id,tag) SELECT * FROM UNNEST ($1::integer[], $2::text[])",
 							[
@@ -582,7 +611,8 @@ app.post('/cc_submit',check_auth,function(req,res){
 									res.render('public/error',{error:'Could not insert tags for community'});
 									return;									
 								}
-						
+						        
+						        // This builds a new route for the community page
 								app.get(community_url, check_auth, function(com_req, com_res){
 								  com_res.render(
 								  	'private/cc_template',
@@ -639,31 +669,26 @@ app.post('/login',function(req,res){
 			if(err){
 				console.log(err);
 				res.render('public/error',{error:'Could not get user'});
-				return;
+			}else if(user_info && user_info.rows.length){
+				pwd_h.validate(
+						req.body.password,
+						user_info.rows[0].password,
+						user_info.rows[0].password_salt,
+						user_info.rows[0].password_iterations,
+						// Success_callback
+						function(){									
+							req.session.username = user_info.rows[0].username;
+							req.session.full_name = user_info.rows[0].name;
+							req.session.email = user_info.rows[0].email;								
+							res.redirect('/home');	
+						},
+						// Fail callback
+						function(){
+							res.redirect('/login?error=Invalid username or password');
+						}
+				);
 			}else{
-				if(user_info && user_info.rows.length){
-					pwd_h.validate(
-							req.body.password,
-							user_info.rows[0].password,
-							user_info.rows[0].password_salt,
-							user_info.rows[0].password_iterations,
-							//success_callback
-							function(){									
-								req.session.username = user_info.rows[0].username;
-								req.session.full_name = user_info.rows[0].name;
-								req.session.email = user_info.rows[0].email;								
-								res.redirect('/home');	
-							},
-							//fail callback
-							function(){
-								res.redirect('/login?error=Invalid username or password');
-								return;
-							}
-					);
-				}else{
-					res.redirect('/login?error=Invalid username or password');
-					return;
-				}
+				res.redirect('/login?error=Invalid username or password');
 			}
 		}
 	);
@@ -692,26 +717,35 @@ app.post('/register',function(req,res){
 		return;		
 	}
 
+	// This is a custom function I wrote that makes it easier to check whether the lengths of input strings are within the assigned VARCHAR limits
 	let invalid_lengths = pg_conn.invalid_lengths(
 		'users',
 		[
-			[req.body.full_name,'name'],
-			[req.body.username,'username'],
-			[req.body.email,'email'],
+			[
+				req.body.full_name, // Input string #1
+				'name' // Check input string #1's length against the VARCHAR limits for column 'name'
+			],
+			[
+				req.body.username,
+				'username'
+			],
+			[
+				req.body.email,
+				'email'
+			]
 		]
 	);
-
 	if(invalid_lengths.length){
-		let errors = [];
+		let invalid_length_errors = [];
 		for(var i in invalid_lengths){
 			let table_name = invalid_lengths[i].table_name;
-			errors.push(table_name.charAt(0).toUpperCase()+table_name.slice(1) + ' must be less than ' + invalid_lengths[i].limit + ' characters');
+			invalid_length_errors.push(table_name.charAt(0).toUpperCase()+table_name.slice(1) + ' must be less than ' + invalid_lengths[i].limit + ' characters');
 		}
-		res.redirect('/register?error='+errors.join(','));
+		res.redirect('/register?error='+invalid_length_errors.join(','));
 		return;
 	}	
 
-
+	// This custom method that check the password against the rules defined in the config file
 	let invalid_pwd_msgs = pwd_h.is_invalid(req.body.password);
 	if(invalid_pwd_msgs.length){
 		res.redirect('/register?req_errors='+invalid_pwd_msgs.join(','));
@@ -728,10 +762,9 @@ app.post('/register',function(req,res){
 		function(err,results){
 			if(err){
 				console.log(err);
-				res.render('public/error',{error:'Could check if username is already used'});
+				res.render('public/error',{error:'Could not check if username is already used'});
 				return;
-			}
-			if(results && results.rows.length == 0){
+			}else if(results && results.rows.length == 0){
 				pwd_h.hash(req.body.password,function(password){
 					pg_conn.client.query(
 						"INSERT INTO users (username,name,password,password_salt,password_iterations,email) "+
@@ -749,10 +782,8 @@ app.post('/register',function(req,res){
 								console.log(err);
 								res.render('public/error',{error:'Could not create user'});
 								return;
-							}else{
-								res.redirect('/login?message=Successfully registered!');
-								return;
 							}
+							res.redirect('/login?message=Successfully registered!');
 						}
 					);						
 				});
@@ -791,9 +822,8 @@ io.on('connection',function(socket){
 				console.log(err)
 				res.render('public/error',{error:'Could not get communities'});
 				return;
-			}else{
-				io.sockets.emit('communities',community_info.rows);
 			}
+			io.sockets.emit('communities',community_info.rows);
 		}
 	);
 });
