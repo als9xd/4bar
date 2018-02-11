@@ -745,7 +745,7 @@ app.post('/register',function(req,res){
 		return;
 	}	
 
-	// This custom method that check the password against the rules defined in the config file
+	// This is custom method that checks the password against the rules defined in the config file
 	let invalid_pwd_msgs = pwd_h.is_invalid(req.body.password);
 	if(invalid_pwd_msgs.length){
 		res.redirect('/register?req_errors='+invalid_pwd_msgs.join(','));

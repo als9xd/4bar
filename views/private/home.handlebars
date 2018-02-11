@@ -14,9 +14,11 @@
     <link rel="stylesheet" href="/css/home.css">
 
     <script src="/socket.io/socket.io.js"></script>
+
     <script type="text/javascript">
       let socket = io();
     </script>
+    
  </head>
 
   <body>
@@ -59,24 +61,22 @@
     </div>
 
     <div class="container" style="margin-top: 40px">
-        <div class="row">
-          <table class="table table-responsive">
-            <h2>Popular Communities</h2>
+      <div class="row">
+        <table class="table table-responsive">
+          <h2>Popular Communities</h2>
             <thead>
-                  <tr>
-                    <th scope="col"></th>
-                    <th scope="col" style="min-width: 150px"></th>
-                    <th scope="col">Description</th>
-                    <th scope="col">Recent Activity</th>
-                  </tr>
+              <tr>
+                <th scope="col"></th>
+                <th scope="col" style="min-width: 150px"></th>
+                <th scope="col">Description</th>
+                <th scope="col">Recent Activity</th>
+              </tr>
             </thead>
             <tbody id="c_table">
             </tbody>
-          </table>
-        </div>
+        </table>
       </div>
-    <script src="/js/url_parser.js"></script>
-    <script src="/js/url_message.js"></script> 
+    </div>
     
     {{#unless is_member}}
       <script type="text/javascript">
@@ -126,10 +126,12 @@
           
       });
     </script>
+
     <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb" crossorigin="anonymous"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script>
+  
   </body>
 
 </html>

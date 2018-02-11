@@ -52,6 +52,9 @@ module.exports = function(config){
 			return promises;
 		}
 
+		// Using promises allows us to check whether all the queries succeded without explicity chaining them together into a 'Callback christmas tree'
+		//
+		// Note: if one query fails the execution chain will stop.
 		Promise.all(__build_promises()).catch(
 			err => {
 				console.log(err);
