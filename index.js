@@ -391,7 +391,7 @@ app.get('/profile', check_auth, function(req, res){
 				return;
 			}
 
-			// Convert the community names rows to object an array so it is iterable by handlebars on the front end.
+			// Convert the community names rows object to an array so it is iterable by handlebars on the front end.
 			let c_names_arr = [];
 			for(let i in community_names.rows){
 				c_names_arr.push(community_names.rows[i].name);
@@ -468,7 +468,7 @@ app.post('/cc_submit',check_auth,function(req,res){
 	//   - icon filename
 	//   - wallaper filename
 	//
-	//  How this unique is generated is all white spaces are replaced with underscores and then all non alphanumeric characters are removed
+	//  How this unique is generated is all white spaces are replaced with underscores and then all non alphanumeric characters are removed. Then that string is converted to lowercase.
 	let unique_name = req.body.c_name.replace(/\s/g,'_').replace(/[^a-zA-Z0-9 ]/g,'').toLowerCase();
 	if(!unique_name.length){
 		res.redirect('/cc_wizard?error=Invalid Name');
