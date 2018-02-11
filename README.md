@@ -90,83 +90,35 @@ Note: this won't remove untracked files or folders
 
 #### Upload Code to the Repository
 
-1. Change directory to 4bar\ 
-2. type ```git pull``` to try to merge your local code with the newest available code on the repository
-3. type ```git add .``` to add all the files in your current directory
-4. type ```git commit -m "commit message"``` where 'commit message' is what you have updated or changed
-5. type ```git push``` to push your local code to the repository
+Its probably best to create a new branch for your project and then do a pull request. Here are a couple of links that I used to understand this functionality.
+
+[How a github workflow should look](https://guides.github.com/introduction/flow/)
+[How brances work](https://git-scm.com/book/id/v2/Git-Branching-Branches-in-a-Nutshell)
 
 Note: before you push your code make sure you aren't pushing any icons/wallpapers
 
 ### Directory Structure
 
-4BAR  
-├───ssl    
-│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└─── dev  
-│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└─── cert.pem    
-│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└─── key.pem   
-├───../ssl    
-│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└─── fullchain.pem      
-│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└─── privkey.pem  
-├───community_data  
-│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└─── icons  
-│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└─── wallpapers  
-├───node_modules  
-│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└─── ...  
-├───public  
-│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└─── css  
-│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└─── js  
-│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└─── *.html  
-├───views  
-│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└─── css  
-│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└─── js  
-│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└─── *.handlebars  
-├───connectors    
-│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└─── pg_connector.js  
-├───helpers  
-│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└─── passwords_helper.js     
-├───config.js  
-├───package.json    
-└───index.js  
+- 4bar/html 
+    * contains all front end non-handlebars files
 
-- 4BAR/ssl/dev - contains the self signed ssl certificate and key used when the 
- webserver is run within the dev (default) context
+- 4bar/views 
+    * contains all front end handlebars template files
 
-- 4BAR/../ssl - contains the letsencrypt signed ssl certficate and key used when
-the webserver is run within the prod context
+- 4bar/helpers
+    * contains all back end custom (but generalized) functions
 
-- 4BAR/community_data - Contains all files that communities upload 
+- 4bar/connectors
+    * contains all back end custom functions for interacting with specialized objects
 
-- 4BAR/community_data/icons - Contains all the icons for communities
+- 4bar/community_data
+    * contains all front end media (is available without authentication) 
 
-- 4BAR/community_data/wallpapers - Contains all the wallpapers for communities
+- 4bar/config.js
+    * contains all configuration settings for the webserver
 
-- 4BAR/node_modules - Contains all the modules that are required by index.js
-
-- 4BAR/public - Contains all the client-side files that don't require user 
-authentication. They don't necessarily have to all be .html they could also be
-.handlebars files
-
-- 4BAR/views - Contains all the client-side files that require user authentication. 
-They don't necessarily have to all be .handlebars they could also be .html files
-
-- 4BAR/connectors - Contains custom javascript packages that provide some interface to an node package
-
-- 4BAR/connectors/pg_connectors.js - Package that provides an interface to the 'pg' postgresql node package
-
-- 4BAR/helpers - Contains custom javascript packages that provide some non-node.js specific functionality
-
-- 4BAR/helpers/passwords_helper.js - Provides some added functionality for manipulating passwords
-
-- 4BAR/config.js - Contains configuration settings for webserver envirnments
-
-- 4BAR/package.json - Contains all the data used by npm (node package manager) that
-is required to get the node server up and running
-
-- 4BAR/index.js - This is the main node.js file (server)
-
-- 4BAR/public,views/js, 4BAR/public,views/css - These contain clientside javascript and css files for their parent
-directory. All are publically avaiable to clients without authentication
+- 4bar/index.js
+    * main webserver application
 
 # Postgresql Database
 

@@ -6,15 +6,16 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>4BAR - {{{c_name}}}</title>
+    <title>4BAR - Profile</title>
 
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
+    
+    <link rel="stylesheet" href="/css/public.css">
+    <link rel="stylesheet" href="/css/profile.css">
 
-    <link rel="stylesheet" href="/public.css">
-    <link rel="stylesheet" href="/cc_template.css">
   </head>
 
-  <body style="background:url('{{{c_wallpaper}}}') no-repeat center center fixed; background-size: cover;">
+  <body>
 
     <nav class="navbar navbar-toggleable-md navbar-inverse bg-inverse">
       <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target=".navbar-collapse" aria-expanded="false" aria-label="Toggle navigation">
@@ -28,30 +29,59 @@
           <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
         </form>
         <ul class="navbar-nav ml-auto">
-          <li class="nav-item active">
-            <a class="nav-link" href="/home">Home <span class="sr-only">(current)</span></a>
+          <li class="nav-item">
+            <a class="nav-link" href="/home">Home</a>
           </li>
           <li class="nav-item">
             <a class="nav-link" href="/cc_wizard">Community Creation</a>
           </li>
-          <li class="nav-item dropdown">
+          <li class="nav-item dropdown active">
             <a class="nav-link dropdown-toggle" href="#" id="dropdown01" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{{username}}}'s Profile</a>
             <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdown01">
-              <a class="dropdown-item" href="\profile">View</a>
-              <a class="dropdown-item" href="\logout">Logout</a>
+              <a class="dropdown-item" href="/profile">View</a>
+              <a class="dropdown-item" href="/logout">Logout</a>
             </div>
           </li>
         </ul>
       </div>
     </nav>
-
-    <div class="jumbotron" style="padding: 10px">
-      <div class="container">
-        <h4 style="text-align: center;">Welcome to the {{{c_name}}} community!</h4>
+    
+    <div class="container profile-container">
+      <div class="row">
+        <table class="table">
+          <thead>
+            <h2>My Profile</h2>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">Name</th>
+              <td>{{full_name}}</td>
+            </tr>
+            <tr>
+              <th scope="row">Username</th>
+              <td>{{{username}}}</td>
+            </tr>
+            <tr>
+              <th scope="row">Contact</th>
+              <td>{{{email}}}</td>
+            </tr>
+            <tr>
+              <th scope="row">Communities</th>
+              <td>
+                <ul>
+                  {{#each c_names}}
+                      <li>{{ this }}</li>
+                  {{/each}}
+                </ul>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.1.1.slim.min.js" integrity="sha384-A7FZj7v+d/sdmMqp/nOQwliLvUsJfDHW+k9Omg/a/EheAdgtzNs3hpfag6Ed950n" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb" crossorigin="anonymous"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script>
 
