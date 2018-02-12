@@ -15,6 +15,8 @@
 
     <link rel="stylesheet" href="/css/jquery.tagsinput.css"> 
 
+    <link rel="stylesheet" href="/css/app_layouts_engine.css">
+
   </head>
 
   <body>
@@ -94,6 +96,58 @@
       </div>
     </div>
 
+    <div id="app-layouts-engine">
+      <div class="row">
+        <legend class="text-center">Available Applications</legend>
+        <div class='container' id="available-apps-container">
+          <div id="available-apps-holder">
+            <table class="table table-bordered app">
+            <thead>
+              <tr>
+                <th>Firstname</th>
+                <th>Lastname</th>
+                <th>Email</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>John</td>
+                <td>Doe</td>
+                <td>john@example.com</td>
+              </tr>
+              <tr>
+                <td>Mary</td>
+                <td>Moe</td>
+                <td>mary@example.com</td>
+              </tr>
+              <tr>
+                <td>July</td>
+                <td>Dooley</td>
+                <td>july@example.com</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="app">Moving them anywhere else isn't quite possible</div>
+          <div class="app">There's also the possibility of moving elements around in the same container, changing their position</div>
+          </div>
+        </div>
+      </div>
+
+
+      <div class="row">
+        <legend class="text-center">Community Page Applications Layout</legend>
+        <div class="container" id="app-layouts-container">
+          Rows: 
+          <div class="btn-group btn-group-lg">
+            <button class="btn btn-primary btn-lg" onclick="ale.add_row()">+</button>
+            <button class="btn btn-primary btn-lg" onclick="ale.remove_row()">-</button>        
+          </div>
+          <div id="app-layouts-holder"></div>    
+        </div>
+      </div>    
+
+    </div>
+
     <script src="/js/url_parser.js"></script>
     <script src="/js/url_message.js"></script> 
 
@@ -107,6 +161,11 @@
       $('#c_tags').tagsInput();
     </script>
 
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/dragula/3.7.2/dragula.min.js'></script>
+    <script src='/js/app_layouts_engine.js'></script>
+    <script type="text/javascript">
+      let ale = app_layouts_engine();
+    </script>
   </body>
 
 </html>
