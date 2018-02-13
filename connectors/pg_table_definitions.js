@@ -9,13 +9,13 @@ module.exports = function(config){
 				'password_salt VARCHAR('+Math.ceil(config.crypto.password.salt_bytes*(4/3)/4) * 4+') NOT NULL,'+
 				'password_iterations NUMERIC NOT NULL,'+
 				'email VARCHAR('+config.pg.varchar_limits.users.email+')'+
-			')'		
+			')'
 		,
-		communities: 
+		communities:
 			'CREATE TABLE IF NOT EXISTS communities('+
 				'id SERIAL PRIMARY KEY,'+
 				'name VARCHAR('+config.pg.varchar_limits.communities.name+') UNIQUE NOT NULL,'+
-				'unique_name VARCHAR('+config.pg.varchar_limits.communities.unique_name+') UNIQUE NOT NULL,'+				
+				'unique_name VARCHAR('+config.pg.varchar_limits.communities.unique_name+') UNIQUE NOT NULL,'+
 				'url TEXT UNIQUE NOT NULL,'+
 				'description TEXT,'+
 				'icon TEXT,'+
@@ -31,13 +31,13 @@ module.exports = function(config){
 				'UNIQUE (community_id,tag)'+
 			')'
 		,
-		community_members: 
+		community_members:
 			'CREATE TABLE IF NOT EXISTS community_members('+
 				'user_id NUMERIC NOT NULL,'+
 				'community_id NUMERIC NOT NULL,'+
 				'privilege_level NUMERIC NOT NULL,'+
 				'UNIQUE (user_id,community_id)'+
-			')'	
+			')'
 		,
 		community_stats:
 			'CREATE TABLE IF NOT EXISTS community_stats('+
@@ -45,6 +45,24 @@ module.exports = function(config){
 				'community_id NUMERIC NOT NULL,'+
 				'stat_name VARCHAR('+config.pg.varchar_limits.community_stats.stat_name+') NOT NULL,'+
 				'stat_value VARCHAR('+config.pg.varchar_limits.community_stats.stat_value+') NOT NULL'+
+			')'
+		,
+		games:
+			'CREATE TABLE IF NOT EXISTS games('+
+				'game_id TEXT NOT NULL'+
+				'game_desc TEXT NOT NULL'+
+				'platform_id TEXT NOT NULL'+
+				'UNIQUE (game_id)'
+			')'
+		,
+		market_items:
+			'CREATE TABLE IF NOT EXISTS market_items('+
+				'item_number NUMERIC NOT NULL'+
+				'item_name VARCHAR('+config.pg.varchar_limits.market_items.item_name+') NOT NULL'+
+				'item_desc TEXT NOT NULL'+
+				'item_price DECIMAL NOT NULL'+
+				'seller_id NUMERIC NOT NULL'+
+				'UNIQUE (seller_id,item_number)'
 			')'
 	}
 };
