@@ -50,12 +50,12 @@ module.exports = function(config){
 		platforms:
 			'CREATE TABLE IF NOT EXISTS platforms('+
 		  		'id SERIAL PRIMARY KEY,'+
-				'name VARCHAR('+config.pg.varchar_limits.platforms.name+') UNIQUE NOT NUL'+
+				'name VARCHAR('+config.pg.varchar_limits.platforms.name+') UNIQUE NOT NULL'+
 			')'
 		,
 		games:
 			'CREATE TABLE IF NOT EXISTS games('+
-		                'id SERIAL PRIMARY KEY,'+
+				'id SERIAL PRIMARY KEY,'+
 				'title VARCHAR('+config.pg.varchar_limits.games.title+') UNIQUE NOT NULL,'+
 				'description TEXT,'+
 				'platform_id NUMERIC NOT NULL'+
@@ -67,7 +67,7 @@ module.exports = function(config){
 				'name VARCHAR('+config.pg.varchar_limits.market_items.name+') NOT NULL,'+
 				'description TEXT,'+
 				'price DECIMAL NOT NULL,'+
-				'user_id NUMERIC NOT NUL'+
+				'user_id NUMERIC NOT NULL'+
 			')'
 	}
 };
