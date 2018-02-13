@@ -47,22 +47,27 @@ module.exports = function(config){
 				'stat_value VARCHAR('+config.pg.varchar_limits.community_stats.stat_value+') NOT NULL'+
 			')'
 		,
+		platforms:
+			'CREATE TABLE IF NOT EXISTS platforms('+
+		  		'id SERIAL PRIMARY KEY,'+
+				'name VARCHAR('+config.pg.varchar_limits.platforms.name+') UNIQUE NOT NUL'+
+			')'
+		,
 		games:
 			'CREATE TABLE IF NOT EXISTS games('+
-				'game_id TEXT NOT NULL'+
-				'game_desc TEXT NOT NULL'+
-				'platform_id TEXT NOT NULL'+
-				'UNIQUE (game_id)'
+		                'id SERIAL PRIMARY KEY,'+
+				'title VARCHAR('+config.pg.varchar_limits.games.title+') UNIQUE NOT NULL,'+
+				'description TEXT,'+
+				'platform_id NUMERIC NOT NULL'+
 			')'
 		,
 		market_items:
 			'CREATE TABLE IF NOT EXISTS market_items('+
-				'item_number NUMERIC NOT NULL'+
-				'item_name VARCHAR('+config.pg.varchar_limits.market_items.item_name+') NOT NULL'+
-				'item_desc TEXT NOT NULL'+
-				'item_price DECIMAL NOT NULL'+
-				'seller_id NUMERIC NOT NULL'+
-				'UNIQUE (seller_id,item_number)'
+				'id SERIAL PRIMARY KEY,'+
+				'name VARCHAR('+config.pg.varchar_limits.market_items.name+') NOT NULL,'+
+				'description TEXT,'+
+				'price DECIMAL NOT NULL,'+
+				'user_id NUMERIC NOT NUL'+
 			')'
 	}
 };
