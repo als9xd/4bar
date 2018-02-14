@@ -51,7 +51,7 @@ let app_layouts_engine = function(){
     new_row_button_group.appendChild(new_row_remove_button);
 
     app_rows_holder.appendChild(new_row);
-    $('html, body').scrollTop( $(document).height());
+    // $('html, body').scrollTop( $(document).height());
   }
 
   this.remove_row = function(){

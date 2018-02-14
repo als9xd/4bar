@@ -1,3 +1,13 @@
+html, body, .layout-page, .layout, #layout-img{
+    min-height: 100% !important;
+    height: 100%;
+}
+
+.layout-page {
+    position: relative;
+    text-align: center;
+}
+
 .gu-mirror {
   position: fixed !important;
   margin: 0 !important;
@@ -36,6 +46,7 @@
   margin-top: 10px;
   border-top: 1px black solid;
   padding-top: 10px;
+  margin-bottom: 10px;
 }
 
 .app{
@@ -45,22 +56,35 @@
     background-color: #f2f2f2;
     margin-top:10px;
     margin-bottom:10px;
+    margin-left:auto;
+    margin-right: auto;
 }
 
 .app-column{
   border: thin solid #ccc;
   min-height:100px;
   float:left;
-  margin-left:10px;
-  padding:3px;
+  border-radius:10px;
+  padding: 10px;
+  margin-right: 10px;
 }
 
 .apps-row{
   margin-top:10px;
   margin-bottom:10px;
   min-height:100px;
+  margin-left: 10px;
+  margin-right: 10px;
 }
 
 #app-layouts-holder{
-  margin-top: 20px;
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translate(-50%, 0);
+  width: 100%;
+}
+
+#layout-img{
+  width: 100%;
 }
