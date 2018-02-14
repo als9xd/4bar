@@ -6,16 +6,18 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>4BAR - {{{c_name}}}</title>
+    <title>4BAR - {{{c_name}}} - layout</title>
 
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
 
     <link rel="stylesheet" href="/css/public.css">
     <link rel="stylesheet" href="/css/cc_template.css">
 
+    <link rel="stylesheet" href="/css/app_layouts_engine.css">
+
   </head>
 
-  <body style="background:url('{{{c_wallpaper}}}') no-repeat center center fixed; background-size: cover;">
+  <body>
 
     <nav class="navbar navbar-toggleable-md navbar-inverse bg-inverse">
       <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target=".navbar-collapse" aria-expanded="false" aria-label="Toggle navigation">
@@ -46,17 +48,59 @@
       </div>
     </nav>
 
-    <div class="jumbotron" style="padding: 10px">
-      <div class="container">
-        <h4 style="text-align: center;">Welcome to the {{{c_name}}} community! 
-          <form method="post" role="form" action="/c_join:{{{c_id}}}" encType="multipart/form-data" style="display:inline-block;"><button class="btn btn-primary">Join</button>
-          </form>
-          <a class="btn btn-primary" style="color:white" href="{{{c_url}}}/layout">Edit Layout</a>
-        </h4>
+    <div id="app-layouts-engine">
+      <div class="row">
+        <legend class="text-center">Available Applications</legend>
+        <div class='container' id="available-apps-container">
+          <div id="available-apps-holder">
+            <div class="app"><h1>Counter Strike: Global Offensive</h1></div>
+            <table class="table table-bordered app">
+            <thead>
+              <tr>
+                <th>Username</th>
+                <th>Team</th>
+                <th>K/D</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>John</td>
+                <td>Doe</td>
+                <td>1</td>
+              </tr>
+              <tr>
+                <td>Mary</td>
+                <td>Moe</td>
+                <td>2</td>
+              </tr>
+              <tr>
+                <td>July</td>
+                <td>Dooley</td>
+                <td>4.2</td>
+              </tr>
+            </tbody>
+          </table>
+          ​<div class="app" style="width:500px;height:350px;"><center><iframe width="450" height="300" src="https://www.youtube.com/embed/yeU2K8u_BJw" frameborder="0" allow="encrypted-media" allowfullscreen></iframe></center></div>
+          <div class="app" ><a href="#"><h3 style="text-align:center">Community Forums</h3><a></div>
+          </div>
+        </div>
+      </div>
 
-        <div id="success_container" style="margin-top:20px;"></div>
-        <div id="error_container" style="margin-top:20px;"></div>
+      <div class="row">
+        <legend class="text-center">Community Page Applications Layout</legend>
+        <div class="container" id="app-layouts-container">
+          Rows: 
+          <div class="btn-group btn-group-lg">
+            <button class="btn btn-primary btn-lg" onclick="ale.add_row()">+</button>
+            <button class="btn btn-primary btn-lg" onclick="ale.remove_row()">-</button>        
+          </div> 
+        </div>
+      </div> 
+    </div>
 
+    <div class="layout-page">
+      <img src="{{{c_wallpaper}}}" id="layout-img">
+      <div id="app-layouts-holder"></div>    
       </div>
     </div>
 
@@ -67,6 +111,12 @@
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb" crossorigin="anonymous"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script>
+
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/dragula/3.7.2/dragula.min.js'></script>
+    <script src='/js/app_layouts_engine.js'></script>
+    <script type="text/javascript">
+      let ale = app_layouts_engine();
+    </script>
 
   </body>
 

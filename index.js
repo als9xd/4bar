@@ -314,7 +314,19 @@ pg_conn.client.query(
 				res.render(
 					'private/cc_template',
 					{
-						username: com_req.session.username,
+						username: req.session.username,
+						c_name: community_info.rows[i].name,
+						c_wallpaper: community_info.rows[i].wallpaper,
+						c_id: community_info.rows[i].id,
+						c_url: community_info.rows[i].url
+					}
+				);
+			});
+			app.get(community_info.rows[i].url+'/layout', check_auth, function(req, res){
+				res.render(
+					'private/cc_layout',
+					{
+						username: req.session.username,
 						c_name: community_info.rows[i].name,
 						c_wallpaper: community_info.rows[i].wallpaper,
 						c_id: community_info.rows[i].id
@@ -616,6 +628,18 @@ app.post('/cc_submit',check_auth,function(req,res){
 								app.get(community_url, check_auth, function(com_req, com_res){
 								  com_res.render(
 								  	'private/cc_template',
+								  	{
+								  		username: com_req.session.username,
+								  		c_name: req.body.c_name,
+								  		c_wallpaper: wallpaper_url, 
+								  		c_id: community_id.rows[0].id,
+								  		c_url: community_id.rows[0].id
+								  	});
+								});
+
+								app.get(community_url+'/layout', check_auth, function(com_req, com_res){
+								  com_res.render(
+								  	'private/cc_layout',
 								  	{
 								  		username: com_req.session.username,
 								  		c_name: req.body.c_name,
