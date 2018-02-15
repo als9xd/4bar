@@ -13,18 +13,17 @@
     <link rel="stylesheet" href="/css/public.css">
     <link rel="stylesheet" href="/css/cc_template.css">
 
-    <link rel="stylesheet" href="/css/cc_layout.css">
+    <link rel="stylesheet" href="/css/widget_layout_engine.css">
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
       let socket = io();
 
       window.addEventListener('load',function(){
-        socket.emit('apps_req',{{{c_id}}});
+        socket.emit('widgets_req',{{{c_id}}});
 
-          socket.on('apps_res',function (app_data) {
-            console.log(app_data);
-            ale.build_app(app_data,document.getElementById('app-layouts-holder'));
+          socket.on('widgets_res',function (widget_data) {
+            wle.build_widget(widget_data,document.getElementById('widget-layouts-holder'));
           });
       })  
 
@@ -77,11 +76,11 @@
       </div>
     </div>
     
-    <div class="app-layouts-container">
-        <img src="{{{c_wallpaper}}}" class="apps-layout-background">
-        <div id="app-layouts-holder"></div>    
-        </div>
-      </div>  
+    <div class="widget-layouts-container">
+      <img src="{{{c_wallpaper}}}" class="widgets-layout-background">
+      <div id="widget-layouts-holder"></div>    
+      </div>
+    </div>  
 
 
     <script src="/js/url_parser.js"></script>
@@ -95,9 +94,10 @@
 
 
     <script src='https://cdnjs.cloudflare.com/ajax/libs/dragula/3.7.2/dragula.min.js'></script>
-    <script src='/js/apps_layout_engine.js'></script>
+    <script src='/js/widget_ui_definitions.js'></script>
+    <script src='/js/widget_layout_engine.js'></script>
     <script type="text/javascript">
-      let ale = apps_layout_engine();
+      let wle = widgets_layout_engine(WidgetUIDefinitions);
     </script>
 
   </body>
