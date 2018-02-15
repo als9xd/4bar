@@ -149,8 +149,22 @@ const web_apps = {
 				}
 			)			
 		},
-		add: function(){
-
+		add: function(community_id,data,callback){
+			pg_conn.client.query(
+				"INSERT INTO twitter_app (community_id,url) "+
+				"VALUES ($1,$2)",
+				[
+					community_id,
+					data.url
+				],
+				function(err){
+					if(err){
+						console.log(err);
+						return;
+					}
+					callback(err);
+				}
+			)
 		}
 	}	
 }
