@@ -85,17 +85,7 @@
         });
 
     });
-    function submit_layout(){
-      socket.emit('layout_submit',{ community_id : {{{c_id}}}, layout : wle.summarize_template() });
-    }
 
-    function widget_submit(type,input){
-      socket.emit('widget_submit',{
-        community_id: {{{c_id}}},
-        type:type,
-        data:input
-      });
-    }
     </script>
 
   </head>
@@ -142,7 +132,7 @@
                 </div>
 
                 <div class="form-group">
-                    <button class="btn btn-primary" onclick="widget_submit('youtube',{url:document.getElementById('youtube_url').value})">Create</button>
+                    <button class="btn btn-primary" onclick="socket.emit('widget_submit',{community_id:{{{c_id}}},type:'youtube',data:{url:document.getElementById('youtube_url').value}});">Create</button>
                 </div>
 
                 <legend class="text-center">Twitter</legend>
@@ -152,7 +142,7 @@
                 </div>
 
                 <div class="form-group">
-                    <button class="btn btn-primary" onclick="widget_submit('twitter',{url:document.getElementById('twitter_url').value})">Create</button>
+                    <button class="btn btn-primary" onclick="socket.emit('widget_submit',{community_id:{{{c_id}}},type:'twitter',data:{url:document.getElementById('twitter_url').value}});">Create</button>
                 </div>
 
                 <hr>
@@ -178,7 +168,7 @@
           <button class="btn btn-primary btn-lg" onclick="wle.add_layout_row(document.getElementById('widget-layouts-holder'))">+</button>
           <button class="btn btn-primary btn-lg" onclick="wle.remove_template_row(document.getElementById('widget-layouts-holder'))">-</button>        
         </div>
-      <button class="btn btn-primary btn-lg" onclick="submit_layout()">Save</button>
+      <button class="btn btn-primary btn-lg" onclick="socket.emit('layout_submit',{ community_id : {{{c_id}}}, layout : wle.summarize_template() });">Save</button>
         <div id="layout_success_container" style="margin-top:20px;"></div>
         <div id="layout_error_container" style="margin-top:20px;"></div>
       </div>
