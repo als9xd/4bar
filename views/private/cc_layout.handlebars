@@ -85,7 +85,16 @@
         });
 
     });
-
+    function widget_submit(type,input){
+      socket.emit('widget_submit',
+        {
+          community_id:{{{c_id}}},
+          type:type,
+          data:input
+        }
+      );
+    }
+    
     </script>
 
   </head>
@@ -137,12 +146,12 @@
 
                 <legend class="text-center">Twitter</legend>
                 <div class="form-group">
-                  <label for="twitter_url"><span class="req">* </span> Url: </label>
-                  <input required type="text" name="twitter_url" id="twitter_url" class="form-control" autocomplete="off" /> 
+                  <label for="twitter_screen_name"><span class="req">* </span> Account Name: </label>
+                  <input required type="text" name="twitter_screen_name" id="twitter_screen_name" class="form-control" autocomplete="off" /> 
                 </div>
 
                 <div class="form-group">
-                    <button class="btn btn-primary" onclick="socket.emit('widget_submit',{community_id:{{{c_id}}},type:'twitter',data:{url:document.getElementById('twitter_url').value}});">Create</button>
+                    <button class="btn btn-primary" onclick="widget_submit('twitter',{screen_name:document.getElementById('twitter_screen_name').value});">Create</button>
                 </div>
 
                 <hr>

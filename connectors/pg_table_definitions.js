@@ -51,14 +51,14 @@ module.exports = function(config){
 			'CREATE TABLE IF NOT EXISTS youtube_app('+
 				'id SERIAL PRIMARY KEY,'+
 				'community_id NUMERIC NOT NULL,'+
-				'url VARCHAR(255) NOT NULL'+
+				'url TEXT NOT NULL'+
 			')'
 		,
 		twitter_app:
 			'CREATE TABLE IF NOT EXISTS twitter_app('+
 				'id SERIAL PRIMARY KEY,'+
 				'community_id NUMERIC NOT NULL,'+
-				'url VARCHAR(255) NOT NULL'+
+				'url TEXT NOT NULL'+
 			')'
 	}
 };
