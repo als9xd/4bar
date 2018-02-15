@@ -13,9 +13,26 @@
     <link rel="stylesheet" href="/css/public.css">
     <link rel="stylesheet" href="/css/cc_template.css">
 
+    <link rel="stylesheet" href="/css/cc_layout.css">
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      let socket = io();
+
+      window.addEventListener('load',function(){
+        socket.emit('apps_req',{{{c_id}}});
+
+          socket.on('apps_res',function (app_data) {
+            console.log(app_data);
+            ale.build_app(app_data,document.getElementById('app-layouts-holder'));
+          });
+      })  
+
+    </script>
+
   </head>
 
-  <body style="background:url('{{{c_wallpaper}}}') no-repeat center center fixed; background-size: cover;">
+  <body>
 
     <nav class="navbar navbar-toggleable-md navbar-inverse bg-inverse">
       <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target=".navbar-collapse" aria-expanded="false" aria-label="Toggle navigation">
@@ -59,14 +76,29 @@
 
       </div>
     </div>
+    
+    <div class="app-layouts-container">
+        <img src="{{{c_wallpaper}}}" class="apps-layout-background">
+        <div id="app-layouts-holder"></div>    
+        </div>
+      </div>  
+
 
     <script src="/js/url_parser.js"></script>
     <script src="/js/url_message.js"></script> 
 
     <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
-    
+    <script type="text/javascript" src="/js/jquery.load_script.js"></script>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb" crossorigin="anonymous"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script>
+
+
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/dragula/3.7.2/dragula.min.js'></script>
+    <script src='/js/apps_layout_engine.js'></script>
+    <script type="text/javascript">
+      let ale = apps_layout_engine();
+    </script>
 
   </body>
 

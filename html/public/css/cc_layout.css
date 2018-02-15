@@ -1,11 +1,6 @@
-html, body, .layout-page, .layout, #layout-img{
+html, body, .app-layouts-engine, .app-layouts-container, .apps-layout-background{
     min-height: 100% !important;
     height: 100%;
-}
-
-.layout-page {
-    position: relative;
-    text-align: center;
 }
 
 .gu-mirror {
@@ -37,19 +32,18 @@ html, body, .layout-page, .layout, #layout-img{
   cursor: -webkit-grabbing;
 }
 
-#app-layouts-engine{
+.app-layouts-engine{
   margin-top: 20px;
 }
 
-#available-apps-container,
-#app-layouts-container{
+.available-apps-container,
+.app-layouts-container{
   margin-top: 10px;
-  border-top: 1px black solid;
   padding-top: 10px;
   margin-bottom: 10px;
 }
 
-.app{
+.app-container{
     border: thin solid #ccc;
     border-radius: 4px;
     padding: 20px;
@@ -61,7 +55,6 @@ html, body, .layout-page, .layout, #layout-img{
 }
 
 .app-column{
-  border: thin solid #ccc;
   min-height:100px;
   float:left;
   border-radius:10px;
@@ -69,12 +62,28 @@ html, body, .layout-page, .layout, #layout-img{
   margin-right: 10px;
 }
 
+
+.no-border{
+  border:none;
+}
 .apps-row{
   margin-top:10px;
   margin-bottom:10px;
   min-height:100px;
   margin-left: 10px;
   margin-right: 10px;
+}
+
+.app-layouts-header,
+.available-apps-header{
+  border-bottom: 2px solid black;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.app-layouts-container {
+  position: relative;
+  text-align: center;
 }
 
 #app-layouts-holder{
@@ -85,6 +94,10 @@ html, body, .layout-page, .layout, #layout-img{
   width: 100%;
 }
 
-#layout-img{
+#available-apps-holder{
+}
+
+.apps-layout-background{
   width: 100%;
 }
+

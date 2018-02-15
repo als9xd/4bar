@@ -17,6 +17,7 @@
 
     <script type="text/javascript">
       let socket = io();
+      socket.emit('communities_req');
     </script>
     
  </head>
@@ -77,7 +78,7 @@
         </table>
       </div>
     </div>
-    
+
     {{#unless is_member}}
       <script type="text/javascript">
       document.getElementById('no-communities').style="display:block;"
@@ -86,7 +87,7 @@
 
     <script type="text/javascript">
       const c_table = document.getElementById('c_table');
-      socket.on('communities',function(coms){
+      socket.on('communities_res',function(coms){
         while (c_table.firstChild) {
             c_table.removeChild(c_table.firstChild);
         }

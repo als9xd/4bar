@@ -46,5 +46,19 @@ module.exports = function(config){
 				'stat_name VARCHAR('+config.pg.varchar_limits.community_stats.stat_name+') NOT NULL,'+
 				'stat_value VARCHAR('+config.pg.varchar_limits.community_stats.stat_value+') NOT NULL'+
 			')'
+		,
+		youtube_app:
+			'CREATE TABLE IF NOT EXISTS youtube_app('+
+				'id SERIAL PRIMARY KEY,'+
+				'community_id NUMERIC NOT NULL,'+
+				'url VARCHAR(255) NOT NULL'+
+			')'
+		,
+		twitter_app:
+			'CREATE TABLE IF NOT EXISTS twitter_app('+
+				'id SERIAL PRIMARY KEY,'+
+				'community_id NUMERIC NOT NULL,'+
+				'url VARCHAR(255) NOT NULL'+
+			')'
 	}
 };

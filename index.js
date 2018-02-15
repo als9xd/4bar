@@ -64,6 +64,99 @@ const pg_conn = require('./connectors/pg_connector')(config[env]);
 pg_conn.build();
 
 //////////////////////////////////////////////////////////////////////
+// Web application data retrieval definitions
+//////////////////////////////////////////////////////////////////////
+
+const web_apps = {
+	youtube: {
+		get: function(app_id,callback){
+			pg_conn.client.query(
+				"SELECT id,url FROM youtube_app WHERE id = $1",
+				[
+					app_id
+				],
+				function(err,results){
+					if(err){
+						console.log(err);
+						return;
+					}
+					callback(results.rows);
+				}
+			)
+		},
+		available: function(community_id,callback){
+			pg_conn.client.query(
+				"SELECT id,url FROM youtube_app WHERE community_id = $1",
+				[
+					community_id
+				],
+				function(err,results){
+					if(err){
+						console.log(err);
+						return;
+					}
+					callback(results.rows);
+				}
+			)
+		},
+		add: function(community_id,data,callback){
+			pg_conn.client.query(
+				"INSERT INTO youtube_app (community_id,url) "+
+				"VALUES ($1,$2)",
+				[
+					community_id,
+					data.url
+				],
+				function(err){
+					if(err){
+						console.log(err);
+						return;
+					}
+					callback(err);
+				}
+			)
+		}
+
+	},
+	twitter: {
+		get: function(app_id,callback){
+			pg_conn.client.query(
+				"SELECT id,url FROM twitter_app WHERE id = $1",
+				[
+					app_id
+				],
+				function(err,results){
+					if(err){
+						console.log(err);
+						return;
+					}
+					callback(results.rows);
+				}
+			)
+		},
+		available: function(community_id,callback){
+			pg_conn.client.query(
+				"SELECT id,url FROM twitter_app WHERE community_id = $1",
+				[
+					community_id
+				],
+				function(err,results){
+					if(err){
+						console.log(err);
+						return;
+					}
+					callback(results.rows);
+				}
+			)			
+		},
+		add: function(){
+
+		}
+	}	
+}
+
+
+//////////////////////////////////////////////////////////////////////
 // Express handles all the routing. This is discussed in more detail further
 // down
 //////////////////////////////////////////////////////////////////////
@@ -327,7 +420,6 @@ pg_conn.client.query(
 					'private/cc_layout',
 					{
 						username: req.session.username,
-						c_name: community_info.rows[i].name,
 						c_wallpaper: community_info.rows[i].wallpaper,
 						c_id: community_info.rows[i].id
 					}
@@ -633,16 +725,16 @@ app.post('/cc_submit',check_auth,function(req,res){
 								  		c_name: req.body.c_name,
 								  		c_wallpaper: wallpaper_url, 
 								  		c_id: community_id.rows[0].id,
-								  		c_url: community_id.rows[0].id
+								  		c_url: community_id.rows[0].url
 								  	});
 								});
 
+								// Build that communities layout customization route
 								app.get(community_url+'/layout', check_auth, function(com_req, com_res){
 								  com_res.render(
 								  	'private/cc_layout',
 								  	{
 								  		username: com_req.session.username,
-								  		c_name: req.body.c_name,
 								  		c_wallpaper: wallpaper_url, 
 								  		c_id: community_id.rows[0].id
 								  	});
@@ -701,6 +793,7 @@ app.post('/login',function(req,res){
 						user_info.rows[0].password_iterations,
 						// Success_callback
 						function(){									
+							req.session.user_id = user_info.rows[0].id;
 							req.session.username = user_info.rows[0].username;
 							req.session.full_name = user_info.rows[0].name;
 							req.session.email = user_info.rows[0].email;								
@@ -839,15 +932,87 @@ server.listen(config[env].server.https.port,function(){
 //////////////////////////////////////////////////////////////////////
 
 io.on('connection',function(socket){
-	pg_conn.client.query(
-		"SELECT name,description,icon,wallpaper,last_activity,url FROM communities",
-		function(err,community_info){
-			if(err){
-				console.log(err)
-				res.render('public/error',{error:'Could not get communities'});
-				return;
+	
+	socket.on('communities_req',function(){
+		pg_conn.client.query(
+			"SELECT name,description,icon,wallpaper,last_activity,url FROM communities",
+			function(err,community_info){
+				if(err){
+					console.log(err)
+					res.render('public/error',{error:'Could not get communities'});
+					return;
+				}
+				socket.emit('communities_res',community_info.rows);
 			}
-			io.sockets.emit('communities',community_info.rows);
+		);
+	});
+
+	socket.on('apps_req',function(community_id){
+		pg_conn.client.query(
+			"SELECT layout FROM communities WHERE id = $1 LIMIT 1",
+			[
+				community_id
+			],
+			function(err,results){
+				if(err){
+					console.log(err);
+					return;
+				}
+
+				let layout = JSON.parse(results.rows[0].layout);
+				if(layout){
+					//socket.emit('apps_layout_res',layout);
+					for(let i in layout){
+						if(layout.hasOwnProperty(i)){
+							web_apps[layout[i].type].get(layout[i].id,function(apps){
+								for(let r = 0; r < apps.length;r++){
+									layout[i].data = apps[r];
+									socket.emit('apps_res',layout[i]);								
+								}
+							});
+						}
+					}
+				}
+			}
+		);		
+	});
+
+	socket.on('apps_layout_submit',function(data){
+		pg_conn.client.query(
+			"UPDATE communities "+
+			"SET layout = $1 "+
+			"WHERE id = $2",
+			[
+				JSON.stringify(data.layout),
+				data.community_id
+			],function(err,results){
+				if(err){
+					console.log(err);
+				}
+			}
+		);
+	});
+
+	socket.on('available_apps_req',function(community_id){
+		for(let i in web_apps){
+			if(web_apps.hasOwnProperty(i)){
+				web_apps[i].available(community_id,function(results){
+					for(let r = 0; r < results.length;r++){
+						socket.emit('available_apps_res',{type:i,id:results[r].id,data:results[r]});	
+					}
+				});
+			}
 		}
-	);
+	});
+
+	socket.on('app_submit',function(app){
+		web_apps[app.type].add(app.community_id,app.data,function(err){
+			if(err){
+				socket.emit('app_submit_status',{error:'Application creation failed'});
+			}else{
+				socket.emit('app_submit_status',{message:'Successfully created application'});
+			}
+		});
+	});
+
 });
