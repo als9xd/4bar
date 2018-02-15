@@ -23,7 +23,6 @@
         socket.emit('available_apps_req',{{{c_id}}});
         socket.on('available_apps_res',
           function(app){
-            console.log(app);
             ale.add_available_app(
               {
                 type:app.type,
@@ -56,7 +55,7 @@
               document.getElementById('success_container').appendChild(msg_alert);             
             }
           }
-          socket.emit('apps_req',{{{c_id}}});
+          socket.emit('available_apps_req',{{{c_id}}});
         });
     });
     function submit_layout(){

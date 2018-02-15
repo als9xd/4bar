@@ -725,7 +725,7 @@ app.post('/cc_submit',check_auth,function(req,res){
 								  		c_name: req.body.c_name,
 								  		c_wallpaper: wallpaper_url, 
 								  		c_id: community_id.rows[0].id,
-								  		c_url: community_id.rows[0].url
+								  		c_url: community_url
 								  	});
 								});
 
