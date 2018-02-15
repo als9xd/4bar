@@ -1,6 +1,10 @@
-html, body, .app-layouts-engine, .app-layouts-container, .apps-layout-background{
+html, body, .widget-layouts-engine, .widget-layouts-container, .widgets-layout-background{
     min-height: 100% !important;
     height: 100%;
+}
+
+.jumbotron{
+  margin-bottom: 0;
 }
 
 .gu-mirror {
@@ -32,18 +36,15 @@ html, body, .app-layouts-engine, .app-layouts-container, .apps-layout-background
   cursor: -webkit-grabbing;
 }
 
-.app-layouts-engine{
+.widget-layouts-engine{
   margin-top: 20px;
 }
 
-.available-apps-container,
-.app-layouts-container{
-  margin-top: 10px;
-  padding-top: 10px;
-  margin-bottom: 10px;
+.available-widgets-container,
+.widget-layouts-container{
 }
 
-.app-container{
+.widget-container{
     border: thin solid #ccc;
     border-radius: 4px;
     padding: 20px;
@@ -54,7 +55,7 @@ html, body, .app-layouts-engine, .app-layouts-container, .apps-layout-background
     margin-right: auto;
 }
 
-.app-column{
+.widget-column{
   min-height:100px;
   float:left;
   border-radius:10px;
@@ -66,7 +67,7 @@ html, body, .app-layouts-engine, .app-layouts-container, .apps-layout-background
 .no-border{
   border:none;
 }
-.apps-row{
+.widgets-row{
   margin-top:10px;
   margin-bottom:10px;
   min-height:100px;
@@ -74,19 +75,19 @@ html, body, .app-layouts-engine, .app-layouts-container, .apps-layout-background
   margin-right: 10px;
 }
 
-.app-layouts-header,
-.available-apps-header{
+.widget-layouts-header,
+.available-widgets-header{
   border-bottom: 2px solid black;
   margin-left: auto;
   margin-right: auto;
 }
 
-.app-layouts-container {
+.widget-layouts-container {
   position: relative;
   text-align: center;
 }
 
-#app-layouts-holder{
+#widget-layouts-holder{
   position: absolute;
   top: 20px;
   left: 50%;
@@ -94,7 +95,13 @@ html, body, .app-layouts-engine, .app-layouts-container, .apps-layout-background
   width: 100%;
 }
 
-.apps-layout-background{
-  width: 100%;
+#available-widgets-holder{
 }
 
+#widget-layouts-buttons{
+  margin-bottom: 10px;
+}
+
+.widgets-layout-background{
+  width: 100%;
+}

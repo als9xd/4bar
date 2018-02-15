@@ -15,55 +15,82 @@
 
     <link rel="stylesheet" href="/css/cc_layout.css">
 
+    <link rel="stylesheet" href="/css/widget_layout_engine.css">
+
     <script src="/socket.io/socket.io.js"></script>
     <script>
       let socket = io();
 
       window.addEventListener('load',function(){
-        socket.emit('available_apps_req',{{{c_id}}});
-        socket.on('available_apps_res',
-          function(app){
-            ale.add_available_app(
+        socket.emit('available_widgets_req',{{{c_id}}});
+        socket.on('available_widgets_res',
+          function(widget){
+            wle.add_available_widget(
               {
-                type:app.type,
-                id:app.id,
-                data: app.data           
+                type:widget.type,
+                id:widget.id,
+                data: widget.data           
               },
-              document.getElementById('available-apps-holder')
+              document.getElementById('available-widgets-holder')
             );
           }
         );
 
-        socket.on('app_submit_status',function(data){
+        socket.on('widget_submit_status',function(data){
           if(data.error){
             let error_alert = document.createElement('div');
             error_alert.classList.add('alert','alert-danger');
             error_alert.setAttribute('role','alert');
             error_alert.innerHTML = '<strong>Error: </strong>';
             error_alert.innerHTML+=data.error;   
-            document.getElementById('error_container').appendChild(error_alert);
+            document.getElementById('widget_error_container').appendChild(error_alert);
           }else{
-            let success_message = document.getElementById('success_message');
+            let success_message = document.getElementById('widget_success_message');
             if(success_message){
               success_message.innerHTML = data.message;
             }else{
               let msg_alert = document.createElement('div');
               msg_alert.classList.add('alert','alert-success');
-              msg_alert.id = 'success_message';
+              msg_alert.id = 'widget_success_message';
               msg_alert.setAttribute('role','alert');
               msg_alert.innerHTML = data.message;
-              document.getElementById('success_container').appendChild(msg_alert);             
+              document.getElementById('widget_success_container').appendChild(msg_alert);             
             }
           }
-          socket.emit('available_apps_req',{{{c_id}}});
+          socket.emit('available_widgets_req',{{{c_id}}});
         });
+
+        socket.on('layout_submit_status',function(data){
+          if(data.error){
+            let error_alert = document.createElement('div');
+            error_alert.classList.add('alert','alert-danger');
+            error_alert.setAttribute('role','alert');
+            error_alert.innerHTML = '<strong>Error: </strong>';
+            error_alert.innerHTML+=data.error;   
+            document.getElementById('layout_error_container').appendChild(error_alert);
+          }else{
+            let success_message = document.getElementById('layout_success_message');
+            if(success_message){
+              success_message.innerHTML = data.message;
+            }else{
+              let msg_alert = document.createElement('div');
+              msg_alert.classList.add('alert','alert-success');
+              msg_alert.id = 'layout_success_message';
+              msg_alert.setAttribute('role','alert');
+              msg_alert.innerHTML = data.message;
+              document.getElementById('layout_success_container').appendChild(msg_alert);             
+            }
+          }
+          socket.emit('available_widgets_req',{{{c_id}}});
+        });
+
     });
     function submit_layout(){
-      socket.emit('apps_layout_submit',{ community_id : {{{c_id}}}, layout : ale.summarize_template() });
+      socket.emit('layout_submit',{ community_id : {{{c_id}}}, layout : wle.summarize_template() });
     }
 
-    function app_submit(type,input){
-      socket.emit('app_submit',{
+    function widget_submit(type,input){
+      socket.emit('widget_submit',{
         community_id: {{{c_id}}},
         type:type,
         data:input
@@ -104,6 +131,7 @@
       </div>
     </nav>
 
+      <h1 class="text-center widget-layouts-header">Widget Creation</h1>
       <div class="row">
         <div class="col-md-6" style="margin:auto">
             <fieldset>
@@ -114,7 +142,7 @@
                 </div>
 
                 <div class="form-group">
-                    <button class="btn btn-primary" onclick="app_submit('youtube',{url:document.getElementById('youtube_url').value})">Create</button>
+                    <button class="btn btn-primary" onclick="widget_submit('youtube',{url:document.getElementById('youtube_url').value})">Create</button>
                 </div>
 
                 <legend class="text-center">Twitter</legend>
@@ -124,38 +152,39 @@
                 </div>
 
                 <div class="form-group">
-                    <button class="btn btn-primary" onclick="app_submit('twitter',{url:document.getElementById('twitter_url').value})">Create</button>
+                    <button class="btn btn-primary" onclick="widget_submit('twitter',{url:document.getElementById('twitter_url').value})">Create</button>
                 </div>
 
                 <hr>
 
-                <div id="success_container" style="margin-top:20px;"></div>
-                <div id="error_container" style="margin-top:20px;"></div>
+                <div id="widget_success_container" style="margin-top:20px;"></div>
+                <div id="widget_error_container" style="margin-top:20px;"></div>
 
             </fieldset>
       </div>
     </div>
 
-    <div class="app-layouts-engine">
-      <h1 class="text-center available-apps-header">Available Applications</h1>
-      <div class='container' class="available-apps-container">
-        <div id="available-apps-holder">
+    <div class="widget-layouts-engine">
+      <h1 class="text-center available-widgets-header">Available Widgets</h1>
+      <div class='container' class="available-widgets-container">
+        <div id="available-widgets-holder">
         </div>        
       </div>
       
-      <h1 class="text-center app-layouts-header">Community Page Applications Layout</h1>
-      <div class="container">
+      <h1 class="text-center widget-layouts-header">Widgets Layout</h1>
+      <div class="container" id="widget-layouts-buttons">
         Rows: 
         <div class="btn-group btn-group-lg">
-          <button class="btn btn-primary btn-lg" onclick="ale.add_layout_row(document.getElementById('app-layouts-holder'))">+</button>
-          <button class="btn btn-primary btn-lg" onclick="ale.remove_template_row(document.getElementById('app-layouts-holder'))">-</button>        
+          <button class="btn btn-primary btn-lg" onclick="wle.add_layout_row(document.getElementById('widget-layouts-holder'))">+</button>
+          <button class="btn btn-primary btn-lg" onclick="wle.remove_template_row(document.getElementById('widget-layouts-holder'))">-</button>        
         </div>
       <button class="btn btn-primary btn-lg" onclick="submit_layout()">Save</button>
-
+        <div id="layout_success_container" style="margin-top:20px;"></div>
+        <div id="layout_error_container" style="margin-top:20px;"></div>
       </div>
-      <div class="app-layouts-container">
-        <img src="{{{c_wallpaper}}}" class="apps-layout-background">
-        <div id="app-layouts-holder"></div>    
+      <div class="widget-layouts-container">
+        <img src="{{{c_wallpaper}}}" class="widgets-layout-background">
+        <div id="widget-layouts-holder"></div>    
         </div>
       </div>  
     </div>
@@ -171,9 +200,11 @@
 
     <script src='https://cdnjs.cloudflare.com/ajax/libs/dragula/3.7.2/dragula.min.js'></script>
 
-    <script src='/js/apps_layout_engine.js'></script>
+    <script type="text/javascript" src="/js/widget_ui_definitions.js"></script>
+    <script src='/js/widget_layout_engine.js'></script>
     <script type="text/javascript">
-      let ale = apps_layout_engine(
+      let wle = widgets_layout_engine(
+        WidgetUIDefinitions,
         {
           template: true
         }
