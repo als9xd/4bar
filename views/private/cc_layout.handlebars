@@ -13,7 +13,64 @@
     <link rel="stylesheet" href="/css/public.css">
     <link rel="stylesheet" href="/css/cc_template.css">
 
-    <link rel="stylesheet" href="/css/app_layouts_engine.css">
+    <link rel="stylesheet" href="/css/cc_layout.css">
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      let socket = io();
+
+      window.addEventListener('load',function(){
+        socket.emit('available_apps_req',{{{c_id}}});
+        socket.on('available_apps_res',
+          function(app){
+            console.log(app);
+            ale.add_available_app(
+              {
+                type:app.type,
+                id:app.id,
+                data: app.data           
+              },
+              document.getElementById('available-apps-holder')
+            );
+          }
+        );
+
+        socket.on('app_submit_status',function(data){
+          if(data.error){
+            let error_alert = document.createElement('div');
+            error_alert.classList.add('alert','alert-danger');
+            error_alert.setAttribute('role','alert');
+            error_alert.innerHTML = '<strong>Error: </strong>';
+            error_alert.innerHTML+=data.error;   
+            document.getElementById('error_container').appendChild(error_alert);
+          }else{
+            let success_message = document.getElementById('success_message');
+            if(success_message){
+              success_message.innerHTML = data.message;
+            }else{
+              let msg_alert = document.createElement('div');
+              msg_alert.classList.add('alert','alert-success');
+              msg_alert.id = 'success_message';
+              msg_alert.setAttribute('role','alert');
+              msg_alert.innerHTML = data.message;
+              document.getElementById('success_container').appendChild(msg_alert);             
+            }
+          }
+          socket.emit('apps_req',{{{c_id}}});
+        });
+    });
+    function submit_layout(){
+      socket.emit('apps_layout_submit',{ community_id : {{{c_id}}}, layout : ale.summarize_template() });
+    }
+
+    function app_submit(type,input){
+      socket.emit('app_submit',{
+        community_id: {{{c_id}}},
+        type:type,
+        data:input
+      });
+    }
+    </script>
 
   </head>
 
@@ -48,74 +105,71 @@
       </div>
     </nav>
 
-    <div id="app-layouts-engine">
       <div class="row">
-        <legend class="text-center">Available Applications</legend>
-        <div class='container' id="available-apps-container">
-          <div id="available-apps-holder">
-            <div class="app"><h1>Counter Strike: Global Offensive</h1></div>
-            <table class="table table-bordered app">
-            <thead>
-              <tr>
-                <th>Username</th>
-                <th>Team</th>
-                <th>K/D</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>John</td>
-                <td>Doe</td>
-                <td>1</td>
-              </tr>
-              <tr>
-                <td>Mary</td>
-                <td>Moe</td>
-                <td>2</td>
-              </tr>
-              <tr>
-                <td>July</td>
-                <td>Dooley</td>
-                <td>4.2</td>
-              </tr>
-            </tbody>
-          </table>
-          ​<div class="app" style="width:500px;height:350px;"><center><iframe width="450" height="300" src="https://www.youtube.com/embed/yeU2K8u_BJw" frameborder="0" allow="encrypted-media" allowfullscreen></iframe></center></div>
-          <div class="app" ><a href="#"><h3 style="text-align:center">Community Forums</h3><a></div>
-          </div>
-        </div>
-      </div>
+        <div class="col-md-6" style="margin:auto">
+            <fieldset><legend class="text-center">Youtube</legend>
+                <div class="form-group">
+                  <label for="youtube_url"><span class="req">* </span> Url: </label>
+                  <input required type="text" name="youtube_url" id="youtube_url" class="form-control" autocomplete="off" /> 
+                </div>
 
-      <div class="row">
-        <legend class="text-center">Community Page Applications Layout</legend>
-        <div class="container" id="app-layouts-container">
-          Rows: 
-          <div class="btn-group btn-group-lg">
-            <button class="btn btn-primary btn-lg" onclick="ale.add_row()">+</button>
-            <button class="btn btn-primary btn-lg" onclick="ale.remove_row()">-</button>        
-          </div> 
-        </div>
-      </div> 
+                <div class="form-group">
+                    <button class="btn btn-primary" onclick="app_submit('youtube',{url:document.getElementById('youtube_url').value})">Create</button>
+                </div>
+
+                <hr>
+
+                <div id="success_container" style="margin-top:20px;"></div>
+                <div id="error_container" style="margin-top:20px;"></div>
+
+
+            </fieldset>
+      </div>
     </div>
 
-    <div class="layout-page">
-      <img src="{{{c_wallpaper}}}" id="layout-img">
-      <div id="app-layouts-holder"></div>    
+    <div class="app-layouts-engine">
+      <h1 class="text-center available-apps-header">Available Applications</h1>
+      <div class='container' class="available-apps-container">
+        <div id="available-apps-holder">
+        </div>        
       </div>
+      
+      <h1 class="text-center app-layouts-header">Community Page Applications Layout</h1>
+      <div class="container">
+        Rows: 
+        <div class="btn-group btn-group-lg">
+          <button class="btn btn-primary btn-lg" onclick="ale.add_layout_row(document.getElementById('app-layouts-holder'))">+</button>
+          <button class="btn btn-primary btn-lg" onclick="ale.remove_template_row(document.getElementById('app-layouts-holder'))">-</button>        
+        </div>
+      <button class="btn btn-primary btn-lg" onclick="submit_layout()">Save</button>
+
+      </div>
+      <div class="app-layouts-container">
+        <img src="{{{c_wallpaper}}}" class="apps-layout-background">
+        <div id="app-layouts-holder"></div>    
+        </div>
+      </div>  
     </div>
 
     <script src="/js/url_parser.js"></script>
     <script src="/js/url_message.js"></script> 
 
     <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="/js/jquery.load_script.js"></script>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb" crossorigin="anonymous"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script>
 
     <script src='https://cdnjs.cloudflare.com/ajax/libs/dragula/3.7.2/dragula.min.js'></script>
-    <script src='/js/app_layouts_engine.js'></script>
+
+    <script src='/js/apps_layout_engine.js'></script>
     <script type="text/javascript">
-      let ale = app_layouts_engine();
+      let ale = apps_layout_engine(
+        {
+          template: true
+        }
+      );
+  
     </script>
 
   </body>
