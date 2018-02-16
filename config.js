@@ -37,6 +37,15 @@ const config = {
 				community_stats: {
 					stat_name: 30,
 					stat_value: 255
+				},
+				platforms: {
+					name: 20
+				}, 
+				games: {
+					title: 200
+				},
+				market_items: {
+					name: 200
 				}
 			}
 		},
@@ -96,6 +105,15 @@ const config = {
 				community_stats: {
 					stat_name: 30,
 					stat_value: 255
+				},
+				platforms: {
+					name: 20
+				}, 
+				games: {
+					title: 200
+				},
+				market_items: {
+					name: 200
 				}
 			}
 		},
