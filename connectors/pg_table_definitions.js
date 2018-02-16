@@ -60,5 +60,6 @@ module.exports = function(config){
 				'community_id NUMERIC NOT NULL,'+
 				'url TEXT NOT NULL'+
 			')'
+		,
 	}
 };
