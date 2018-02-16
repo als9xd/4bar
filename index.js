@@ -877,12 +877,21 @@ io.on('connection',function(socket){
 				if(layout){
 					for(let i in layout){
 						if(layout.hasOwnProperty(i)){
-							widgets_conn[layout[i].type].get(layout[i].id,function(widgets){
-								for(let r = 0; r < widgets.length;r++){
-									layout[i].data = widgets[r];
-									socket.emit('widgets_res',layout[i]);								
-								}
-							});
+							if(widgets_conn.hasOwnProperty(layout[i].type)){
+								widgets_conn[layout[i].type].get(layout[i].id,function(err,widgets){
+									if(err){
+										console.log(err);
+										socket.emit('message',{error:'Could not widgets in layout'});
+										return;
+									}
+									for(let r = 0; r < widgets.length;r++){
+										layout[i].data = widgets[r];
+										socket.emit('widgets_res',layout[i]);								
+									}
+								});
+							}else{
+								socket.emit('message',{error:"Unknown widget type \'"+layout[i].type+"\'"})
+							}
 						}
 					}
 				}
@@ -900,36 +909,47 @@ io.on('connection',function(socket){
 				data.community_id
 			],function(err,results){
 				if(err){
-					socket.emit('layout_submit_status',{error:'Layout could not be saved'});
 					console.log(error);
-				}else{
-					socket.emit('layout_submit_status',{message:'Successfully saved layout'});
+					socket.emit('message',{error:'Layout could not be saved'});
+					return;
 				}
+				socket.emit('message',{success:'Successfully saved layout'});
 			}
 		);
 	});
 
 	socket.on('available_widgets_req',function(community_id){
-		for(let i in widgets_conn){
-			if(widgets_conn.hasOwnProperty(i)){
-				widgets_conn[i].available(community_id,function(results){
+		for(let widget_type in widgets_conn){
+			if(widgets_conn.hasOwnProperty(widget_type)){
+				widgets_conn[widget_type].available(community_id,function(err,results){
+					if(err){
+						console.log(err);
+						socket.emit('message',{error:'Could not get available widgets'});
+						return;
+					}
 					for(let r = 0; r < results.length;r++){
-						socket.emit('available_widgets_res',{type:i,id:results[r].id,data:results[r]});	
+						socket.emit('available_widgets_res',{type:widget_type,id:results[r].id,data:results[r]});	
 					}
 				});
+			}else{
+				socket.emit('message',{error:"Unknown widget type \'"+widget_type+"\'"});
 			}
 		}
 	});
 
 	socket.on('widget_submit',function(widget){
-		widgets_conn[widget.type].add(widget.community_id,widget.data,function(err){
-			if(err){
-				socket.emit('widget_submit_status',{error:'Widget creation failed'});
-				console.log(err);
-			}else{
-				socket.emit('widget_submit_status',{message:'Successfully created widget'});
-			}
-		});
+		if(widgets_conn.hasOwnProperty(widget.type)){
+			widgets_conn[widget.type].add(widget.community_id,widget.data,function(err){
+				if(err){
+					console.log(err);
+					socket.emit('message',{error:'Widget creation failed'});
+					return;
+				}
+				socket.emit('message',{success:'Successfully created widget'});
+			});			
+		}else{
+			socket.emit('message',{error:"Unknown widget type \'"+widget.type+"\'"})
+		}
 	});
 
 });

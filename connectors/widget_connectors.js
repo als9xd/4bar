@@ -1,33 +1,25 @@
 module.exports = function(pg_conn){
 	return{
 		youtube: {
-			get: function(app_id,callback){
+			get: function(widget_id,callback){
 				pg_conn.client.query(
-					"SELECT id,url FROM youtube_app WHERE id = $1",
+					"SELECT id,url FROM youtube_widget WHERE id = $1",
 					[
-						app_id
+						widget_id
 					],
 					function(err,results){
-						if(err){
-							console.log(err);
-							return;
-						}
-						callback(results.rows);
+						callback(err,results.rows);
 					}
 				)
 			},
 			available: function(community_id,callback){
 				pg_conn.client.query(
-					"SELECT id,url FROM youtube_app WHERE community_id = $1",
+					"SELECT id,url FROM youtube_widget WHERE community_id = $1",
 					[
 						community_id
 					],
 					function(err,results){
-						if(err){
-							console.log(err);
-							return;
-						}
-						callback(results.rows);
+						callback(err,results.rows);
 					}
 				)
 			},
@@ -43,17 +35,13 @@ module.exports = function(pg_conn){
 			    let url = decodeURIComponent(results[2].replace(/\+/g, " "));
 			    if(url){
 					pg_conn.client.query(
-						"INSERT INTO youtube_app (community_id,url) "+
+						"INSERT INTO youtube_widget (community_id,url) "+
 						"VALUES ($1,$2)",
 						[
 							community_id,
 							"https://www.youtube.com/embed/"+url
 						],
 						function(err){
-							if(err){
-								console.log(err);
-								return;
-							}
 							callback(err);
 						}
 					);
@@ -62,50 +50,38 @@ module.exports = function(pg_conn){
 
 		},
 		twitter: {
-			get: function(app_id,callback){
+			get: function(widget_id,callback){
 				pg_conn.client.query(
-					"SELECT id,url FROM twitter_app WHERE id = $1",
+					"SELECT id,url FROM twitter_widget WHERE id = $1",
 					[
-						app_id
+						widget_id
 					],
 					function(err,results){
-						if(err){
-							console.log(err);
-							return;
-						}
-						callback(results.rows);
+						callback(err,results.rows);
 					}
 				)
 			},
 			available: function(community_id,callback){
 				pg_conn.client.query(
-					"SELECT id,url FROM twitter_app WHERE community_id = $1",
+					"SELECT id,url FROM twitter_widget WHERE community_id = $1",
 					[
 						community_id
 					],
 					function(err,results){
-						if(err){
-							console.log(err);
-							return;
-						}
-						callback(results.rows);
+						callback(err,results.rows);
 					}
 				)			
 			},
 			add: function(community_id,data,callback){
 				let url = "https://twitter.com/intent/tweet?screen_name="+data.screen_name+"&ref_src=twsrc%5Etfw";
 				pg_conn.client.query(
-					"INSERT INTO twitter_app (community_id,url) "+
+					"INSERT INTO twitter_widget (community_id,url) "+
 					"VALUES ($1,$2)",
 					[
 						community_id,
 						url
 					],
 					function(err){
-						if(err){
-							console.log(err);
-							return;
-						}
 						callback(err);
 					}
 				)

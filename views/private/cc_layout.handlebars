@@ -25,6 +25,7 @@
         socket.emit('available_widgets_req',{{{c_id}}});
         socket.on('available_widgets_res',
           function(widget){
+            console.log('test');
             wle.add_available_widget(
               {
                 type:widget.type,
@@ -36,54 +37,15 @@
           }
         );
 
-        socket.on('widget_submit_status',function(data){
-          if(data.error){
-            let error_alert = document.createElement('div');
-            error_alert.classList.add('alert','alert-danger');
-            error_alert.setAttribute('role','alert');
-            error_alert.innerHTML = '<strong>Error: </strong>';
-            error_alert.innerHTML+=data.error;   
-            document.getElementById('widget_error_container').appendChild(error_alert);
-          }else{
-            let success_message = document.getElementById('widget_success_message');
-            if(success_message){
-              success_message.innerHTML = data.message;
-            }else{
-              let msg_alert = document.createElement('div');
-              msg_alert.classList.add('alert','alert-success');
-              msg_alert.id = 'widget_success_message';
-              msg_alert.setAttribute('role','alert');
-              msg_alert.innerHTML = data.message;
-              document.getElementById('widget_success_container').appendChild(msg_alert);             
-            }
+        socket.on('message',function(message){
+          if(message.error){
+            console.log(message.error);
           }
-          socket.emit('available_widgets_req',{{{c_id}}});
-        });
-
-        socket.on('layout_submit_status',function(data){
-          if(data.error){
-            let error_alert = document.createElement('div');
-            error_alert.classList.add('alert','alert-danger');
-            error_alert.setAttribute('role','alert');
-            error_alert.innerHTML = '<strong>Error: </strong>';
-            error_alert.innerHTML+=data.error;   
-            document.getElementById('layout_error_container').appendChild(error_alert);
-          }else{
-            let success_message = document.getElementById('layout_success_message');
-            if(success_message){
-              success_message.innerHTML = data.message;
-            }else{
-              let msg_alert = document.createElement('div');
-              msg_alert.classList.add('alert','alert-success');
-              msg_alert.id = 'layout_success_message';
-              msg_alert.setAttribute('role','alert');
-              msg_alert.innerHTML = data.message;
-              document.getElementById('layout_success_container').appendChild(msg_alert);             
-            }
+          if(message.success){
+            console.log(message.success);
+            socket.emit('available_widgets_req',{{{c_id}}});
           }
-          socket.emit('available_widgets_req',{{{c_id}}});
         });
-
     });
     function widget_submit(type,input){
       socket.emit('widget_submit',
@@ -101,7 +63,7 @@
 
   <body>
 
-    <nav class="navbar navbar-toggleable-md navbar-inverse bg-inverse">
+    <nav class="navbar navbar-toggleable-md navbar-inverse bg-inverse fixed-top">
       <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target=".navbar-collapse" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
