@@ -82,6 +82,7 @@ module.exports = function(config){
 				'id SERIAL PRIMARY KEY,'+
 				'community_id NUMERIC NOT NULL,'+
 				'url TEXT NOT NULL'+
+			')'
 		,
 	}
 };
