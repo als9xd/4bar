@@ -77,12 +77,12 @@ module.exports = function(config){
 				'url TEXT NOT NULL'+
 			')'
 		,
-		twitter_app:
-			'CREATE TABLE IF NOT EXISTS twitter_app('+
+		twitter_widget:
+			'CREATE TABLE IF NOT EXISTS twitter_widget('+
 				'id SERIAL PRIMARY KEY,'+
 				'community_id NUMERIC NOT NULL,'+
 				'url TEXT NOT NULL'+
 			')'
-
+		,
 	}
 };
