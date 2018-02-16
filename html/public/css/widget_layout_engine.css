@@ -104,4 +104,5 @@ html, body, .widget-layouts-engine, .widget-layouts-container, .widgets-layout-b
 
 .widgets-layout-background{
   width: 100%;
+  background-color: #474747;
 }

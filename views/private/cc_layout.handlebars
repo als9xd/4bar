@@ -10,22 +10,24 @@
 
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
 
+    <link href="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" rel="stylesheet"/>
+
     <link rel="stylesheet" href="/css/public.css">
     <link rel="stylesheet" href="/css/cc_template.css">
 
     <link rel="stylesheet" href="/css/cc_layout.css">
-
+    
     <link rel="stylesheet" href="/css/widget_layout_engine.css">
 
     <script src="/socket.io/socket.io.js"></script>
+    <script type="text/javascript">let socket = io();</script>
     <script>
-      let socket = io();
+      
 
       window.addEventListener('load',function(){
         socket.emit('available_widgets_req',{{{c_id}}});
         socket.on('available_widgets_res',
           function(widget){
-            console.log('test');
             wle.add_available_widget(
               {
                 type:widget.type,
@@ -36,16 +38,6 @@
             );
           }
         );
-
-        socket.on('message',function(message){
-          if(message.error){
-            console.log(message.error);
-          }
-          if(message.success){
-            console.log(message.success);
-            socket.emit('available_widgets_req',{{{c_id}}});
-          }
-        });
     });
     function widget_submit(type,input){
       socket.emit('widget_submit',
@@ -82,8 +74,14 @@
             <a class="nav-link" href="/cc_wizard">Community Creation</a>
           </li>
           <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" id="dropdown01" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{{username}}}'s Profile</a>
+            <a class="nav-link dropdown-toggle" href="#" id="dropdown01" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{{c_name}}} Community</a>
             <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdown01">
+              <a class="dropdown-item" href="{{{c_url}}}">Homepage</a>
+            </div>
+          </li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="dropdown02" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{{username}}}'s Profile</a>
+            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdown02">
               <a class="dropdown-item" href="\profile">View</a>
               <a class="dropdown-item" href="\logout">Logout</a>
             </div>
@@ -91,73 +89,84 @@
         </ul>
       </div>
     </nav>
+      
+    <div class="page-body">
 
       <h1 class="text-center widget-layouts-header">Widget Creation</h1>
       <div class="row">
         <div class="col-md-6" style="margin:auto">
-            <fieldset>
-                <legend class="text-center">Youtube</legend>
-                <div class="form-group">
-                  <label for="youtube_url"><span class="req">* </span> Url: </label>
-                  <input required type="text" name="youtube_url" id="youtube_url" class="form-control" autocomplete="off" /> 
-                </div>
+          <fieldset>
+              <legend class="text-center">Youtube</legend>
+              <div class="form-group">
+                <label for="youtube_url"><span class="req">* </span> Url: </label>
+                <input required type="text" name="youtube_url" id="youtube_url" class="form-control" autocomplete="off" /> 
+              </div>
 
-                <div class="form-group">
-                    <button class="btn btn-primary" onclick="socket.emit('widget_submit',{community_id:{{{c_id}}},type:'youtube',data:{url:document.getElementById('youtube_url').value}});">Create</button>
-                </div>
+              <div class="form-group">
+                  <button class="btn btn-primary" onclick="socket.emit('widget_submit',{community_id:{{{c_id}}},type:'youtube',data:{url:document.getElementById('youtube_url').value}});">Create</button>
+              </div>
 
-                <legend class="text-center">Twitter</legend>
-                <div class="form-group">
-                  <label for="twitter_screen_name"><span class="req">* </span> Account Name: </label>
-                  <input required type="text" name="twitter_screen_name" id="twitter_screen_name" class="form-control" autocomplete="off" /> 
-                </div>
+              <legend class="text-center">Twitter</legend>
+              <div class="form-group">
+                <label for="twitter_screen_name"><span class="req">* </span> Account Name: </label>
+                <input required type="text" name="twitter_screen_name" id="twitter_screen_name" class="form-control" autocomplete="off" /> 
+              </div>
 
-                <div class="form-group">
-                    <button class="btn btn-primary" onclick="widget_submit('twitter',{screen_name:document.getElementById('twitter_screen_name').value});">Create</button>
-                </div>
+              <div class="form-group">
+                  <button class="btn btn-primary" onclick="widget_submit('twitter',{screen_name:document.getElementById('twitter_screen_name').value});">Create</button>
+              </div>
 
-                <hr>
+              <hr>
+          </fieldset>
+        </div>
+      </div>
 
-                <div id="widget_success_container" style="margin-top:20px;"></div>
-                <div id="widget_error_container" style="margin-top:20px;"></div>
-
-            </fieldset>
+      <div class="widget-layouts-engine">
+        <h1 class="text-center available-widgets-header">Available Widgets</h1>
+        <div class='container' class="available-widgets-container">
+          <div id="available-widgets-holder">
+          </div>        
+        </div>
+        
+        <h1 class="text-center widget-layouts-header">Widgets Layout</h1>
+        <div class="container" id="widget-layouts-buttons">
+          Rows: 
+          <div class="btn-group btn-group-lg">
+            <button class="btn btn-primary btn-lg" onclick="wle.add_layout_row(document.getElementById('widget-layouts-holder'))">+</button>
+            <button class="btn btn-primary btn-lg" onclick="wle.remove_template_row(document.getElementById('widget-layouts-holder'))">-</button>        
+          </div>
+        <button class="btn btn-primary btn-lg" onclick="socket.emit('layout_submit',{ community_id : {{{c_id}}}, layout : wle.summarize_template() });">Save</button>
+          <div id="layout_success_container" style="margin-top:20px;"></div>
+          <div id="layout_error_container" style="margin-top:20px;"></div>
+        </div>
+        <div class="widget-layouts-container">
+          <div style="background-image:url({{{c_wallpaper}}})" class="widgets-layout-background"></div>
+          <div id="widget-layouts-holder"></div>    
+          </div>
+        </div>  
       </div>
     </div>
-
-    <div class="widget-layouts-engine">
-      <h1 class="text-center available-widgets-header">Available Widgets</h1>
-      <div class='container' class="available-widgets-container">
-        <div id="available-widgets-holder">
-        </div>        
-      </div>
-      
-      <h1 class="text-center widget-layouts-header">Widgets Layout</h1>
-      <div class="container" id="widget-layouts-buttons">
-        Rows: 
-        <div class="btn-group btn-group-lg">
-          <button class="btn btn-primary btn-lg" onclick="wle.add_layout_row(document.getElementById('widget-layouts-holder'))">+</button>
-          <button class="btn btn-primary btn-lg" onclick="wle.remove_template_row(document.getElementById('widget-layouts-holder'))">-</button>        
-        </div>
-      <button class="btn btn-primary btn-lg" onclick="socket.emit('layout_submit',{ community_id : {{{c_id}}}, layout : wle.summarize_template() });">Save</button>
-        <div id="layout_success_container" style="margin-top:20px;"></div>
-        <div id="layout_error_container" style="margin-top:20px;"></div>
-      </div>
-      <div class="widget-layouts-container">
-        <img src="{{{c_wallpaper}}}" class="widgets-layout-background">
-        <div id="widget-layouts-holder"></div>    
-        </div>
-      </div>  
-    </div>
-
-    <script src="/js/url_parser.js"></script>
-    <script src="/js/url_message.js"></script> 
 
     <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
     <script type="text/javascript" src="/js/jquery.load_script.js"></script>
-    
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb" crossorigin="anonymous"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script>
+
+    <script src="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
+
+    <script src="/js/MessageHandler.js"></script>
+    <script type="text/javascript">
+      let msg_hndlr = MessageHandler(
+        toastr,
+        socket,
+        {
+          on_success: function(){
+            socket.emit('available_widgets_req',{{{c_id}}});
+          }
+        }
+      );
+    </script>
 
     <script src='https://cdnjs.cloudflare.com/ajax/libs/dragula/3.7.2/dragula.min.js'></script>
 

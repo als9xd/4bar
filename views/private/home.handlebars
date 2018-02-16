@@ -10,13 +10,15 @@
 
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
 
+    <link href="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" rel="stylesheet"/>
+
     <link rel="stylesheet" href="/css/public.css">
     <link rel="stylesheet" href="/css/home.css">
 
     <script src="/socket.io/socket.io.js"></script>
+    <script type="text/javascript">let socket = io();</script>
 
     <script type="text/javascript">
-      let socket = io();
       socket.emit('communities_req');
     </script>
     
@@ -24,7 +26,7 @@
 
   <body>
 
-    <nav class="navbar navbar-toggleable-md navbar-inverse bg-inverse">
+    <nav class="navbar navbar-toggleable-md navbar-inverse bg-inverse fixed-top">
       <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target=".navbar-collapse" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
@@ -132,7 +134,17 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb" crossorigin="anonymous"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script>
-  
+ 
+    <script src="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
+
+    <script src="/js/MessageHandler.js"></script>
+    <script type="text/javascript">
+      let msg_hndlr = MessageHandler(
+        toastr,
+        socket
+      );
+    </script>
+
   </body>
 
 </html>

@@ -335,7 +335,8 @@ pg_conn.client.query(
 						username: req.session.username,
 						c_name: community_info.rows[i].name,
 						c_wallpaper: community_info.rows[i].wallpaper,
-						c_id: community_info.rows[i].id
+						c_id: community_info.rows[i].id,
+						c_url: community_info.rows[i].url
 					}
 				);
 			});				
@@ -606,7 +607,7 @@ app.post('/cc_submit',check_auth,function(req,res){
 						let invalid_tag_lengths = []
 						for(let i = 0; i < tags_split.length;i++){
 							if(tags_split[i].length >  config[env].pg.varchar_limits.community_tags.tag){
-								invalid_tag_lengths.push('Tags must be less than ' + config[env].pg.varchar_limits.community_tags.tag + ' characters');
+								invalid_tag_lengths.push('Tag "'+tags_split[i]+'" must be less than ' + config[env].pg.varchar_limits.community_tags.tag + ' characters');
 							}
 						}
 						if(invalid_tag_lengths.length){
@@ -878,16 +879,16 @@ io.on('connection',function(socket){
 					for(let i in layout){
 						if(layout.hasOwnProperty(i)){
 							if(widgets_conn.hasOwnProperty(layout[i].type)){
-								widgets_conn[layout[i].type].get(layout[i].id,function(err,widgets){
-									if(err){
-										console.log(err);
-										socket.emit('message',{error:'Could not widgets in layout'});
-										return;
+								widgets_conn[layout[i].type].get(layout[i].id,function(widgets,message){
+									if(widgets){
+										for(let r = 0; r < widgets.length;r++){
+											layout[i].data = widgets[r];
+											socket.emit('widgets_res',layout[i]);								
+										}									
 									}
-									for(let r = 0; r < widgets.length;r++){
-										layout[i].data = widgets[r];
-										socket.emit('widgets_res',layout[i]);								
-									}
+									if(message){
+										socket.emit('message',message);
+									}	
 								});
 							}else{
 								socket.emit('message',{error:"Unknown widget type \'"+layout[i].type+"\'"})
@@ -921,14 +922,14 @@ io.on('connection',function(socket){
 	socket.on('available_widgets_req',function(community_id){
 		for(let widget_type in widgets_conn){
 			if(widgets_conn.hasOwnProperty(widget_type)){
-				widgets_conn[widget_type].available(community_id,function(err,results){
-					if(err){
-						console.log(err);
-						socket.emit('message',{error:'Could not get available widgets'});
-						return;
+				widgets_conn[widget_type].available(community_id,function(available_widgets,message){
+					if(available_widgets){
+						for(let r = 0; r < available_widgets.length;r++){
+							socket.emit('available_widgets_res',{type:widget_type,id:available_widgets[r].id,data:available_widgets[r]});	
+						}						
 					}
-					for(let r = 0; r < results.length;r++){
-						socket.emit('available_widgets_res',{type:widget_type,id:results[r].id,data:results[r]});	
+					if(message){
+						socket.emit('message',message);
 					}
 				});
 			}else{
@@ -939,17 +940,57 @@ io.on('connection',function(socket){
 
 	socket.on('widget_submit',function(widget){
 		if(widgets_conn.hasOwnProperty(widget.type)){
-			widgets_conn[widget.type].add(widget.community_id,widget.data,function(err){
-				if(err){
-					console.log(err);
-					socket.emit('message',{error:'Widget creation failed'});
-					return;
-				}
-				socket.emit('message',{success:'Successfully created widget'});
+			widgets_conn[widget.type].add(widget.community_id,widget.data,function(success,message){
+				socket.emit('message',message);
 			});			
 		}else{
 			socket.emit('message',{error:"Unknown widget type \'"+widget.type+"\'"})
 		}
+	});
+
+	socket.on('join_community',function(community_id){
+		pg_conn.client.query(
+			"SELECT id FROM users WHERE "+
+			"username = $1 "+
+			"LIMIT 1"
+			,[
+				socket.handshake.session.username
+			],
+			function(err,user_id){
+				if(err){
+					console.log(err);
+					socket.emit('message',{error:'Could not get community/user information'});
+					return;
+				}else if(user_id.rows && user_id.rows[0] != null && user_id.rows[0].id){
+					pg_conn.client.query(
+						"INSERT INTO community_members (user_id,community_id,privilege_level) "+
+						"VALUES ($1,$2,1)",
+						[
+							Number(user_id.rows[0].id),
+							Number(community_id)
+						],
+						function(err){
+							// Error 23505 means the users insert breaks the UNIQUE requirement of a column. Another way to do this would be to check before hand using a SELECT.
+							//
+							// The reason that this method can be is because there are only two columns that are UNIQUE so there is no situation in which the UNIQUE error code would be thrown for another UNIQUE column that isn't user_id or community_id.
+							// The reason I decided to use this method is because I believe is should be faster as the database only needs to be accessed once.
+							if(err && err.code == '23505'){
+								socket.emit('message',{error:'You are already a member of this community'});
+								return;
+							}
+							if(err){
+								console.log(err);
+								socket.emit('message',{error:'Could not join you to the community'});
+								return;
+							}
+							socket.emit('message',{success:'Successfully joined community!'});
+						}
+					);	
+				}else{
+					socket.emit('message',{error:'Could not find community with id or username'});
+				}
+			}
+		);
 	});
 
 });
