@@ -102,7 +102,8 @@ html, body, .widget-layouts-engine, .widget-layouts-container, .widgets-layout-b
   margin-bottom: 10px;
 }
 
-.widgets-layout-background{
-  width: 100%;
-  background-color: #474747;
+#widgets-layout-background{
+  min-height: 100% !important;
+  height: 100%;
+  background-color: #7a7a7a;
 }

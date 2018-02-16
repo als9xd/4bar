@@ -1,8 +1,21 @@
+function image_exists(url, callback) {
+  var img = new Image();
+  img.onload = function() { callback(true); };
+  img.onerror = function() { callback(false); };
+  img.src = url;
+}
+
 let widgets_layout_engine = function(widget_ui_definitions,settings){
   let __widgets_layout_engine = this;
 
   let available_widgets_holder = document.getElementById('available-widgets-holder');
   let widget_layouts_holder = document.getElementById('widget-layouts-holder');
+  let widgets_layout_background = document.getElementById("widgets-layout-background");
+  if(settings && settings.background && settings.background.length){
+    image_exists(settings.background,function(exists){
+      widgets_layout_background.style.backgroundImage = 'url('+settings.background+')';
+    });
+  }
 
   __widgets_layout_engine.container_matrix = [];
   __widgets_layout_engine.num_rows = 0;

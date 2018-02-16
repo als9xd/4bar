@@ -137,7 +137,7 @@
           <div id="layout_error_container" style="margin-top:20px;"></div>
         </div>
         <div class="widget-layouts-container">
-          <div style="background-image:url({{{c_wallpaper}}})" class="widgets-layout-background"></div>
+          <div id="widgets-layout-background"></div>
           <div id="widget-layouts-holder"></div>    
           </div>
         </div>  
@@ -173,7 +173,8 @@
       let wle = widgets_layout_engine(
         WidgetUIDefinitions,
         {
-          template: true
+          template: true,
+          background: '{{{c_wallpaper}}}'
         }
       );
   

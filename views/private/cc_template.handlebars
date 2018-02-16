@@ -75,7 +75,7 @@
     </nav>
 
     <div class="widget-layouts-container">
-      <div style="background-image:url({{{c_wallpaper}}})" class="widgets-layout-background"></div>
+      <div id="widgets-layout-background"></div>
       <div id="widget-layouts-holder"></div>    
       </div>
     </div>  
@@ -100,7 +100,12 @@
     <script src='/js/widget_ui_definitions.js'></script>
     <script src='/js/widget_layout_engine.js'></script>
     <script type="text/javascript">
-      let wle = widgets_layout_engine(WidgetUIDefinitions);
+      let wle = widgets_layout_engine(
+        WidgetUIDefinitions,
+        {
+          background: '{{{c_wallpaper}}}'
+        }
+      );
     </script>
 
   </body>
