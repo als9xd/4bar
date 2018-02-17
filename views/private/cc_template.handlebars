@@ -24,7 +24,7 @@
           socket.emit('widgets_req',{{{c_id}}});
 
           socket.on('widgets_res',function (widget_data) {
-            wle.build_widget(widget_data,document.getElementById('widget-layouts-holder'));
+            wle.build_widget(widget_data);
           });
 
           wle = widgets_layout_engine(

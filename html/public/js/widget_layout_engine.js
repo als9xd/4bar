@@ -1,10 +1,3 @@
-function image_exists(url, callback) {
-  var img = new Image();
-  img.onload = function() { callback(true); };
-  img.onerror = function() { callback(false); };
-  img.src = url;
-}
-
 let widgets_layout_engine = function(widget_ui_definitions,settings){
   let __widgets_layout_engine = this;
 
@@ -95,7 +88,7 @@ let widgets_layout_engine = function(widget_ui_definitions,settings){
     }
   }
 
-  __widgets_layout_engine.build_buttons_row = function(parent){
+  __widgets_layout_engine.build_buttons_row = function(row){
 
     let new_row_button_group = document.createElement('div');
     new_row_button_group.classList.add('btn-group','btn-group-large');
@@ -103,14 +96,14 @@ let widgets_layout_engine = function(widget_ui_definitions,settings){
 
     let new_row_add_button = document.createElement('button');
     new_row_add_button.classList.add('btn','btn-primary');
-    new_row_add_button.onclick = function(){add_column(parent)};
+    new_row_add_button.onclick = function(){add_column(row)};
     new_row_add_button.setAttribute('type','button');
     new_row_add_button.innerHTML = '+';
     new_row_button_group.appendChild(new_row_add_button);
 
     let new_row_remove_button = document.createElement('button');
     new_row_remove_button.classList.add('btn','btn-primary');
-    new_row_remove_button.onclick = function(){remove_column(parent)};
+    new_row_remove_button.onclick = function(){remove_column(row)};
     new_row_remove_button.setAttribute('type','button');
     new_row_remove_button.innerHTML = '-';
     new_row_button_group.appendChild(new_row_remove_button);
@@ -174,15 +167,14 @@ let widgets_layout_engine = function(widget_ui_definitions,settings){
     return widget_container;
   }
 
-  __widgets_layout_engine.add_available_widget = function(template,parent){
+  __widgets_layout_engine.add_available_widget = function(template){
     if(template.hasOwnProperty('type') && template.hasOwnProperty('id') && template.hasOwnProperty('data')){
-
       let exists = false;
-      for(let i in parent.children){
-        if(parent.children.hasOwnProperty(i)){
-          if(
-            parent.children[i].getAttribute('data-widget-type') == template.type &&
-            parent.children[i].getAttribute('data-widget-id') == template.id
+      for(let i in available_widgets_holder.children){
+       if(available_widgets_holder.children.hasOwnProperty(i)){
+         if(
+            available_widgets_holder.children[i].getAttribute('data-widget-type') == template.type &&
+            available_widgets_holder.children[i].getAttribute('data-widget-id') == template.id
             ){
               exists = true;
               break;       
@@ -201,14 +193,14 @@ let widgets_layout_engine = function(widget_ui_definitions,settings){
     }
   }
 
-  __widgets_layout_engine.build_widget = function(widget,parent,settings){
+  __widgets_layout_engine.build_widget = function(widget){
     let rows = [];
     for(let y = 0; y <= widget.y;y++){
-      let row = parent.children[y];
+      let row = widgets_layouts_holder.children[y];
       if(row && row.getAttribute('data-row-index')){
         rows.push(row);
       }else{
-        rows.push(__widgets_layout_engine.add_row(parent));
+        rows.push(__widgets_layout_engine.add_row(widgets_layouts_holder));
       }
     }
 
