@@ -39,6 +39,9 @@ let WidgetLayoutEngine = function(widget_ui_definitions,parent,settings){
     wle_base.appendChild(wle_available_container);
 
     wle_available_holder = document.createElement('div');
+    wle_available_holder.style.minHeight = "100px";
+    wle_available_holder.style.border = "thin solid #ccc";
+    wle_available_holder.style.margin = "10px";
     wle_available_container.appendChild(wle_available_holder);
   }
 
@@ -54,6 +57,7 @@ let WidgetLayoutEngine = function(widget_ui_definitions,parent,settings){
 
     let wle_layout_buttons_group = document.createElement('div');
     wle_layout_buttons_group.classList.add('btn-group','btn-group-lg');
+    wle_layout_buttons_group.style.marginLeft = "10px";
     wle_layout_buttons_container.appendChild(wle_layout_buttons_group);
 
     let wle_layout_buttons_add_row = document.createElement('button');
@@ -70,6 +74,7 @@ let WidgetLayoutEngine = function(widget_ui_definitions,parent,settings){
 
     let wle_layout_buttons_save = document.createElement('button');
     wle_layout_buttons_save.classList.add('btn','btn-primary','btn-lg');
+    wle_layout_buttons_save.style.marginLeft = "10px";
     wle_layout_buttons_save.innerHTML = 'Save';
 
     if(settings && settings.template && settings.save_callback){
@@ -125,11 +130,11 @@ let WidgetLayoutEngine = function(widget_ui_definitions,parent,settings){
   //////////////////////////////////////////////////////////////////////
   // Dragula Initialization
   //////////////////////////////////////////////////////////////////////    
-
+  let drake;
   if(settings && settings.template){
-    var drake = dragula(
+    drake = dragula(
       {
-        copy: true
+        copy: false
       }
     ).on('drop',function(el,container){
       __wle.widgets.push(el);
@@ -144,7 +149,7 @@ let WidgetLayoutEngine = function(widget_ui_definitions,parent,settings){
 
 
   __wle.add_column = function(row){
-    var new_col = document.createElement('div');
+    let new_col = document.createElement('div');
 
     new_col.style.minHeight = "100px";
     new_col.style.float = "left";
@@ -169,11 +174,11 @@ let WidgetLayoutEngine = function(widget_ui_definitions,parent,settings){
   __wle.remove_column = function(row){
     if(row.lastChild){
       let last_col_widgets = Array.prototype.slice.call(row.lastChild.childNodes);
-      for(var i = 0; i < last_col_widgets.length;i++){
+      for(let i = 0; i < last_col_widgets.length;i++){
         wle_available_holder.appendChild(last_col_widgets[i]);
       }
       row.removeChild(row.lastChild);
-      for(var i = 0; i < row.childNodes.length;i++){
+      for(let i = 0; i < row.childNodes.length;i++){
         row.childNodes[i].style.width = "calc("+(Math.floor(100/row.childNodes.length))+"% - 10px)";
       }           
     }
@@ -262,28 +267,27 @@ let WidgetLayoutEngine = function(widget_ui_definitions,parent,settings){
     return widget_container;
   }
 
+  let active_templates = [];
   __wle.add_available_widget = function(template){
     if(template.hasOwnProperty('type') && template.hasOwnProperty('id') && template.hasOwnProperty('data')){
       let exists = false;
-      for(let i in wle_available_holder.children){
-       if(wle_available_holder.children.hasOwnProperty(i)){
-         if(
-            wle_available_holder.children[i].getAttribute('data-widget-type') == template.type &&
-            wle_available_holder.children[i].getAttribute('data-widget-id') == template.id
-            ){
-              exists = true;
-              break;       
-          }
 
+      for(let i in active_templates){
+        if(active_templates.hasOwnProperty(i)){
+          if(active_templates[i].id == template.id && active_templates[i].type == template.type){
+            exists = true;
+          }
         }
       }
+
       if(!exists){
         let widget_container = build_widget_container(template.type,template.id);
 
         let widget = widget_ui_definitions[template.type](template.data,widget_container);
 
         widget_container.appendChild(widget);
-        wle_available_holder.appendChild(widget_container);          
+        wle_available_holder.appendChild(widget_container);     
+        active_templates.push(template);     
       }
     }
   }

@@ -15,17 +15,6 @@
     <link rel="stylesheet" href="/css/public.css">
     <link rel="stylesheet" href="/css/cc_template.css">
 
-    <script src="/socket.io/socket.io.js"></script>
-    <script type="text/javascript">let socket = io();</script>
-    
-    <script>
-
-      function join_community(){
-        socket.emit('join_community',{{{c_id}}});
-      }
-
-    </script>
-
   </head>
 
   <body>
@@ -69,6 +58,18 @@
     <div id="wle">
     </div>
 
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script type="text/javascript">let socket = io();</script>
+    
+    <script>
+
+      function join_community(){
+        socket.emit('join_community',{{{c_id}}});
+      }
+
+    </script>
+    
     <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
     <script type="text/javascript" src="/js/jquery.load_script.js"></script>
 

@@ -21,13 +21,13 @@ function MessageHandler(toastr,socket,callbacks){
         if(message.error){
             toastr.error(message.error);
             if(callbacks && callbacks.on_error){
-                callbacks.on_success();
+                callbacks.on_success(message);
             }
         }
         if(message.success){
             toastr.success(message.success);
             if(callbacks && callbacks.on_success){
-                callbacks.on_success();
+                callbacks.on_success(message);
             }
         }
     });  

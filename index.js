@@ -943,6 +943,7 @@ io.on('connection',function(socket){
 	socket.on('widget_submit',function(widget){
 		if(widgets_conn.hasOwnProperty(widget.type)){
 			widgets_conn[widget.type].add(widget.community_id,widget.data,function(success,message){
+				message.name = "widget_submit";
 				socket.emit('message',message);
 			});			
 		}else{

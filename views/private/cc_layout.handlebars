@@ -18,25 +18,8 @@
     <link rel="stylesheet" href="/css/cc_layout.css">
     <link rel="stylesheet" href="/css/dragula.css">
 
-    <script src="/socket.io/socket.io.js"></script>
-    <script type="text/javascript">let socket = io();</script>
     <script>
       
-
-      window.addEventListener('load',function(){
-        socket.emit('available_widgets_req',{{{c_id}}});
-        socket.on('available_widgets_res',
-          function(widget){
-            wle.add_available_widget(
-              {
-                type:widget.type,
-                id:widget.id,
-                data: widget.data           
-              }
-            );
-          }
-        );
-    });
     function widget_submit(type,input){
       socket.emit('widget_submit',
         {
@@ -119,29 +102,10 @@
       <div id="wle">
       </div>
 
-<!--   <div class="widget-layouts-engine">
-        <h1 class="text-center available-widgets-header">Available Widgets</h1>
-        <div class='container' class="available-widgets-container">
-          <div id="available-widgets-holder">
-          </div>        
-        </div>
-        
-        <h1 class="text-center widget-layouts-header">Widgets Layout</h1>
-        <div class="container" id="widget-layouts-buttons">
-          Rows: 
-          <div class="btn-group btn-group-lg">
-            <button class="btn btn-primary btn-lg" onclick="wle.add_row()">+</button>
-            <button class="btn btn-primary btn-lg" onclick="wle.remove_row()">-</button>        
-          </div>
-        <button class="btn btn-primary btn-lg" onclick="socket.emit('layout_submit',{ community_id : {{{c_id}}}, layout : wle.summarize_template() });">Save</button>
-          <div id="layout_success_container" style="margin-top:20px;"></div>
-          <div id="layout_error_container" style="margin-top:20px;"></div>
-        </div>
-
-        <div id="widget-layouts-container"></div>
-
-      </div> -->
     </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script type="text/javascript">let socket = io();</script>
 
     <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
     <script type="text/javascript" src="/js/jquery.load_script.js"></script>
@@ -157,8 +121,10 @@
         toastr,
         socket,
         {
-          on_success: function(){
-            socket.emit('available_widgets_req',{{{c_id}}});
+          on_success: function(message){
+            if(message.name == 'widget_submit'){
+              socket.emit('available_widgets_req',{{{c_id}}});
+            }
           }
         }
       );
@@ -184,6 +150,20 @@
               }
             );
           }
+        }
+      );
+
+      socket.emit('available_widgets_req',{{{c_id}}});
+
+      socket.on('available_widgets_res',
+        function(widget){
+          wle.add_available_widget(
+            {
+              type:widget.type,
+              id:widget.id,
+              data: widget.data           
+            }
+          );
         }
       );
   
