@@ -20,22 +20,6 @@
     
     <script>
 
-      window.addEventListener('load',function(){
-          socket.emit('widgets_req',{{{c_id}}});
-
-          socket.on('widgets_res',function (widget_data) {
-            wle.build_widget(widget_data);
-          });
-
-          wle = widgets_layout_engine(
-            WidgetUIDefinitions,
-            {
-              background: '{{{c_wallpaper}}}'
-            }
-          );
-
-      });
-
       function join_community(){
         socket.emit('join_community',{{{c_id}}});
       }
@@ -82,12 +66,8 @@
       </div>
     </nav>
 
-    <div id="widget-layouts-container">
+    <div id="wle">
     </div>
-    <div class="widget-layouts-container">
-      <div id="widgets-layout-background"></div>
-      <div id="widget-layouts-holder"></div>    
-    </div>  
 
     <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
     <script type="text/javascript" src="/js/jquery.load_script.js"></script>
@@ -107,7 +87,25 @@
 
     <script src='https://cdnjs.cloudflare.com/ajax/libs/dragula/3.7.2/dragula.min.js'></script>
     <script src='/js/widget_ui_definitions.js'></script>
-    <script src='/js/widget_layout_engine.js'></script>
+    <script src='/js/WidgetLayoutEngine.js'></script>
+    <script> 
+      let wle = WidgetLayoutEngine(
+        WidgetUIDefinitions,
+        document.getElementById('wle'),
+        {
+          background: '{{{c_wallpaper}}}',
+        }
+      );
+    </script>
+
+    <script>
+      socket.emit('widgets_req',{{{c_id}}});
+
+      socket.on('widgets_res',function (widget_data) {
+        wle.build_widget(widget_data);
+      });
+    </script>
+
   </body>
 
 </html>

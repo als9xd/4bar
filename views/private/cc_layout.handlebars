@@ -115,7 +115,11 @@
             <hr>
         </fieldset>
       </div>
-      <div class="widget-layouts-engine">
+
+      <div id="wle">
+      </div>
+
+<!--   <div class="widget-layouts-engine">
         <h1 class="text-center available-widgets-header">Available Widgets</h1>
         <div class='container' class="available-widgets-container">
           <div id="available-widgets-holder">
@@ -136,7 +140,7 @@
 
         <div id="widget-layouts-container"></div>
 
-      </div>
+      </div> -->
     </div>
 
     <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
@@ -163,13 +167,23 @@
     <script src='https://cdnjs.cloudflare.com/ajax/libs/dragula/3.7.2/dragula.min.js'></script>
 
     <script type="text/javascript" src="/js/widget_ui_definitions.js"></script>
-    <script src='/js/widget_layout_engine.js'></script>
+    <script src='/js/WidgetLayoutEngine.js'></script>
     <script type="text/javascript">
-      let wle = widgets_layout_engine(
+      let wle = WidgetLayoutEngine(
         WidgetUIDefinitions,
+        document.getElementById('wle'),
         {
           template: true,
-          background: '{{{c_wallpaper}}}'
+          background: '{{{c_wallpaper}}}',
+          save_callback: function () {
+           socket.emit(
+              'layout_submit',
+              { community_id : 
+                {{{c_id}}}, 
+                layout : wle.summarize_template() 
+              }
+            );
+          }
         }
       );
   
