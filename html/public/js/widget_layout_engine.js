@@ -8,14 +8,41 @@ function image_exists(url, callback) {
 let widgets_layout_engine = function(widget_ui_definitions,settings){
   let __widgets_layout_engine = this;
 
+  __widgets_layout_engine.rows = [];
+
+  let widgets_layout_container = document.getElementById('widget-layouts-container');
+  widgets_layout_container.style.height = "100%";
+  widgets_layout_container.style.minHeight = "100%";
+  widgets_layout_container.style.position = "relative";
+  widgets_layout_container.style.textAlign = "center";
+
   let available_widgets_holder = document.getElementById('available-widgets-holder');
-  let widget_layouts_holder = document.getElementById('widget-layouts-holder');
-  let widgets_layout_background = document.getElementById("widgets-layout-background");
+
+  let widgets_layout_background = document.createElement('div');
+  widgets_layout_background.style = 'min-height: 100% !important;';
+  widgets_layout_background.style.height = '100%';
+  widgets_layout_background.style.backgroundColor = 'rgb(122,122,122)';
+
   if(settings && settings.background && settings.background.length){
-    image_exists(settings.background,function(exists){
+    let background_img = new Image();
+    background_img.onload = function(){
       widgets_layout_background.style.backgroundImage = 'url('+settings.background+')';
-    });
+    }
+    background_img.onerror = function(){
+      widgets_layout_background.style.backgroundImage = 'url("https://www.transparenttextures.com/patterns/3px-tile.png")';
+    }
+    background_img.src = settings.background;
   }
+
+  widgets_layout_container.appendChild(widgets_layout_background);
+
+  let widgets_layouts_holder = document.createElement('div');
+  widgets_layouts_holder.style = 'transform: translate(-50%,0);';
+  widgets_layouts_holder.style.position = 'absolute';
+  widgets_layouts_holder.style.top = '20px';
+  widgets_layouts_holder.style.left = '50%';
+  widgets_layouts_holder.style.width = '100%';
+  widgets_layout_container.appendChild(widgets_layouts_holder);
 
   __widgets_layout_engine.container_matrix = [];
   __widgets_layout_engine.num_rows = 0;
@@ -34,12 +61,18 @@ let widgets_layout_engine = function(widget_ui_definitions,settings){
 
   __widgets_layout_engine.add_column = function(row){
     var new_col = document.createElement('div');
+
+    new_col.style.minHeight = "100px";
+    new_col.style.float = "left";
+    new_col.style.borderRadius = "10px";
+    new_col.style.padding = "10px";
+    new_col.style.marginRight = "10px";
+
     if(settings && settings.template){
       new_col.style.border = "thin solid #ccc";
     }
     row.appendChild(new_col);
     for(let i = 0; i < row.childNodes.length;i++){
-      row.childNodes[i].classList.add('widget-column')
       row.childNodes[i].style.width = "calc("+(Math.floor(100/row.childNodes.length))+"% - 10px)";
     }
     if(settings && settings.template){
@@ -66,6 +99,7 @@ let widgets_layout_engine = function(widget_ui_definitions,settings){
 
     let new_row_button_group = document.createElement('div');
     new_row_button_group.classList.add('btn-group','btn-group-large');
+    new_row_button_group.style.marginTop = "10px";
 
     let new_row_add_button = document.createElement('button');
     new_row_add_button.classList.add('btn','btn-primary');
@@ -84,43 +118,61 @@ let widgets_layout_engine = function(widget_ui_definitions,settings){
     return new_row_button_group;
   }
 
+
   __widgets_layout_engine.build_widgets_row = function(){
     let new_row = document.createElement('div');
-    new_row.classList.add('row','widgets-row');
+    new_row.style.marginTop = "10px";
     return new_row;
   }
 
-   __widgets_layout_engine.add_layout_row = function(parent){
+   __widgets_layout_engine.add_row = function(){
     let new_widgets_row = __widgets_layout_engine.build_widgets_row();
-    new_widgets_row.setAttribute('data-row-index',__widgets_layout_engine.num_rows)
-    let new_buttons_row = __widgets_layout_engine.build_buttons_row(new_widgets_row);
-    parent.appendChild(new_buttons_row);
-    parent.appendChild(new_widgets_row);
+    new_widgets_row.setAttribute('data-row-index',__widgets_layout_engine.num_rows);
+    
+    if(settings && settings.template){
+      let new_buttons_row = __widgets_layout_engine.build_buttons_row(new_widgets_row);
+      widgets_layouts_holder.appendChild(new_buttons_row);
+    }
+    
+    widgets_layouts_holder.appendChild(new_widgets_row);
+    __widgets_layout_engine.rows.push(new_widgets_row);
+
     return new_widgets_row;
   };
 
-   __widgets_layout_engine.add_template_row = function(parent){
-    let new_widgets_row = __widgets_layout_engine.build_widgets_row();
-    new_widgets_row.setAttribute('data-row-index',__widgets_layout_engine.num_rows)
-    parent.appendChild(new_widgets_row);
-    return new_widgets_row;
-  };
-
-  __widgets_layout_engine.remove_template_row = function(parent){
-    let last_row = parent.lastChild;
+  __widgets_layout_engine.remove_row = function(){
+    let last_row = widgets_layouts_holder.lastChild;
     if(last_row){
       let columns = last_row.childNodes;
       for(let i = columns.length -1 ; i >= 0;i--){
         remove_column(last_row);
+        __widgets_layout_engine.rows.pop();
       }
-      parent.removeChild(last_row);
-      let last_buttons_row = parent.lastChild;
+      widgets_layouts_holder.removeChild(last_row);
+      let last_buttons_row = widgets_layouts_holder.lastChild;
       if(last_buttons_row){
-        parent.removeChild(last_buttons_row);
+        widgets_layouts_holder.removeChild(last_buttons_row);
       }
     }
   }
 
+  __widgets_layout_engine.build_widget_container = function(type,id){
+    let widget_container = document.createElement('div');
+
+    widget_container.setAttribute('data-widget-type',type);
+    widget_container.setAttribute('data-widget-id',id);    
+
+    widget_container.style.border = "thin solid #ccc";
+    widget_container.style.borderRadius = "4px";
+    widget_container.style.padding = "20px";
+    widget_container.style.backgroundColor = "rgb(242,242,242)";
+    widget_container.style.marginTop = "10px";
+    widget_container.style.marginBottom = "10px";
+    widget_container.style.marginLeft = "auto";
+    widget_container.style.marginRight = "auto";
+
+    return widget_container;
+  }
 
   __widgets_layout_engine.add_available_widget = function(template,parent){
     if(template.hasOwnProperty('type') && template.hasOwnProperty('id') && template.hasOwnProperty('data')){
@@ -139,24 +191,14 @@ let widgets_layout_engine = function(widget_ui_definitions,settings){
         }
       }
       if(!exists){
-       let widget_container = document.createElement('div');
-        let widget = widget_ui_definitions[template.type](template.data,widget_container);
-        widget.classList.add('widget');
-        widget_container.setAttribute('data-widget-type',template.type);
-        widget_container.setAttribute('data-widget-id',template.id);
+        let widget_container = build_widget_container(template.type,template.id);
 
-        widget_container.classList.add('widget-container');
+        let widget = widget_ui_definitions[template.type](template.data,widget_container);
 
         widget_container.appendChild(widget);
         available_widgets_holder.appendChild(widget_container);          
       }
     }
-  }
-
-  __widgets_layout_engine.build_widget_container = function(){
-    let widget_container = document.createElement('div');
-    widget_container.classList.add('widget-container');
-    return(widget_container);
   }
 
   __widgets_layout_engine.build_widget = function(widget,parent,settings){
@@ -166,7 +208,7 @@ let widgets_layout_engine = function(widget_ui_definitions,settings){
       if(row && row.getAttribute('data-row-index')){
         rows.push(row);
       }else{
-        rows.push(__widgets_layout_engine.add_template_row(parent));
+        rows.push(__widgets_layout_engine.add_row(parent));
       }
     }
 
@@ -179,15 +221,16 @@ let widgets_layout_engine = function(widget_ui_definitions,settings){
       }
     }
 
-    let widget_container = __widgets_layout_engine.build_widget_container();
-
-    let widget_cell = cols[widget.x];
-    widget_cell.appendChild(widget_container);
     if(widget_ui_definitions[widget.type]){
+
+      let widget_container = __widgets_layout_engine.build_widget_container(widget.type,widget.id);
+      let widget_cell = cols[widget.x];
+
+      widget_cell.appendChild(widget_container);
+
       let widget_el = widget_ui_definitions[widget.type](widget.data,widget_container);
-      widget_container.setAttribute('data-widget-type',widget.type);
-      widget_container.setAttribute('data-widget-id',widget.id);
       widget_container.appendChild(widget_el);
+
     }
   }
 
@@ -198,8 +241,7 @@ let widgets_layout_engine = function(widget_ui_definitions,settings){
       let widget_el = unique_widgets[i];
       let container = widget_el.parentNode;
       let row_index;
-      let rows = document.getElementsByClassName('widgets-row');
-      for(let y in rows){
+      for(let y in __widgets_layout_engine.rows){
         if(container.parentNode == rows[y]){
           row_index = y;
         }

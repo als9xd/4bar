@@ -16,8 +16,7 @@
     <link rel="stylesheet" href="/css/cc_template.css">
 
     <link rel="stylesheet" href="/css/cc_layout.css">
-    
-    <link rel="stylesheet" href="/css/widget_layout_engine.css">
+    <link rel="stylesheet" href="/css/dragula.css">
 
     <script src="/socket.io/socket.io.js"></script>
     <script type="text/javascript">let socket = io();</script>
@@ -117,7 +116,6 @@
             <hr>
         </fieldset>
       </div>
-
       <div class="widget-layouts-engine">
         <h1 class="text-center available-widgets-header">Available Widgets</h1>
         <div class='container' class="available-widgets-container">
@@ -129,18 +127,16 @@
         <div class="container" id="widget-layouts-buttons">
           Rows: 
           <div class="btn-group btn-group-lg">
-            <button class="btn btn-primary btn-lg" onclick="wle.add_layout_row(document.getElementById('widget-layouts-holder'))">+</button>
-            <button class="btn btn-primary btn-lg" onclick="wle.remove_template_row(document.getElementById('widget-layouts-holder'))">-</button>        
+            <button class="btn btn-primary btn-lg" onclick="wle.add_row()">+</button>
+            <button class="btn btn-primary btn-lg" onclick="wle.remove_row()">-</button>        
           </div>
         <button class="btn btn-primary btn-lg" onclick="socket.emit('layout_submit',{ community_id : {{{c_id}}}, layout : wle.summarize_template() });">Save</button>
           <div id="layout_success_container" style="margin-top:20px;"></div>
           <div id="layout_error_container" style="margin-top:20px;"></div>
         </div>
-        <div class="widget-layouts-container">
-          <div id="widgets-layout-background"></div>
-          <div id="widget-layouts-holder"></div>    
-          </div>
-        </div>  
+
+        <div id="widget-layouts-container"></div>
+
       </div>
     </div>
 

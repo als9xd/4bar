@@ -15,17 +15,25 @@
     <link rel="stylesheet" href="/css/public.css">
     <link rel="stylesheet" href="/css/cc_template.css">
 
-    <link rel="stylesheet" href="/css/widget_layout_engine.css">
-
     <script src="/socket.io/socket.io.js"></script>
     <script type="text/javascript">let socket = io();</script>
+    
     <script>
+
       window.addEventListener('load',function(){
-        socket.emit('widgets_req',{{{c_id}}});
+          socket.emit('widgets_req',{{{c_id}}});
 
           socket.on('widgets_res',function (widget_data) {
             wle.build_widget(widget_data,document.getElementById('widget-layouts-holder'));
           });
+
+          wle = widgets_layout_engine(
+            WidgetUIDefinitions,
+            {
+              background: '{{{c_wallpaper}}}'
+            }
+          );
+
       });
 
       function join_community(){
@@ -74,10 +82,11 @@
       </div>
     </nav>
 
+    <div id="widget-layouts-container">
+    </div>
     <div class="widget-layouts-container">
       <div id="widgets-layout-background"></div>
       <div id="widget-layouts-holder"></div>    
-      </div>
     </div>  
 
     <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
@@ -99,15 +108,6 @@
     <script src='https://cdnjs.cloudflare.com/ajax/libs/dragula/3.7.2/dragula.min.js'></script>
     <script src='/js/widget_ui_definitions.js'></script>
     <script src='/js/widget_layout_engine.js'></script>
-    <script type="text/javascript">
-      let wle = widgets_layout_engine(
-        WidgetUIDefinitions,
-        {
-          background: '{{{c_wallpaper}}}'
-        }
-      );
-    </script>
-
   </body>
 
 </html>
