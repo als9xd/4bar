@@ -13,7 +13,6 @@ let WidgetLayoutEngine = function(widget_ui_definitions,parent,settings){
     return header;  
   }  
 
-
   //////////////////////////////////////////////////////////////////////
   // Widget Layout Engine Base Initialization
   //////////////////////////////////////////////////////////////////////
@@ -21,7 +20,6 @@ let WidgetLayoutEngine = function(widget_ui_definitions,parent,settings){
   let wle_base = parent;
   wle_base.style = "min-height: 100% !important";
   wle_base.style.height = "100%";
-  // wle_base.style.marginTop = "20px";
 
   //////////////////////////////////////////////////////////////////////
   // Available Widgets Initialization
@@ -112,7 +110,9 @@ let WidgetLayoutEngine = function(widget_ui_definitions,parent,settings){
       wle_layout_background.style.backgroundImage = 'url('+settings.background+')';
     }
     background_img.onerror = function(){
-      wle_layout_background.style.backgroundImage = 'url("https://www.transparenttextures.com/patterns/3px-tile.png")';
+      if(settings && settings.defaultBackgroundImage){
+        wle_layout_background.style.backgroundImage = 'url('+settings.defaultBackgroundImage+')';
+      }
     }
     background_img.src = settings.background;
   }

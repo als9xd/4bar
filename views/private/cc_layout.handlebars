@@ -18,18 +18,16 @@
     <link rel="stylesheet" href="/css/cc_layout.css">
     <link rel="stylesheet" href="/css/dragula.css">
 
-    <script>
-      
-    function widget_submit(type,input){
-      socket.emit('widget_submit',
-        {
-          community_id:{{{c_id}}},
-          type:type,
-          data:input
-        }
-      );
-    }
-    
+    <script>    
+      function widget_submit(type,input){
+        socket.emit('widget_submit',
+          {
+            community_id:{{{c_id}}},
+            type:type,
+            data:input
+          }
+        );
+      } 
     </script>
 
   </head>
@@ -141,6 +139,7 @@
         {
           template: true,
           background: '{{{c_wallpaper}}}',
+          defaultBackgroundImage: 'https://www.transparenttextures.com/patterns/3px-tile.png',
           save_callback: function () {
            socket.emit(
               'layout_submit',
