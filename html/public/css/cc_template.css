@@ -1,0 +1,4 @@
+html, body, .widget-layouts-engine{
+    min-height: 100% !important;
+    height: 100%;
+}
