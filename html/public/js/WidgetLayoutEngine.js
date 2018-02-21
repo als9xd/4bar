@@ -102,12 +102,12 @@ let WidgetLayoutEngine = function(widget_ui_definitions,parent,settings){
   let wle_layout_background = document.createElement('div');
   wle_layout_background.style = 'min-height: 100% !important;';
   wle_layout_background.style.height = '100%';
-  wle_layout_background.style.backgroundSize = 'cover';
   wle_layout_background.style.backgroundColor = 'rgb(122,122,122)';
 
   if(settings && settings.background && settings.background.length){
     let background_img = new Image();
     background_img.onload = function(){
+      wle_layout_background.style.backgroundSize = 'cover';
       wle_layout_background.style.backgroundImage = 'url('+settings.background+')';
     }
     background_img.onerror = function(){
