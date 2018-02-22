@@ -19,6 +19,12 @@ const config = {
 			port: 5432,
 			database_name: '4bar',
 			varchar_limits: {
+				tournaments: {
+					tournament_name: 250,
+					address: 120,
+					city: 20,
+					zip: 10
+				},
 				users: {
 					username: 20,
 					name: 226,
