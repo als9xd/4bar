@@ -46,21 +46,9 @@ const config = {
 				community_stats: {
 					stat_name: 30,
 					stat_value: 255
-<<<<<<< .merge_file_vLB6dQ
-				},
-				platforms: {
-					name: 20
-				}, 
-				games: {
-					title: 200
-				},
-				market_items: {
-					name: 200
 				},
 				tournaments: {
 					tournament_name: 250
-=======
->>>>>>> .merge_file_QTeITv
 				}
 			}
 		},
