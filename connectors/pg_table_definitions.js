@@ -4,6 +4,10 @@ module.exports = function(config){
 			'CREATE TABLE IF NOT EXISTS tournament('+
 				'id SERIAL PRIMARY KEY,'+
 				'tournament_name VARCHAR('+config.pg.varchar_limits.tournaments.tournament+') NOT NULL,'+
+				'address VARCHAR('+config.pg.varchar_limits.tournaments.address+') NOT NULL,'+
+				'city VARCHAR('+config.pg.varchar_limits.tournaments.city+') NOT NULL, '+
+				'state CHAR(2),'+
+		                'zip VARCHAR('+config.pg.varchar_limits.tournaments.zip+')'+
 			')'
 		,
 		users:
