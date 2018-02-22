@@ -84,9 +84,13 @@ Note: The username and password were shared in the discord channel
 
 Note: this won't remove untracked files or folders
 
-- Download and Attempt to Merge with local files
+- Merge your branch to the newest remote commit
     1. cd '4bar\'
-    2. type ```git pull```
+    2. type ```git fetch```
+    3. type ```git checkout some-branch```
+        * some-branch should be the branch you currently working on.
+    4. type ```git merge -s resolve master``` 
+    5. resolve merge conflicts
 
 #### Upload Code to the Repository
 
