@@ -46,6 +46,9 @@ const config = {
 				community_stats: {
 					stat_name: 30,
 					stat_value: 255
+				},
+				tournaments: {
+					tournament_name: 250
 				}
 			}
 		},
@@ -114,6 +117,9 @@ const config = {
 				community_stats: {
 					stat_name: 30,
 					stat_value: 255
+				},
+				tournaments: {
+					tournament_name: 250
 				}
 			}
 		},
