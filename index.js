@@ -338,6 +338,12 @@ app.get('/register',function(req, res){
   res.sendFile(__dirname + '/html/public/register.html');
 });
 
+app.get('/past_matches',function(req, res){
+	res.render('private/match_history',{
+		username: req.session.username,
+	});
+});
+
 app.get('/home', check_auth, function(req, res){
 
 	pg_conn.client.query(

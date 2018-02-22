@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
 
     <link rel="stylesheet" href="/css/public.css">
-    <link rel="stylesheet" href="/css/home.css">
+    <link rel="stylesheet" href="/css/past_matches.css">
 
     <script src="/socket.io/socket.io.js"></script>
 
@@ -41,6 +41,9 @@
           <li class="nav-item">
             <a class="nav-link" href="/cc_wizard">Community Creation</a>
           </li>
+		  <li class="nav-item">
+            <a class="nav-link" href="/past_matches">My Matches</a>
+          </li>
           <li class="nav-item dropdown active">
             <a class="nav-link dropdown-toggle" href="#" id="dropdown01" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{{username}}}'s Profile</a>
             <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdown01">
@@ -59,7 +62,7 @@
 	</div>
 	
 	<div class="list-group">
-	  <a href="#" class="list-group-item active">
+	  <a href="/home" class="list-group-item active">
 		<h4 class="list-group-item-heading">{{{game_id1}}} - {{{match_date1}}} : {{{match_result1}}}</h4>
 		
 	  </a>

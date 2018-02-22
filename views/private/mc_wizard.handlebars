@@ -6,17 +6,23 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>4BAR - Profile</title>
+    <title>4BAR - Home</title>
 
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
-    
-    <link rel="stylesheet" href="/css/public.css">
-    <link rel="stylesheet" href="/css/profile.css">
 
-  </head>
+    <link rel="stylesheet" href="/css/public.css">
+    <link rel="stylesheet" href="/css/.css">
+
+    <script src="/socket.io/socket.io.js"></script>
+
+    <script type="text/javascript">
+      let socket = io();
+    </script>
+    
+ </head>
 
   <body>
-
+	
     <nav class="navbar navbar-toggleable-md navbar-inverse bg-inverse">
       <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target=".navbar-collapse" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
@@ -48,46 +54,61 @@
         </ul>
       </div>
     </nav>
-    
-    <div class="container profile-container">
+		
+	<div class="container" style="margin-top:10px;">
       <div class="row">
-        <table class="table">
-          <thead>
-            <h2>My Profile</h2>
-          </thead>
-          <tbody>
-            <tr>
-              <th scope="row">Name</th>
-              <td>{{full_name}}</td>
-            </tr>
-            <tr>
-              <th scope="row">Username</th>
-              <td>{{{username}}}</td>
-            </tr>
-            <tr>
-              <th scope="row">Contact</th>
-              <td>{{{email}}}</td>
-            </tr>
-            <tr>
-              <th scope="row">Communities</th>
-              <td>
-                <ul>
-                  {{#each c_names}}
-                      <li>{{ this }}</li>
-                  {{/each}}
-                </ul>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        <div class="col-md-6" style="margin:auto">
+          <form action="/match_submit" method="post" role="form" encType="multipart/form-data">
+            <fieldset><legend class="text-center">Enter a Match</legend>
+
+              <div class="form-group">
+
+                <label for="phonenumber"><span class="req">* </span> Game: </label>
+                        <input required type="text" name="c_game" id="c_game" class="form-control" autocomplete="off" /> 
+                </div>
+
+                <div class="form-group">   
+                    <label for="firstname"><span class="req">* </span> Team One Players: </label>
+                    <textarea class="form-control" required type="text" name="c_team_one" rows="5" id="c_team_one"  autocomplete="off"  /> </textarea> 
+                </div>
+				<div class="form-group">   
+                    <label for="firstname"><span class="req">* </span> Team Two Players: </label>
+                    <textarea class="form-control" required type="text" name="c_team_two" rows="5" id="c_team_two"  autocomplete="off"  /> </textarea> 
+				<div class="container"> 
+			      <hr>
+				  <h5>Select Winner</h5>
+				  <form>
+					<div class="radio">
+					  <label><input type="radio" name="team_one">Team 1</label>
+					</div>
+					<div class="radio">
+					  <label><input type="radio" name="team_two">Team 2</label>
+					</div>
+				  </form>
+				</div>
+				
+				<hr>
+				
+				
+                <div class="form-group">
+                    <input class="btn btn-primary" type="submit" name="submit_reg" value="Submit">
+                </div>
+
+                <div id="success_container" style="margin-top:20px;"></div>
+                <div id="error_container" style="margin-top:20px;"></div>
+
+              </div>
+            </fieldset>
+          </form>
       </div>
     </div>
-
-    <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
     
+   
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb" crossorigin="anonymous"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script>
-
+  
   </body>
 
 </html>
