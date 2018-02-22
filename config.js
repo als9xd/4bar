@@ -52,6 +52,9 @@ const config = {
 				},
 				market_items: {
 					name: 200
+				},
+				tournaments: {
+					tournament_name: 250
 				}
 			}
 		},
@@ -120,6 +123,9 @@ const config = {
 				},
 				market_items: {
 					name: 200
+				},
+				tournaments: {
+					tournament_name: 250
 				}
 			}
 		},
