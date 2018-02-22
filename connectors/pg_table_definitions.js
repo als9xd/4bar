@@ -1,5 +1,11 @@
 module.exports = function(config){
 	return {
+		tournaments:
+			'CREATE TABLE IF NOT EXISTS tournament('+
+				'id SERIAL PRIMARY KEY,'+
+				'tournament_name VARCHAR('+config.pg.varchar_limits.tournaments.tournament+') NOT NULL,'+
+			')'
+		,
 		users:
 			'CREATE TABLE IF NOT EXISTS users('+
 				'id SERIAL PRIMARY KEY,'+
