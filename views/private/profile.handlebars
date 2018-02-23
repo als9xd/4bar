@@ -9,15 +9,20 @@
     <title>4BAR - Profile</title>
 
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
+
+    <link href="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" rel="stylesheet"/>
     
     <link rel="stylesheet" href="/css/public.css">
     <link rel="stylesheet" href="/css/profile.css">
 
+    <script src="/socket.io/socket.io.js"></script>
+    <script type="text/javascript">let socket = io();</script>
+    
   </head>
 
   <body>
 
-    <nav class="navbar navbar-toggleable-md navbar-inverse bg-inverse">
+    <nav class="navbar navbar-toggleable-md navbar-inverse bg-inverse fixed-top">
       <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target=".navbar-collapse" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
@@ -49,37 +54,39 @@
       </div>
     </nav>
     
-    <div class="container profile-container">
-      <div class="row">
-        <table class="table">
-          <thead>
-            <h2>My Profile</h2>
-          </thead>
-          <tbody>
-            <tr>
-              <th scope="row">Name</th>
-              <td>{{full_name}}</td>
-            </tr>
-            <tr>
-              <th scope="row">Username</th>
-              <td>{{{username}}}</td>
-            </tr>
-            <tr>
-              <th scope="row">Contact</th>
-              <td>{{{email}}}</td>
-            </tr>
-            <tr>
-              <th scope="row">Communities</th>
-              <td>
-                <ul>
-                  {{#each c_names}}
-                      <li>{{ this }}</li>
-                  {{/each}}
-                </ul>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+    <div class="page-body">
+      <div class="container profile-container">
+        <div class="row">
+          <table class="table">
+            <thead>
+              <h2>My Profile</h2>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">Name</th>
+                <td>{{full_name}}</td>
+              </tr>
+              <tr>
+                <th scope="row">Username</th>
+                <td>{{{username}}}</td>
+              </tr>
+              <tr>
+                <th scope="row">Contact</th>
+                <td>{{{email}}}</td>
+              </tr>
+              <tr>
+                <th scope="row">Communities</th>
+                <td>
+                  <ul>
+                    {{#each c_names}}
+                        <li>{{ this }}</li>
+                    {{/each}}
+                  </ul>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
 
@@ -87,6 +94,16 @@
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb" crossorigin="anonymous"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script>
+
+    <script src="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
+
+    <script src="/js/MessageHandler.js"></script>
+    <script type="text/javascript">
+      let msg_hndlr = MessageHandler(
+        toastr,
+        socket
+      );
+    </script>
 
   </body>
 

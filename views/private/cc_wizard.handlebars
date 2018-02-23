@@ -10,16 +10,21 @@
 
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
 
+    <link href="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" rel="stylesheet"/>
+
     <link rel="stylesheet" href="/css/public.css">
     <link rel="stylesheet" href="/css/cc_wizard.css">
 
-    <link rel="stylesheet" href="/css/jquery.tagsinput.css"> 
+    <link rel="stylesheet" href="/css/jquery.tagsinput.css">
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script type="text/javascript">let socket = io();</script>
 
   </head>
 
   <body>
 
-    <nav class="navbar navbar-toggleable-md navbar-inverse bg-inverse">
+    <nav class="navbar navbar-toggleable-md navbar-inverse bg-inverse fixed-top">
       <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target=".navbar-collapse" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
@@ -51,60 +56,72 @@
       </div>
     </nav>
 
-     <div class="container" style="margin-top:10px;">
-      <div class="row">
-        <div class="col-md-6" style="margin:auto">
-          <form action="/cc_submit" method="post" role="form" encType="multipart/form-data">
-            <fieldset><legend class="text-center">Community Creation Wizard</legend>
-
-              <div class="form-group">
-
-                <label for="phonenumber"><span class="req">* </span> Name: </label>
-                        <input required type="text" name="c_name" id="c_name" class="form-control" autocomplete="off" /> 
-                </div>
-
-                <div class="form-group">   
-                    <label for="firstname"><span class="req"> </span> Description: </label>
-                    <textarea class="form-control" type="text" name="c_description" rows="5" id="c_description"  autocomplete="off"  /> </textarea> 
-                </div>
+    <div class="page-body">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-6" style="margin:auto">
+            <form action="/cc_submit" method="post" role="form" encType="multipart/form-data">
+              <fieldset><legend class="text-center">Community Creation Wizard</legend>
 
                 <div class="form-group">
-                    <label for="lastname"><span class="req"> </span> Icon: </label> 
-                    <input type="file" class="form-control-file" name="c_icon" id="c_icon" aria-describedby="fileHelp">
+
+                  <label for="phonenumber"><span class="req">* </span> Name: </label>
+                          <input required type="text" name="c_name" id="c_name" class="form-control" autocomplete="off" /> 
+                  </div>
+
+                  <div class="form-group">   
+                      <label for="firstname"><span class="req"> </span> Description: </label>
+                      <textarea class="form-control" type="text" name="c_description" rows="5" id="c_description"  autocomplete="off"  /> </textarea> 
+                  </div>
+
+                  <div class="form-group">
+                      <label for="lastname"><span class="req"> </span> Icon: </label> 
+                      <input type="file" class="form-control-file" name="c_icon" id="c_icon" aria-describedby="fileHelp">
+                  </div>
+
+                  <div class="form-group">
+                      <label for="email"><span class="req"> </span> Wallpaper: </label> 
+                      <input type="file" class="form-control-file" name="c_wallpaper" id="c_wallpaper" aria-describedby="fileHelp">
+                  </div>
+
+                  <div class="form-group">
+                    <input name="tags" id="c_tags"/>
+                  </div>
+
+                  <hr>
+
+                  <div class="form-group">
+                      <input class="btn btn-primary" type="submit" name="submit_reg" value="Submit">
+                  </div>
+                
+                  <div id="success_container" style="margin-top:20px;"></div>
+                  <div id="error_container" style="margin-top:20px;"></div>
+                
                 </div>
-
-                <div class="form-group">
-                    <label for="email"><span class="req"> </span> Wallpaper: </label> 
-                    <input type="file" class="form-control-file" name="c_wallpaper" id="c_wallpaper" aria-describedby="fileHelp">
-                </div>
-
-                <div class="form-group">
-                  <input name="tags" id="c_tags"/>
-                </div>
-
-                <hr>
-
-                <div class="form-group">
-                    <input class="btn btn-primary" type="submit" name="submit_reg" value="Submit">
-                </div>
-
-                <div id="success_container" style="margin-top:20px;"></div>
-                <div id="error_container" style="margin-top:20px;"></div>
-
-              </div>
-            </fieldset>
-          </form>
+              </fieldset>
+            </form>
+          </div>
+        </div>
       </div>
     </div>
-
-    <script src="/js/url_parser.js"></script>
-    <script src="/js/url_message.js"></script> 
 
     <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb" crossorigin="anonymous"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script>
     
+    <script src="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
+
+    <script src="/js/UrlMessageHandler.js"></script>
+
+    <script src="/js/MessageHandler.js"></script>
+    <script type="text/javascript">
+      let msg_hndlr = MessageHandler(
+        toastr,
+        socket
+      );
+    </script>
+
     <script src="/js/jquery.tagsinput.js"></script>
     <script type="text/javascript">
       $('#c_tags').tagsInput();

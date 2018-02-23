@@ -30,6 +30,15 @@ const config = {
 					name: 226,
 					email: 254
 				},
+				games: {
+					title: 200
+				},
+				platforms: {
+					name: 20
+				}, 
+				market_items: {
+					name: 200
+				},			
 				communities: {
 					name: 30,
 					unique_name: 255,
@@ -43,15 +52,6 @@ const config = {
 				community_stats: {
 					stat_name: 30,
 					stat_value: 255
-				},
-				platforms: {
-					name: 20
-				}, 
-				games: {
-					title: 200
-				},
-				market_items: {
-					name: 200
 				}
 			}
 		},
@@ -98,6 +98,15 @@ const config = {
 					name: 226,
 					email: 254
 				},
+				games: {
+					title: 200
+				},
+				platforms: {
+					name: 20
+				}, 
+				market_items: {
+					name: 200
+				},	
 				communities: {
 					name: 30,
 					unique_name: 255,
@@ -111,15 +120,6 @@ const config = {
 				community_stats: {
 					stat_name: 30,
 					stat_value: 255
-				},
-				platforms: {
-					name: 20
-				}, 
-				games: {
-					title: 200
-				},
-				market_items: {
-					name: 200
 				}
 			}
 		},

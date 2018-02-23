@@ -1,3 +1,14 @@
+body { 
+	padding-top: 40px; 
+}
+
+.page-body{
+	margin-top: 40px;
+    min-height: 100% !important;
+    height: 100%;
+
+}
+
 .btn-primary{
    background-color: #575a5b;
    border:1px solid black;
@@ -8,7 +19,7 @@
 }
 
 .btn-primary:focus,.btn-primary:active {
- 	background-color: #313435;
+  background-color: #313435;
   outline: none !important;
   -webkit-box-shadow: inset 0px 0px 7px black;
      -moz-box-shadow: inset 0px 0px 7px black;
