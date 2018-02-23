@@ -651,7 +651,7 @@ server.listen(config[env].server.https.port,function(){
 
 io.on('connection',function(socket){
 
-	socket.on('login',function(data){
+	socket.on('login_req',function(data){
 		if(!data.username){
 			return;
 		}
@@ -668,7 +668,7 @@ io.on('connection',function(socket){
 			function(err,user_info){
 				if(err){
 					console.log(err);
-					socket.emit('message',{error:'Could not get user'});
+					socket.emit('notification',{error:'Could not get user'});
 				}else if(user_info && user_info.rows.length){
 					pwd_h.validate(
 							data.password,
@@ -683,38 +683,38 @@ io.on('connection',function(socket){
 								socket.handshake.session.email = user_info.rows[0].email;
 								socket.handshake.session.save();
 
-								socket.emit('message',{success: 'Successfully Logged in!'});								
+								socket.emit('notification',{success: 'Successfully Logged in!'});								
 							},
 							// Fail callback
 							function(){
-								socket.emit('message',{error: 'Invalid username or password'});								
+								socket.emit('notification',{error: 'Invalid username or password'});								
 							}
 					);
 				}else{
-					socket.emit('message',{error:'Invalid username or password'});
+					socket.emit('notification',{error:'Invalid username or password'});
 				}
 			}
 		);
 	});
 
-	socket.on('register',function(data){
+	socket.on('register_req',function(data){
 		if(!data.username){
-			socket.emit('message',{error:'Username is required'});
+			socket.emit('notification',{error:'Username is required'});
 			return;
 		}
 
 		if(!data.password){
-			socket.emit('message',{error:'Password is required'});
+			socket.emit('notification',{error:'Password is required'});
 			return;
 		}
 
 		if(!data.password_confirmation){
-			socket.emit('message',{error:'Please confirm your password'});
+			socket.emit('notification',{error:'Please confirm your password'});
 			return;
 		}
 
 		if(data.password != data.password_confirmation){
-			socket.emit('message',{error:'Passwords do not match'});
+			socket.emit('notification',{error:'Passwords do not match'});
 			return;		
 		}
 
@@ -742,14 +742,14 @@ io.on('connection',function(socket){
 				let table_name = invalid_lengths[i].table_name;
 				invalid_length_errors.push(table_name.charAt(0).toUpperCase()+table_name.slice(1) + ' must be less than ' + invalid_lengths[i].limit + ' characters');
 			}
-			socket.emit('message',{title:'Did not meet length requirements',error:invalid_length_errors});
+			socket.emit('notification',{title:'Did not meet length requirements',error:invalid_length_errors});
 			return;
 		}	
 
 		// This is custom method that checks the password against the rules defined in the config file
 		let invalid_pwd_msgs = pwd_h.is_invalid(data.password);
 		if(invalid_pwd_msgs.length){
-			socket.emit('message',{title:'Did not meet password requirements',error:invalid_pwd_msgs});
+			socket.emit('notification',{title:'Did not meet password requirements',error:invalid_pwd_msgs});
 			return;	
 		}
 
@@ -763,7 +763,7 @@ io.on('connection',function(socket){
 			function(err,results){
 				if(err){
 					console.log(err);
-					socket.emit('message',{error:'Could not check if username is already used'});
+					socket.emit('notification',{error:'Could not check if username is already used'});
 					return;
 				}else if(results && results.rows.length == 0){
 					pwd_h.hash(data.password,function(password){
@@ -781,7 +781,7 @@ io.on('connection',function(socket){
 							function(err,results){
 								if(err){
 									console.log(err);
-									socket.emit('message',{error:'Could not create user'});
+									socket.emit('notification',{error:'Could not create user'});
 									return;
 								}
 
@@ -791,19 +791,19 @@ io.on('connection',function(socket){
 								socket.handshake.session.email = data.email;
 								socket.handshake.session.save();
 
-								socket.emit('message',{success:'Successfully registered!'});
+								socket.emit('notification',{success:'Successfully registered!'});
 							}
 						);						
 					});
 				}else{
-					socket.emit('message',{error:'User already exists'});
+					socket.emit('notification',{error:'User already exists'});
 					return;
 				}
 			}
 		);
 	});
 
-	socket.on('community_join',function(data){
+	socket.on('community_join_req',function(data){
 		pg_conn.client.query(
 			"SELECT communities.url,users.id FROM communities,users "+
 			"WHERE communities.id = $1 AND users.username = $2 "+
@@ -815,7 +815,7 @@ io.on('connection',function(socket){
 			function(err,community_and_user_info){
 				if(err){
 					console.log(err);
-					socket.emit('message',{error:'Could not get community/user information'});
+					socket.emit('notification',{error:'Could not get community/user information'});
 					return;
 				}else if(community_and_user_info.rows && community_and_user_info.rows[0] != null  && community_and_user_info.rows[0].url && community_and_user_info.rows[0].id){
 					pg_conn.client.query(
@@ -831,19 +831,19 @@ io.on('connection',function(socket){
 							// The reason that this method can be is because there are only two columns that are UNIQUE so there is no situation in which the UNIQUE error code would be thrown for another UNIQUE column that isn't user_id or community_id.
 							// The reason I decided to use this method is because I believe is should be faster as the database only needs to be accessed once.
 							if(err && err.code == '23505'){
-								socket.emit('message',{error:'You are already a member of this community'});
+								socket.emit('notification',{error:'You are already a member of this community'});
 								return;
 							}
 							if(err){
 								console.log(err);
-								socket.emit('message',{error:'Error joining the community'});
+								socket.emit('notification',{error:'Error joining the community'});
 								return;
 							}
-							socket.emit('message',{success:'Successfully joined community'});
+							socket.emit('notification',{success:'Successfully joined community'});
 						}
 					);	
 				}else{
-					socket.emit('message',{error:'Could not find community with id or username'});
+					socket.emit('notification',{error:'Could not find community with id or username'});
 				}
 			}
 		);		
@@ -855,7 +855,7 @@ io.on('connection',function(socket){
 			function(err,community_info){
 				if(err){
 					console.log(err)
-					socket.emit('message',{error:'Could not get communities'});
+					socket.emit('notification',{error:'Could not get communities'});
 					return;
 				}
 				socket.emit('communities_res',community_info.rows);
@@ -880,19 +880,19 @@ io.on('connection',function(socket){
 					for(let i in layout){
 						if(layout.hasOwnProperty(i)){
 							if(widgets_conn.hasOwnProperty(layout[i].type)){
-								widgets_conn[layout[i].type].get(layout[i].id,function(widgets,message){
+								widgets_conn[layout[i].type].get(layout[i].id,function(widgets,notification){
 									if(widgets){
 										for(let r = 0; r < widgets.length;r++){
 											layout[i].data = widgets[r];
 											socket.emit('widgets_res',layout[i]);								
 										}									
 									}
-									if(message){
-										socket.emit('message',message);
+									if(notification){
+										socket.emit('notification',notification);
 									}	
 								});
 							}else{
-								socket.emit('message',{error:"Unknown widget type \'"+layout[i].type+"\'"})
+								socket.emit('notification',{error:"Unknown widget type \'"+layout[i].type+"\'"})
 							}
 						}
 					}
@@ -901,7 +901,7 @@ io.on('connection',function(socket){
 		);		
 	});
 
-	socket.on('layout_submit',function(data){
+	socket.on('layout_submit_req',function(data){
 		pg_conn.client.query(
 			"UPDATE communities "+
 			"SET layout = $1 "+
@@ -912,10 +912,10 @@ io.on('connection',function(socket){
 			],function(err,results){
 				if(err){
 					console.log(err);
-					socket.emit('message',{error:'Layout could not be saved'});
+					socket.emit('notification',{error:'Layout could not be saved'});
 					return;
 				}
-				socket.emit('message',{success:'Successfully saved layout'});
+				socket.emit('notification',{success:'Successfully saved layout'});
 			}
 		);
 	});
@@ -923,34 +923,34 @@ io.on('connection',function(socket){
 	socket.on('available_widgets_req',function(community_id){
 		for(let widget_type in widgets_conn){
 			if(widgets_conn.hasOwnProperty(widget_type)){
-				widgets_conn[widget_type].available(community_id,function(available_widgets,message){
+				widgets_conn[widget_type].available(community_id,function(available_widgets,notification){
 					if(available_widgets){
 						for(let r = 0; r < available_widgets.length;r++){
 							socket.emit('available_widgets_res',{type:widget_type,id:available_widgets[r].id,data:available_widgets[r]});	
 						}						
 					}
-					if(message){
-						socket.emit('message',message);
+					if(notification){
+						socket.emit('notification',notification);
 					}
 				});
 			}else{
-				socket.emit('message',{error:"Unknown widget type \'"+widget_type+"\'"});
+				socket.emit('notification',{error:"Unknown widget type \'"+widget_type+"\'"});
 			}
 		}
 	});
 
-	socket.on('widget_submit',function(widget){
+	socket.on('widget_submit_req',function(widget){
 		if(widgets_conn.hasOwnProperty(widget.type)){
-			widgets_conn[widget.type].add(widget.community_id,widget.data,function(success,message){
-				message.name = "widget_submit";
-				socket.emit('message',message);
+			widgets_conn[widget.type].add(widget.community_id,widget.data,function(success,notification){
+				notification.name = "widget_submit_res";
+				socket.emit('notification',notification);
 			});			
 		}else{
-			socket.emit('message',{error:"Unknown widget type \'"+widget.type+"\'"})
+			socket.emit('notification',{error:"Unknown widget type \'"+widget.type+"\'"})
 		}
 	});
 
-	socket.on('join_community',function(community_id){
+	socket.on('join_community_req',function(community_id){
 		pg_conn.client.query(
 			"SELECT id FROM users WHERE "+
 			"username = $1 "+
@@ -961,7 +961,7 @@ io.on('connection',function(socket){
 			function(err,user_id){
 				if(err){
 					console.log(err);
-					socket.emit('message',{error:'Could not get community/user information'});
+					socket.emit('notification',{error:'Could not get community/user information'});
 					return;
 				}else if(user_id.rows && user_id.rows[0] != null && user_id.rows[0].id){
 					pg_conn.client.query(
@@ -977,19 +977,19 @@ io.on('connection',function(socket){
 							// The reason that this method can be is because there are only two columns that are UNIQUE so there is no situation in which the UNIQUE error code would be thrown for another UNIQUE column that isn't user_id or community_id.
 							// The reason I decided to use this method is because I believe is should be faster as the database only needs to be accessed once.
 							if(err && err.code == '23505'){
-								socket.emit('message',{error:'You are already a member of this community'});
+								socket.emit('notification',{error:'You are already a member of this community'});
 								return;
 							}
 							if(err){
 								console.log(err);
-								socket.emit('message',{error:'Could not join you to the community'});
+								socket.emit('notification',{error:'Could not join you to the community'});
 								return;
 							}
-							socket.emit('message',{success:'Successfully joined community!'});
+							socket.emit('notification',{success:'Successfully joined community!'});
 						}
 					);	
 				}else{
-					socket.emit('message',{error:'Could not find community with id or username'});
+					socket.emit('notification',{error:'Could not find community with id or username'});
 				}
 			}
 		);

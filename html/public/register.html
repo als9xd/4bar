@@ -8,12 +8,10 @@
 
     <title>4BAR - Register</title>
 
-    <!-- Bootstrap core CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
 
     <link href="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" rel="stylesheet"/>
 
-    <!-- Custom styles for this template -->
     <link href="/css/public.css" rel="stylesheet">
     <link href="/css/register.css" rel="stylesheet">
 
@@ -40,7 +38,7 @@
         <div class="form-footer">
           <a href="/login" >Login</a>            
         </div>
-        <button class="btn btn-lg btn-primary btn-block" id="submit">Submit</button>     
+        <button class="btn btn-lg btn-primary btn-block" id="submit" type="button">Submit</button>     
       </form>
     </div>
 
@@ -48,9 +46,9 @@
 
     <script src="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
 
-    <script src="/js/MessageHandler.js"></script>
+    <script src="/js/NotificationHandler.js"></script>
     <script type="text/javascript">
-      let msg_hndlr = MessageHandler(
+      let ntf_hndlr = NotificationHandler(
         toastr,
         socket,
         {
@@ -77,7 +75,7 @@
             }
           }
           if(!error){
-            socket.emit('register',{
+            socket.emit('register_req',{
               username:document.getElementById('inputUsername').value,
               full_name:document.getElementById('inputFullname').value,
               password:document.getElementById('inputPassword').value,

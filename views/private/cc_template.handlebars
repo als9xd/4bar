@@ -65,7 +65,7 @@
     <script>
 
       function join_community(){
-        socket.emit('join_community',{{{c_id}}});
+        socket.emit('join_community_req',{{{c_id}}});
       }
 
     </script>
@@ -78,16 +78,16 @@
 
     <script src="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
     
-    <script src="/js/MessageHandler.js"></script>
+    <script src="/js/NotificationHandler.js"></script>
     <script type="text/javascript">
-      let msg_hndlr = MessageHandler(
+      let ntf_hndlr = NotificationHandler(
         toastr,
         socket
       );
     </script>
 
     <script src='https://cdnjs.cloudflare.com/ajax/libs/dragula/3.7.2/dragula.min.js'></script>
-    <script src='/js/widget_ui_definitions.js'></script>
+    <script src='/js/WidgetUIDefinitions.js'></script>
     <script src='/js/WidgetLayoutEngine.js'></script>
     <script> 
       let wle = WidgetLayoutEngine(

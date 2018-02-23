@@ -1,4 +1,4 @@
-function MessageHandler(toastr,socket,callbacks){
+function NotificationHandler(toastr,socket,callbacks){
     toastr.options = {
         "closeButton": false,
         "debug": false,
@@ -15,32 +15,32 @@ function MessageHandler(toastr,socket,callbacks){
         "hideEasing": "linear",
         "showMethod": "fadeIn",
         "hideMethod": "fadeOut"
-    }
-
-    socket.on('message',function(message){
-        if(message.error){
+    };
+    
+    socket.on('notification',function(notification){
+        if(notification.error){
             toastr.options.closeButton = true;
             toastr.options.timeOut = 0;
             toastr.options.preventDuplicates = true;
 
             let error_msg = '';
-            if(typeof(message.error) == 'object'){
-                for(let i in message.error){
-                    if(message.error.hasOwnProperty(i)){
-                        error_msg+='- '+message.error[i]+'<br>';
+            if(typeof(notification.error) == 'object'){
+                for(let i in notification.error){
+                    if(notification.error.hasOwnProperty(i)){
+                        error_msg+='- '+notification.error[i]+'<br>';
                     }
                 }
-                message.error = error_msg;
+                notification.error = error_msg;
             }
 
 
             if(callbacks && callbacks.on_error){
-                callbacks.on_error(message);
+                callbacks.on_error(notification);
             }else{
-                if(message.title){
-                    toastr.error(message.error,message.title);
+                if(notification.title){
+                    toastr.error(notification.error,notification.title);
                 }else{
-                    toastr.error(message.error);
+                    toastr.error(notification.error);
                 }
             }
 
@@ -49,25 +49,25 @@ function MessageHandler(toastr,socket,callbacks){
             toastr.options.preventDuplicates = false;
         }
 
-        if(message.success){
+        if(notification.success){
             let success_msg = '';
-            if(typeof(message.success) == 'object'){
-                for(let i in message.success){
-                    if(message.success.hasOwnProperty(i)){
-                        success_msg+='- '+message.success[i]+'<br>';
+            if(typeof(notification.success) == 'object'){
+                for(let i in notification.success){
+                    if(notification.success.hasOwnProperty(i)){
+                        success_msg+='- '+notification.success[i]+'<br>';
                     }
                 }    
-                message.success = success_msg;
+                notification.success = success_msg;
             }
 
 
             if(callbacks && callbacks.on_success){
-                callbacks.on_success(message);
+                callbacks.on_success(notification);
             }else{
-                if(message.title){
-                    toastr.success(message.success,message.title);
+                if(notification.title){
+                    toastr.success(notification.success,notification.title);
                 }else{
-                    toastr.success(message.success);
+                    toastr.success(notification.success);
                 }
             }
         }
