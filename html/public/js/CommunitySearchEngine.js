@@ -1,16 +1,22 @@
-let CommunitySearchEngine = function(socket,parent){
-      $(parent).keyup(function(event){
-        if(event.keyCode == 13){
-          $('#c_search_submit').click();
-        }
-      });
+let CommunitySearchEngine = function(socket,settings){
+	
+	if(!settings || !settings.parent || !settings.submit_button){
+		return null;
+	}
+
+	$(settings.parent).keyup(function(event){
+		if(event.keyCode == 13){
+		  $(settings.submit_button).click();
+		}
+	});
 
 	const c_search_input = document.createElement('input');
 	c_search_input.classList.add('form-control','mr-sm-2');
 	c_search_input.type = 'text';
 	c_search_input.placeholder = 'Search';
 	c_search_input.autocomplete = 'off';
-	parent.appendChild(c_search_input);
+
+	settings.parent.appendChild(c_search_input);
 
 	const c_search_list = document.createElement('table');
 	c_search_list.style.backgroundColor = 'white';
@@ -19,7 +25,10 @@ let CommunitySearchEngine = function(socket,parent){
 	c_search_list.style.border = 'thin solid #ccc';
 	c_search_list.style.tableLayout = 'fixed';
 	c_search_list.style.display = 'none';
-	parent.appendChild(c_search_list);
+	$(document).click(function(e){
+		c_search_list.style.display = 'none';
+	});
+	settings.parent.appendChild(c_search_list);
 
 	socket.on('search_communities_res',function(coms){
 		while (c_search_list.firstChild) {
@@ -49,7 +58,10 @@ let CommunitySearchEngine = function(socket,parent){
 		    new_icon_col.style.width = "25px";
 		    let new_icon = document.createElement('img');
 		    if(coms[com].icon){
-		      new_icon.src = coms[com].icon;
+		    	new_icon.src = coms[com].icon;
+		    	new_icon.onerror = function(){
+		    		this.style.display = 'none';
+		    	}
 		    }
 		    new_icon.style.height = "25px";
 		    new_icon.style.width = "25px";
