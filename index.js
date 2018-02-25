@@ -995,4 +995,23 @@ io.on('connection',function(socket){
 		);
 	});
 
+	socket.on('search_communities_req',function(data){
+		pg_conn.client.query(
+			"SELECT * FROM communities "+
+			"WHERE to_tsvector(name || '. ' || description) "+
+			"@@ to_tsquery($1) LIMIT 10",
+			[
+				data.query
+			],
+			function(err,results){
+				if(err){
+					console.log(err);
+					socket.emit('notification',{error:'Could not search communities'});
+					return;
+				}
+				socket.emit('search_communities_res',results.rows);
+			}
+		);
+	});
+
 });
