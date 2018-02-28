@@ -1,0 +1,38 @@
+.arrow-down{
+	margin-left: 3px;
+	margin-top: 5px;
+	width: 0;
+	height: 0;
+	border-left: 8px solid transparent;
+	border-right: 8px solid transparent;
+	border-top: 10px solid #0275d8;
+}
+
+.arrow-up{
+	margin-left: 3px;
+	margin-top: 5px;
+	width: 0;
+	height: 0;
+	border-left: 8px solid transparent;
+	border-right: 8px solid transparent;
+	border-bottom: 10px solid #0275d8;	
+}
+
+.advanced-search-button{
+	color:#0275d8;
+	cursor: pointer;
+	user-select: none;
+	margin-left: 20px;
+}
+
+ul.results-list{
+	list-style-type:none;
+}
+
+ul.results-list li{
+	margin-bottom: 10px;
+}
+
+ul.results-list li a{
+	text-decoration: none;
+}
