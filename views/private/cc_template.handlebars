@@ -26,10 +26,12 @@
       <a class="navbar-brand" href="/home">4BAR</a>
 
       <div class="collapse navbar-collapse" >
+
         <form class="form-inline my-2 my-md-0" action="/search" method="GET">
             <input name="query" class="form-control mr-sm-2">
             <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
         </form>
+
         <ul class="navbar-nav ml-auto">
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" id="dropdown01" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{{c_name}}}</a>
@@ -71,7 +73,6 @@
       function toggle_community_membership(){
         socket.emit('toggle_community_membership',{{{c_id}}});
         if(toggle_membership_btn.getAttribute('data-is-member') == 'false'){
-          console.log('test');
           toggle_membership_btn.innerHTML = 'Leave Community';
           toggle_membership_btn.setAttribute('data-is-member','true');
         }
