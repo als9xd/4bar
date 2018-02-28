@@ -6,10 +6,10 @@ const config = {
 		},
 		server: {
 			http: {
-				port: 80
+				port: 9999
 			},
 			https:{
-				port: 443
+				port: 440
 			}
 		},
 		pg: {
@@ -29,10 +29,10 @@ const config = {
 				},
 				platforms: {
 					name: 20
-				}, 
+				},
 				market_items: {
 					name: 200
-				},			
+				},
 				communities: {
 					name: 30,
 					unique_name: 255,
@@ -48,7 +48,11 @@ const config = {
 					stat_value: 255
 				},
 				tournament: {
-					tournament_name: 255
+					name: 255
+					loc: 255
+				},
+				tournament_tags: {
+					tag: 20
 				}
 			}
 		},
@@ -100,10 +104,10 @@ const config = {
 				},
 				platforms: {
 					name: 20
-				}, 
+				},
 				market_items: {
 					name: 200
-				},	
+				},
 				communities: {
 					name: 30,
 					unique_name: 255,

@@ -1,4 +1,5 @@
 const WidgetUIDefinitions = {
+
  youtube: function(data,widget_container){
     let widget = document.createElement('iframe');
 
@@ -18,9 +19,18 @@ const WidgetUIDefinitions = {
     let widget = document.createElement('a');
     widget.classList.add("twitter-follow-button");
     widget.href = data.url;
-    widget.innerHTML = "Tweets by TwitterDev";
+    widget_container.style.width = '0';
+
     $.load_script("https://platform.twitter.com/widgets.js",function(){
-      $(widget_container).width($(widget).width()+60);
+        twttr.events.bind(
+          'loaded',
+          function (event) {
+            event.widgets.forEach(function (widget) {
+                $(widget_container).width($(widget_container).children().eq(0).width()+20);
+            });
+          }
+        );
+
     });
     return widget;
   }  
