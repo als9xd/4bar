@@ -509,7 +509,10 @@ app.get('/profile', check_auth, function(req, res){
 });
 
 app.get('/cc_wizard', check_auth, function(req, res){
-  res.render('private/cc_wizard',{username: req.session.username});
+  res.render('private/cc_wizard',{
+  	username: req.session.username,
+  	user_id: req.session.user_id
+  });
 });
 
 app.post('/cc_submit',check_auth,function(req,res){
