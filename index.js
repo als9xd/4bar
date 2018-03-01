@@ -529,62 +529,63 @@ app.get('/cc_wizard', check_auth, function(req, res){
 
 app.post('/mc_submit', check_auth, function(req,res){
 	
-	var today = new Date();
-	var dd = today.getDate();
-	var mm = today.getMonth()+1; //January is 0!
-	var yyyy = today.getFullYear();
+	let today_date = new Date();
+	let dd = today_date.getDate();
+	let mm = today_date.getMonth()+1; //January is 0!
+	let yyyy = today_date.getFullYear();
 	if(dd<10){
 		dd='0'+dd;
 	} 
 	if(mm<10){
 		mm='0'+mm;
 	} 
-	var today = dd+'/'+mm+'/'+yyyy;
-	
-	console.log(req.body.winning_team)
+	today_date = dd+'/'+mm+'/'+yyyy;
+
 	if (req.body.winning_team == "team1") {
 		var result = 1;
 	}else{
 		var result = 2;
 	}
 	
-	var csv_players = req.body.c_team_one + ',' + req.body.c_team_two;
-    var participants = csv_players.split(',');
+	let csv_players = req.body.c_team_one + ',' + req.body.c_team_two;
+    let participants = csv_players.split(',');
     
-    console.log(result)
+	console.log(typeof req.body.c_com_name)
     pg_conn.client.query(
         "INSERT INTO matches(community_name,result,date) "+
-        "VALUES ($1,$2,$3) ",
+        "VALUES ($1,$2,$3) "+
         "RETURNING id",
         [
             req.body.c_com_name,
             result,
-            today,
+            today_date,
         ],
-        function(err){
+        function(err, last_id){
             if(err){
                 console.log(err);
                 res.render('public/error',{error:'Could not create match entry'});
                 return;
             }
             for (let i = 0; i < participants.length; i++){
-                "INSERT INTO match_participants(match_id,user_id) "+
-                "VALUES ($1,$2) ",
-                [
-                    id,
-                    participants[i],    
-                ],
-                function(err) {
-                    if(err){
-                        console.log(err);
-                        res.render('public/error',{error:'Could not insert match participants'});
-                        return;
-                    }
-                    res.redirect('/home?message=Successfully entered match!');
-                }
+                pg_conn.client.query(
+					"INSERT INTO match_participants(match_id,username) "+
+					"VALUES ($1,$2) ",
+					[
+						last_id.rows[0].id,
+						participants[i].trim(),    
+					],
+					function(err){
+						if(err){
+							console.log(err);
+							res.render('public/error',{error:'Could not insert match participants'});
+							return;
+						}
+					}
+				);
             }
-            
+            res.redirect('/home');
         }
+
     );
 });
 

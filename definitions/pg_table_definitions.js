@@ -1,19 +1,10 @@
 module.exports = function(config){
 	return {
-		tournaments:
-			'CREATE TABLE IF NOT EXISTS tournament('+
-				'id SERIAL PRIMARY KEY,'+
-				'tournament_name VARCHAR('+config.pg.varchar_limits.tournaments.tournament+') NOT NULL,'+
-				'address VARCHAR('+config.pg.varchar_limits.tournaments.address+') NOT NULL,'+
-				'city VARCHAR('+config.pg.varchar_limits.tournaments.city+') NOT NULL, '+
-				'state CHAR(2),'+
-		                'zip VARCHAR('+config.pg.varchar_limits.tournaments.zip+')'+
-			')'
-		,
+
 		matches:
 			'CREATE TABLE IF NOT EXISTS matches('+
 				'id SERIAL PRIMARY KEY,'+
-				'communities VARCHAR,'+
+				'community_name VARCHAR('+config.pg.varchar_limits.communities.name+'),'+
 				'result NUMERIC NOT NULL,'+
 				'date VARCHAR'+
 			')'
@@ -21,7 +12,7 @@ module.exports = function(config){
 		match_participants:
 			'CREATE TABLE IF NOT EXISTS match_participants('+
 				'match_id NUMERIC NOT NULL,'+
-				'user_id NUMERIC NOT NULL'+
+				'username VARCHAR NOT NULL'+
 			')'
 		,
 		users:
