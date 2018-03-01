@@ -13,7 +13,7 @@ module.exports = function(config){
 		matches:
 			'CREATE TABLE IF NOT EXISTS matches('+
 				'id SERIAL PRIMARY KEY,'+
-				'game VARCHAR,'+
+				'communities VARCHAR,'+
 				'result NUMERIC NOT NULL,'+
 				'date VARCHAR'+
 			')'

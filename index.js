@@ -549,40 +549,43 @@ app.post('/mc_submit', check_auth, function(req,res){
 	}
 	
 	var csv_players = req.body.c_team_one + ',' + req.body.c_team_two;
-	var participants = csv_players.split(',');
-	
-	console.log(result)
-	pg_conn.client.query(
-		"INSERT INTO matches (game,result,date)"+
-		"VALUES ($1,$2,$3) ",
-		"RETURNING id",
-		[
-			req.body.c_game,
-			result,
-			today,
-		],
-
-		function(err){
-			if(err){
-				console.log(err);
-				res.render('public/error',{error:'Could not create match entry'});
-				return;
-			}
-			res.redirect('/home?message=Successfully entered match!');
-		}
-	);
-
-   /*
-		for (var i = 0; i < participants.length; i++){
-			"INSERT INTO match_participants(match_id,user_id)"+
-			"VALUES ($1,$2) ",
-			[
-				id,
-				participants[i],	
-			],
-		}
-
-	*/
+    var participants = csv_players.split(',');
+    
+    console.log(result)
+    pg_conn.client.query(
+        "INSERT INTO matches(community_name,result,date) "+
+        "VALUES ($1,$2,$3) ",
+        "RETURNING id",
+        [
+            req.body.c_com_name,
+            result,
+            today,
+        ],
+        function(err){
+            if(err){
+                console.log(err);
+                res.render('public/error',{error:'Could not create match entry'});
+                return;
+            }
+            for (let i = 0; i < participants.length; i++){
+                "INSERT INTO match_participants(match_id,user_id) "+
+                "VALUES ($1,$2) ",
+                [
+                    id,
+                    participants[i],    
+                ],
+                function(err) {
+                    if(err){
+                        console.log(err);
+                        res.render('public/error',{error:'Could not insert match participants'});
+                        return;
+                    }
+                    res.redirect('/home?message=Successfully entered match!');
+                }
+            }
+            
+        }
+    );
 });
 
 app.post('/cc_submit',check_auth,function(req,res){
