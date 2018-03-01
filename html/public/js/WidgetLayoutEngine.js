@@ -104,7 +104,7 @@ let WidgetLayoutEngine = function(widget_ui_definitions,parent,settings){
   wle_layout_background.style.height = '100%';
   wle_layout_background.style.backgroundColor = 'rgb(122,122,122)';
 
-  if(settings && settings.background && settings.background.length){
+  if(settings && settings.background != null){
     let background_img = new Image();
     background_img.onload = function(){
       wle_layout_background.style.backgroundSize = 'cover';
@@ -116,6 +116,10 @@ let WidgetLayoutEngine = function(widget_ui_definitions,parent,settings){
       }
     }
     background_img.src = settings.background;
+  }else{
+      if(settings && settings.defaultBackgroundImage){
+        wle_layout_background.style.backgroundImage = 'url('+settings.defaultBackgroundImage+')';
+      }    
   }
 
   wle_layout_container.appendChild(wle_layout_background);

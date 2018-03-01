@@ -30,12 +30,6 @@ const config = {
 					name: 226,
 					email: 254
 				},
-				games: {
-					title: 200
-				},
-				platforms: {
-					name: 20
-				}, 
 				market_items: {
 					name: 200
 				},			
@@ -98,12 +92,6 @@ const config = {
 					name: 226,
 					email: 254
 				},
-				games: {
-					title: 200
-				},
-				platforms: {
-					name: 20
-				}, 
 				market_items: {
 					name: 200
 				},	

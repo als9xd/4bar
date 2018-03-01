@@ -35,20 +35,6 @@ module.exports = function(config){
 				'email VARCHAR('+config.pg.varchar_limits.users.email+')'+
 			')'		
 		,
-		games:
-			'CREATE TABLE IF NOT EXISTS games('+
-				'id SERIAL PRIMARY KEY,'+
-				'title VARCHAR('+config.pg.varchar_limits.games.title+') UNIQUE NOT NULL,'+
-				'description TEXT,'+
-				'platform_id NUMERIC NOT NULL'+
-			')'		
-		,
-		platforms:
-			'CREATE TABLE IF NOT EXISTS platforms('+
-		  		'id SERIAL PRIMARY KEY,'+
-				'name VARCHAR('+config.pg.varchar_limits.platforms.name+') UNIQUE NOT NULL'+
-			')'
-		,
 		market_items:
 			'CREATE TABLE IF NOT EXISTS market_items('+
 				'id SERIAL PRIMARY KEY,'+
@@ -68,7 +54,8 @@ module.exports = function(config){
 				'icon TEXT,'+
 				'wallpaper TEXT,'+
 				'layout TEXT,'+
-				'last_activity VARCHAR('+config.pg.varchar_limits.communities.last_activity+')'+
+				'last_activity VARCHAR('+config.pg.varchar_limits.communities.last_activity+'),'+
+				'num_members NUMERIC NOT NULL'+
 			')'
 		,
 		community_tags:

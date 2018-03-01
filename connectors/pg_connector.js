@@ -1,11 +1,15 @@
 module.exports = function(config){
 
-	const tables_definitions = require('./pg_table_definitions')(config);
+	this.tables_definitions = require('../definitions/pg_table_definitions')(config);
+	this.trigger_definitions = require('../definitions/pg_trigger_definitions')(config);
 
 	const pg = require('pg');
 	const readline = require('readline-sync');
 
 	let pg_conn = this;
+
+	pg_conn.search = require('../definitions/pg_search_filter_definitions')(pg_conn);
+	pg_conn.widgets = require('../definitions/pg_widget_definitions')(pg_conn);
 
 	if(config.pg.password == null){
 		config.pg.password = readline.question("Please enter database password for user \""+config.pg.username+"\": ");
@@ -31,16 +35,17 @@ module.exports = function(config){
 		return inv_lens;
 	}
 
+
 	pg_conn.build = function(){
 
-		let __build_promises = function(){
+		let __build_promises = function(definitions,fail_cb){
 			let promises = [];
-			for (let table_name in tables_definitions){
-				if(tables_definitions.hasOwnProperty(table_name)){
+			for (let defintion_name in definitions){
+				if(definitions.hasOwnProperty(defintion_name)){
 					promises.push(new Promise((resolve,reject) => {
-							pg_conn.client.query(tables_definitions[table_name],function(err){
+							pg_conn.client.query(definitions[defintion_name],function(err){
 								if(err){
-									reject("Building table \""+table_name+"\" failed: "+err.message);
+									fail_cb(reject,defintion_name,err);
 								}else{
 									resolve();
 								}
@@ -55,12 +60,16 @@ module.exports = function(config){
 		// Using promises allows us to check whether all the queries succeded without explicity chaining them together into a 'Callback christmas tree'
 		//
 		// Note: if one query fails the execution chain will stop.
-		Promise.all(__build_promises()).catch(
+		Promise.all(__build_promises(tables_definitions,function(reject,defintion_name,err){reject("Building table \""+defintion_name+"\" failed: "+err.message);})).catch(
 			err => {
 				console.log(err);
 			}
 		);
-		
+		Promise.all(__build_promises(trigger_definitions,function(reject,defintion_name,err){reject("Building trigger \""+defintion_name+"\" failed: "+err.message);})).catch(
+			err => {
+				console.log(err);
+			}
+		);		
 	};
 
 	return pg_conn;

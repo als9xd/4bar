@@ -31,10 +31,12 @@
       <a class="navbar-brand" href="/home">4BAR</a>
 
       <div class="collapse navbar-collapse" >
-        <form class="form-inline my-2 my-md-0">
-          <input class="form-control mr-sm-2" type="text" placeholder="Search">
-          <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+
+        <form class="form-inline my-2 my-md-0" action="/search" method="GET">
+            <input name="query" class="form-control mr-sm-2">
+            <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
         </form>
+
         <ul class="navbar-nav ml-auto">
           <li class="nav-item">
             <a class="nav-link" href="/home">Home <span class="sr-only">(current)</span></a>
@@ -48,7 +50,7 @@
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" id="dropdown01" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{{username}}}'s Profile</a>
             <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdown01">
-              <a class="dropdown-item" href="\profile">View</a>
+              <a class="dropdown-item" href="\profile?id={{user_id}}">View</a>
               <a class="dropdown-item" href="\logout">Logout</a>
             </div>
           </li>
@@ -114,9 +116,9 @@
 
     <script src="/js/UrlMessageHandler.js"></script>
 
-    <script src="/js/MessageHandler.js"></script>
+    <script src="/js/NotificationHandler.js"></script>
     <script type="text/javascript">
-      let msg_hndlr = MessageHandler(
+      let ntf_hndlr = NotificationHandler(
         toastr,
         socket
       );
