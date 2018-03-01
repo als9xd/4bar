@@ -10,6 +10,20 @@ module.exports = function(config){
 		                'zip VARCHAR('+config.pg.varchar_limits.tournaments.zip+')'+
 			')'
 		,
+		matches:
+			'CREATE TABLE IF NOT EXISTS matches('+
+				'id SERIAL PRIMARY KEY,'+
+				'game VARCHAR,'+
+				'result NUMERIC NOT NULL,'+
+				'date VARCHAR'+
+			')'
+		,
+		match_participants:
+			'CREATE TABLE IF NOT EXISTS match_participants('+
+				'match_id NUMERIC NOT NULL,'+
+				'user_id NUMERIC NOT NULL'+
+			')'
+		,
 		users:
 			'CREATE TABLE IF NOT EXISTS users('+
 				'id SERIAL PRIMARY KEY,'+

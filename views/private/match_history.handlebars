@@ -83,6 +83,9 @@
 		
 	  </a>
 	</div>
+	<div class="form-group"; align="middle"; style="margin-top: 40px">
+		<input class="btn btn-primary" type="submit" name="submit_reg" value="Enter a New Match" onclick=" relocate_home()">
+    </div>
     
     {{#unless is_member}}
       <script type="text/javascript">
@@ -90,49 +93,13 @@
       </script>
     {{/unless}}
 
-    <script type="text/javascript">
-      const c_table = document.getElementById('c_table');
-      socket.on('communities',function(coms){
-        while (c_table.firstChild) {
-            c_table.removeChild(c_table.firstChild);
-        }
-        for(let com in coms){
-          if(coms.hasOwnProperty(com)){
-            let new_row = document.createElement('tr');
-            new_row.classList.add('clickable_row');
-            new_row.setAttribute('href',coms[com].url);
-
-
-            let new_icon_col = document.createElement('td');
-            let new_icon = document.createElement('img');
-            if(coms[com].icon){
-              new_icon.src = coms[com].icon;
-            }
-            new_icon_col.appendChild(new_icon);
-            new_row.appendChild(new_icon_col);
-
-            let new_name_col = document.createElement('th');
-            new_name_col.scope = "row";
-            new_name_col.innerHTML = coms[com].name;
-            new_row.appendChild(new_name_col);
-
-            let new_description_col = document.createElement('td');
-            new_description_col.innerHTML = coms[com].description;
-            new_row.appendChild(new_description_col);
-
-            let new_recent_activity_col = document.createElement('td');
-            new_recent_activity_col.innerHTML = coms[com].last_activity;
-            new_row.appendChild(new_recent_activity_col);
-            
-            new_row.onclick = function(){window.location = coms[com].url};
-
-            c_table.appendChild(new_row);
-          }
-        }
-          
-      });
-    </script>
-
+   
+	<script>
+	function relocate_home()
+	{
+		 location.href = "/mc_wizard";
+	} 
+	</script>
     <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb" crossorigin="anonymous"></script>

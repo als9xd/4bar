@@ -363,6 +363,12 @@ app.get('/past_matches',function(req, res){
 	});
 });
 
+app.get('/mc_wizard',function(req, res){
+	res.render('private/mc_wizard',{
+		username: req.session.username,
+	});
+});
+
 app.get('/home', check_auth, function(req, res){
 
 	pg_conn.client.query(
@@ -484,6 +490,64 @@ app.post('/c_join:*',check_auth,function(req,res){
 			}
 		}
 	);
+});
+
+app.post('/mc_submit', check_auth, function(req,res){
+	
+	var today = new Date();
+	var dd = today.getDate();
+	var mm = today.getMonth()+1; //January is 0!
+	var yyyy = today.getFullYear();
+	if(dd<10){
+		dd='0'+dd;
+	} 
+	if(mm<10){
+		mm='0'+mm;
+	} 
+	var today = dd+'/'+mm+'/'+yyyy;
+	
+	console.log(req.body.winning_team)
+	if (req.body.winning_team == "team1") {
+		var result = 1;
+	}else{
+		var result = 2;
+	}
+	
+	var csv_players = req.body.c_team_one + ',' + req.body.c_team_two;
+	var participants = csv_players.split(',');
+	
+	console.log(result)
+	pg_conn.client.query(
+		"INSERT INTO matches (game,result,date)"+
+		"VALUES ($1,$2,$3) ",
+		"RETURNING id",
+		[
+			req.body.c_game,
+			result,
+			today,
+		],
+
+		function(err){
+			if(err){
+				console.log(err);
+				res.render('public/error',{error:'Could not create match entry'});
+				return;
+			}
+			res.redirect('/home?message=Successfully entered match!');
+		}
+	);
+
+   /*
+		for (var i = 0; i < participants.length; i++){
+			"INSERT INTO match_participants(match_id,user_id)"+
+			"VALUES ($1,$2) ",
+			[
+				id,
+				participants[i],	
+			],
+		}
+
+	*/
 });
 
 app.post('/cc_submit',check_auth,function(req,res){
