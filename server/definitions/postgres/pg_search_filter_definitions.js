@@ -1,5 +1,86 @@
-module.exports = function(pg_conn){
+//////////////////////////////////////////////////////////////////////
+// 4bar/server/definitions/postgres/pg_search_filter_definitions.js
+//
+// Overview: 
+//	- Contains definitions for search filters
+//
+// More about full text search using Posgresql:
+//   
+//		https://www.postgresql.org/docs/9.5/static/textsearch-intro.html
+//
+//////////////////////////////////////////////////////////////////////
+
+'use strict';
+
+module.exports = function(pg_client){
 	return{
+
+		/******************************** Example ***************************************/
+
+		/* 
+
+		Key >>filter_name<<
+		ArrayOfObjects >>input<<
+		String >>error_message<<
+		Object >>search_results<<
+
+		Key >>some_other_filter_name<<
+		ArrayOfObjects >>input<<
+		String >>error_message<<
+		Object >>some_other_search_results<<
+
+		==================================================================================
+		 
+		Within this file:
+
+		>>filter_name<< : function(input,settings){
+			return new Promise(
+				function(resolve,reject){
+					// Do sql search query here with >>input<<
+						// If sql query error
+							reject(>>error_message<<);
+						// Else
+							resolve({>>filter_name<< : >>search_results<<});
+				}
+			);
+		},
+
+		>>some_other_filter_name<< : function(input,settings){
+			return new Promise(
+				function(resolve,reject){
+					// Do sql search query here with >>input<<
+						// If sql query error
+							reject(>>error_message<<);
+						// Else
+							resolve({>>some_other_filter_name<< : >>some_other_search_results<<});
+				}
+			);
+		},
+
+		etc...
+
+		----------------------------------------------------------------------------------
+
+		Within handlebars/html file:
+
+		// To search a specific field
+		<form action="/search" method="GET">
+			<input type="hidden" name="query_field" value=">>filter_name<<">
+			<input type="text" name=">>input.name<<">
+			<input type="text" name=">>input.some_other_name<<">
+			<button type="submit">Search</button>
+		</form>
+
+		// To search all fields
+		<form action="/search" method="GET">
+			<input name="query">
+			<button type="submit">Search</button>
+		</form>
+
+		*/
+		
+		/********************************************************************************/		
+
 		communities: function(input,settings){
 			let conjunction = 'AND';
 			if(settings && settings.intersection && settings.intersection === true){
@@ -9,7 +90,7 @@ module.exports = function(pg_conn){
 			}
 			return new Promise(
 				function(resolve,reject){
-					pg_conn.client.query(
+					pg_client.query(
 						"SELECT f_c.num_members,f_c.id,f_c.name,f_c.description,f_c.last_activity,f_c.url,f_c.icon,array_agg(community_tags.tag) as tags "+
 						"FROM community_tags,"+
 							"(SELECT communities.* FROM communities "+
@@ -57,7 +138,7 @@ module.exports = function(pg_conn){
 
 			return new Promise(
 				function(resolve,reject){
-					pg_conn.client.query(
+					pg_client.query(
 						"SELECT username,name,email,id FROM users "+
 						"WHERE "+
 						"(to_tsvector(users.username) @@ plainto_tsquery($1) OR LENGTH($1) = 0) "+conjunction+" "+
