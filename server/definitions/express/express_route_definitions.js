@@ -40,12 +40,21 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 
 	return [
 
-		/******************************** Example ***************************************/
+		/*********************** How to add a new route *********************************/
 
 		/* 
 
 		String route_url
+		String path_to_file
+		String handlebars_filename
+		Object handlebars_data
+		String route_name
+
 		String some_other_route_url
+		String some_other_path_to_file
+		String some_other_handlebars_filename
+		Object some_other_handlebars_data
+		String some_other_route_name
 
 		==================================================================================
 		 
@@ -53,13 +62,31 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 
 		() => {
 			app.get(>>route_url<<,function(req,res){
-				// Do route stuff here
+				
+				// Send a regular html file back to the client (without any backend data)
+				res.sendFile(config.root_dir + >>path_to_file<< );
+
+				// Send a handlebars template file to the client (with backend data)
+				res.render('private/'+ >>handlebars_filename<<, >>handlebars_data<< );
+
+				// Redirect the client to another route
+				res.redirect(>>route_name<<);
+
 			});
 		},
 	
 		() =>{
 			app.get(>>some_other_route_url<<,function(req,res){
-				// Do some other route stuff here
+
+				// Send a regular html file back to the client (without any backend data)
+				res.sendFile(config.root_dir + >>some_other_path_to_file<< );
+
+				// Send a handlebars template file to the client (with backend data)
+				res.render('private/'+ >>some_other_handlebars_filename<<, >>some_other_handlebars_data<< );
+
+				// Redirect the client to another route
+				res.redirect(>>some_other_route_name<<);
+
 			});	
 		},
 
@@ -69,11 +96,23 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 		
 		/********************************************************************************/
 
+		//////////////////////////////////////////////////////////////////////
+		// This route redirects all routes threw the http redirect middlware
+		//////////////////////////////////////////////////////////////////////
+
 		() => {
 			app.all('*',middleware['http_redirect']);
 		},
 
 		/********************************************************************************/
+
+		//////////////////////////////////////////////////////////////////////
+		// This route sets the default url ('4bar.org/') to redirect to home
+		// 
+		// Note: If a user isn't logged in they will be redirected to 
+		//       '4bar.org/login' since '4bar.org/home' checks for 
+		//       authentication
+		//////////////////////////////////////////////////////////////////////
 
 		() => {
 			app.get('/',function(req,res){
@@ -83,6 +122,10 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 
 		/********************************************************************************/
 
+		//////////////////////////////////////////////////////////////////////
+		// This route allows the user to login
+		//////////////////////////////////////////////////////////////////////
+
 		() => {
 			app.get('/login',function(req,res){
 				res.sendFile(config.root_dir+'/client/html/public/login.html');
@@ -91,6 +134,10 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 
 		/********************************************************************************/
 
+		//////////////////////////////////////////////////////////////////////
+		// This route allows the user to register a new user
+		//////////////////////////////////////////////////////////////////////
+
 		() => {
 			app.get('/register',function(req,res){
  				res.sendFile(config.root_dir+'/client/html/public/register.html');
@@ -98,6 +145,11 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 		},
 
 		/********************************************************************************/
+
+		//////////////////////////////////////////////////////////////////////
+		// This route renders the home page with along with all the 
+		// communities that user is a member of
+		//////////////////////////////////////////////////////////////////////
 
 		() => {
 			app.get('/home',middleware['check_authorization'],function(req,res){
@@ -139,6 +191,11 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 		},
 
 		/********************************************************************************/
+
+		//////////////////////////////////////////////////////////////////////
+		// This route allows a user to search the site for a site object (user
+		// ,community,etc..)
+		//////////////////////////////////////////////////////////////////////
 
 		() => {
 
@@ -198,6 +255,11 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 
 		/********************************************************************************/
 
+		//////////////////////////////////////////////////////////////////////
+		// This route renders a users profile information based on their
+		// user_id
+		//////////////////////////////////////////////////////////////////////
+
 		() => {
 
 			app.get('/profile', middleware['check_authorization'], function(req, res){
@@ -250,6 +312,12 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 
 		/********************************************************************************/
 
+		//////////////////////////////////////////////////////////////////////
+		// (Community Creation Wizard)
+		// This route renders a page that allows a user to create a new 
+		// community
+		//////////////////////////////////////////////////////////////////////
+
 		() => {
 			app.get('/cc_wizard',middleware['check_authorization'],function(req,res){
 			  res.render('private/cc_wizard',{
@@ -260,6 +328,17 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 		},
 
 		/********************************************************************************/
+
+		//////////////////////////////////////////////////////////////////////
+		// (Community Creation Wizard)
+		// This route allows a user to submit a new community.
+		// 	* Right now this is linked from within '4bar.org/cc_wizard'
+		// 
+		// Should probably be converted to socket.io in the future however the
+		// file uploading functionality will require a redesign since it 
+		// currently uses form data
+		//
+		//////////////////////////////////////////////////////////////////////
 
 		() => {
 			app.post('/cc_submit',middleware['check_authorization'],function(req,res){
@@ -295,7 +374,7 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 							if(req.files){
 								if(req.files.c_icon){
 									icon_url = '/icons/'+unique_name+'.'+req.files.c_icon.name.split('.').pop();
-									req.files.c_icon.mv('community_data/'+icon_url,function(err){
+									req.files.c_icon.mv(config.root_dir+'/client/community_data'+icon_url,function(err){
 										if(err){
 											console.log(err);				
 											res.render('public/error',{error:'Could not upload icon'});
@@ -319,7 +398,7 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 								}
 								if(req.files.c_wallpaper){
 									wallpaper_url = '/wallpapers/'+unique_name+'.'+req.files.c_wallpaper.name.split('.').pop();
-									req.files.c_wallpaper.mv('community_data/'+wallpaper_url,function(err){
+									req.files.c_wallpaper.mv(config.root_dir+'/client/community_data'+wallpaper_url,function(err){
 										if(err){
 											console.log(err);					
 											res.render('public/error',{error:'Could not upload wallpaper'});
@@ -495,6 +574,13 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 		},
 
 		/********************************************************************************/
+
+		//////////////////////////////////////////////////////////////////////
+		// This route allows a user to logout by destroying their session data
+		// and redirects them to '4bar.org/home' which should then redirect
+		// them to '4bar.org/login' since the user no longer has session data
+		// and thus can't authenticate
+		//////////////////////////////////////////////////////////////////////
 
 		() => {
 			app.get('/logout',function(req,res){

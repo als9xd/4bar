@@ -47,6 +47,11 @@ module.exports = function(config,pg_conn){
 
 		/********************************************************************************/
 
+		//////////////////////////////////////////////////////////////////////
+		// This listener allows a user to login
+		//////////////////////////////////////////////////////////////////////
+
+
 		(socket) => {
 
 			socket.on('login_req',function(data){
@@ -61,7 +66,10 @@ module.exports = function(config,pg_conn){
 				}
 
 				pg_conn.client.query(
-					"SELECT * FROM users WHERE username = $1 LIMIT 1",
+					"SELECT * FROM users \
+						WHERE username = $1 \
+						LIMIT 1 \
+					",
 					[
 						data.username
 					],
@@ -107,6 +115,10 @@ module.exports = function(config,pg_conn){
 
 		/********************************************************************************/
 
+		//////////////////////////////////////////////////////////////////////
+		// This listener allows a user to register
+		//////////////////////////////////////////////////////////////////////
+
 		(socket) => {
 
 			socket.on('register_req',function(data){
@@ -131,7 +143,20 @@ module.exports = function(config,pg_conn){
 				}
 
 				// This is a custom function I wrote that makes it easier to check whether the lengths of input strings are within the assigned VARCHAR limits
-				let invalid_lengths = pg_conn.invalid_lengths(
+				let __invalid_lengths = function(table_name,lengths_obj){
+					let inv_lens = [];
+					for(let i in lengths_obj){
+						if(lengths_obj[i][0].length > config.pg.varchar_limits[table_name][lengths_obj[i][1]]){
+							inv_lens.push({table_name: lengths_obj[i][1],limit: config.pg.varchar_limits[table_name][lengths_obj[i][1]]})
+						}
+						
+					}
+					return inv_lens;
+				}
+
+
+				// This is a custom function I wrote that makes it easier to check whether the lengths of input strings are within the assigned VARCHAR limits
+				let invalid_lengths = __invalid_lengths(
 					'users',
 					[
 						[
@@ -191,9 +216,10 @@ module.exports = function(config,pg_conn){
 				}
 
 				pg_conn.client.query(
-					"SELECT username FROM users "+
-					"WHERE username = $1 "+
-					"LIMIT 1",
+					"SELECT username FROM users \
+						WHERE username = $1 \
+						LIMIT 1 \
+					",
 					[
 						data.username
 					],
@@ -213,8 +239,10 @@ module.exports = function(config,pg_conn){
 						    			return;
 						    		}else{
 										pg_conn.client.query(
-											"INSERT INTO users (username,name,password,password_salt,password_iterations,email) "+
-											"VALUES ($1,$2,$3,$4,$5,$6) RETURNING id",
+											"INSERT INTO users (username,name,password,password_salt,password_iterations,email) \
+												VALUES ($1,$2,$3,$4,$5,$6) \
+											RETURNING id \
+											",
 											[
 												data.username,
 												data.full_name,
@@ -257,11 +285,18 @@ module.exports = function(config,pg_conn){
 
 		/********************************************************************************/
 
+		//////////////////////////////////////////////////////////////////////
+		// This listener gets all the communities that a user is a member of 
+		//////////////////////////////////////////////////////////////////////
+
 		(socket) => {
 
 			socket.on('communities_req',function(){
 				pg_conn.client.query(
-					"SELECT name,description,icon,wallpaper,last_activity,url FROM communities INNER JOIN community_members on communities.id = community_members.community_id WHERE community_members.user_id = $1",
+					"SELECT name,description,icon,wallpaper,last_activity,url \
+						FROM communities INNER JOIN community_members on communities.id = community_members.community_id \
+						WHERE community_members.user_id = $1 \
+					",
 					[
 						socket.handshake.session.user_id
 					],
@@ -284,7 +319,10 @@ module.exports = function(config,pg_conn){
 
 			socket.on('widgets_req',function(community_id){
 				pg_conn.client.query(
-					"SELECT layout FROM communities WHERE id = $1 LIMIT 1",
+					"SELECT layout \
+						FROM communities \
+						WHERE id = $1 LIMIT 1 \
+					",
 					[
 						community_id
 					],
@@ -328,9 +366,10 @@ module.exports = function(config,pg_conn){
 
 			socket.on('layout_submit_req',function(data){
 				pg_conn.client.query(
-					"UPDATE communities "+
-					"SET layout = $1 "+
-					"WHERE id = $2",
+					"UPDATE communities \
+						SET layout = $1 \
+						WHERE id = $2 \
+					",
 					[
 						JSON.stringify(data.layout),
 						data.community_id
@@ -395,7 +434,9 @@ module.exports = function(config,pg_conn){
 
 			socket.on('toggle_community_membership',function(community_id){
 				pg_conn.client.query(
-					'SELECT 1 FROM community_members WHERE community_members.user_id = $1 AND community_members.community_id = $2',
+					"SELECT 1 FROM community_members \
+						WHERE community_members.user_id = $1 AND community_members.community_id = $2 \
+					",
 					[
 						socket.handshake.session.user_id,
 						Number(community_id)
@@ -407,7 +448,8 @@ module.exports = function(config,pg_conn){
 						}
 						if(is_member && is_member.rowCount){
 							pg_conn.client.query(
-								'DELETE FROM community_members WHERE community_members.user_id = $1 AND community_members.community_id = $2',
+								"DELETE FROM community_members \
+									WHERE community_members.user_id = $1 AND community_members.community_id = $2",
 								[
 									socket.handshake.session.user_id,
 									Number(community_id)
@@ -423,8 +465,9 @@ module.exports = function(config,pg_conn){
 							);
 						}else if(is_member && is_member.rowCount === 0){
 							pg_conn.client.query(
-								'INSERT INTO community_members (user_id,community_id,privilege_level) '+
-								'VALUES ($1,$2,1)',
+								"INSERT INTO community_members (user_id,community_id,privilege_level) \
+									VALUES ($1,$2,1) \
+								",
 								[
 									socket.handshake.session.user_id,
 									Number(community_id)

@@ -120,6 +120,8 @@ module.exports = function(pg_client){
 			);		
 		},
 
+		/********************************************************************************/
+
 		tournaments: function(input){
 			return new Promise(
 				function(resolve,reject){
@@ -127,6 +129,8 @@ module.exports = function(pg_client){
 				}
 			);
 		},
+
+		/********************************************************************************/
 
 		users: function(input,settings){
 			let conjunction = 'AND';
@@ -160,6 +164,9 @@ module.exports = function(pg_client){
 					);	
 				}	
 			);	
-		}
+		},
+	
+		/********************************************************************************/
+
 	}
 }

@@ -58,6 +58,8 @@ module.exports = function(config){
 			}		
 		},
 
+		/********************************************************************************/
+
 		//////////////////////////////////////////////////////////////////////
 		// This middleware redirects all insecure traffic to 
 		// the https server
@@ -69,5 +71,7 @@ module.exports = function(config){
 			}
 			res.redirect('https://'+req.hostname+req.url);		
 		}
+
+		/********************************************************************************/
 	}
 }

@@ -52,6 +52,9 @@ module.exports = function(config){
 				email VARCHAR("+config.pg.varchar_limits.users.email+")\
 			)"		
 		,
+
+		/********************************************************************************/
+
 		market_items:
 			"CREATE TABLE IF NOT EXISTS market_items(\
 				id SERIAL PRIMARY KEY,\
@@ -61,6 +64,9 @@ module.exports = function(config){
 				user_id NUMERIC NOT NULL\
 			)"
 		,
+
+		/********************************************************************************/
+
 		communities: 
 			"CREATE TABLE IF NOT EXISTS communities(\
 				id SERIAL PRIMARY KEY,\
@@ -75,13 +81,19 @@ module.exports = function(config){
 				num_members NUMERIC NOT NULL\
 			)"
 		,
+
+		/********************************************************************************/
+
 		community_tags:
-			"CREATE TABLE IF NOT EXISTS community_tags(\
-				'community_id NUMERIC NOT NULL,\
-				'tag VARCHAR("+config.pg.varchar_limits.community_tags.tag+") NOT NULL,\
-				'UNIQUE (community_id,tag)\
+			"CREATE TABLE IF NOT EXISTS community_tags( \
+				community_id NUMERIC NOT NULL,\
+				tag VARCHAR("+config.pg.varchar_limits.community_tags.tag+") NOT NULL,\
+				UNIQUE (community_id,tag)\
 			)"
 		,
+
+		/********************************************************************************/
+
 		community_members: 
 			"CREATE TABLE IF NOT EXISTS community_members(\
 				user_id NUMERIC NOT NULL,\
@@ -90,21 +102,30 @@ module.exports = function(config){
 				UNIQUE (user_id,community_id)\
 			)"
 		,
+
+		/********************************************************************************/
+
 		stats_widget:
-			'CREATE TABLE IF NOT EXISTS stats_widget('+
-				'user_id NUMERIC NOT NULL,'+
-				'community_id NUMERIC NOT NULL,'+
-				'stat_name VARCHAR('+config.pg.varchar_limits.community_stats.stat_name+') NOT NULL,'+
-				'stat_value VARCHAR('+config.pg.varchar_limits.community_stats.stat_value+') NOT NULL'+
-			')'
-		,
-		youtube_widget:
-			"CREATE TABLE IF NOT EXISTS youtube_widget(\
-				'id SERIAL PRIMARY KEY,\
-				'community_id NUMERIC NOT NULL,\
-				'url TEXT NOT NULL\
+			"CREATE TABLE IF NOT EXISTS stats_widget(\
+				user_id NUMERIC NOT NULL,\
+				community_id NUMERIC NOT NULL,\
+				stat_name VARCHAR("+config.pg.varchar_limits.community_stats.stat_name+") NOT NULL,\
+				stat_value VARCHAR("+config.pg.varchar_limits.community_stats.stat_value+") NOT NULL\
 			)"
 		,
+
+		/********************************************************************************/
+
+		youtube_widget:
+			"CREATE TABLE IF NOT EXISTS youtube_widget(\
+				id SERIAL PRIMARY KEY,\
+				community_id NUMERIC NOT NULL,\
+				url TEXT NOT NULL\
+			)"
+		,
+
+		/********************************************************************************/
+
 		twitter_widget:
 			"CREATE TABLE IF NOT EXISTS twitter_widget(\
 				id SERIAL PRIMARY KEY,\
@@ -112,5 +133,8 @@ module.exports = function(config){
 				url TEXT NOT NULL\
 			)"
 		,
+
+		/********************************************************************************/
+
 	}
 };
