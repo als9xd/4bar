@@ -98,7 +98,7 @@ module.exports = class Server{
 	//////////////////////////////////////////////////////////////////////	
 
 	start(){
-		let self = this;
+		let self = this;	
 
 		//////////////////////////////////////////////////////////////////////
 		// Load the widget definitions
@@ -207,7 +207,7 @@ module.exports = class Server{
 				});
 
 			}
-	
+
 		);
 
 	}

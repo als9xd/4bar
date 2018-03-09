@@ -20,7 +20,8 @@
   },
   "devDependencies": {},
   "scripts": {
-    "build": "echo \"Error: no test specified\" && exit 1"
+    "help": "node index.js --help",
+    "start": "node index.js"
   },
   "repository": {
     "type": "git",

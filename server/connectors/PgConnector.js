@@ -23,6 +23,14 @@
 
 'use strict';
 
+//////////////////////////////////////////////////////////////////////
+// This is used to get input from user to:
+//   1. Enter postgres password
+//   2. Prompt to build database
+//////////////////////////////////////////////////////////////////////
+
+const readlineSync = require('readline-sync');
+
 module.exports = class PgConnector{
 	
 	constructor(config){
@@ -36,6 +44,12 @@ module.exports = class PgConnector{
 
 		this.pg = require('pg');
 
+		if(typeof config.pg.password === 'undefined'){
+			config.pg.password = readlineSync.question("Postgres Password: ",{
+				hideEchoBack: true
+			});
+		}
+
 		//////////////////////////////////////////////////////////////////////
 		// Try to connect to postgres database and exit if connection fails
 		//////////////////////////////////////////////////////////////////////
@@ -43,7 +57,7 @@ module.exports = class PgConnector{
 		let pg_connection_url = 'postgres://'+config.pg.username+':'+config.pg.password+'@'+config.pg.ip+':'+config.pg.port+'/'+config.pg.database_name;
 		this.client = new this.pg.Client(pg_connection_url);
 		this.client.connect().catch(err=>{
-			console.log(err,new Error("Couldn't connect to database at \""+conn_url+"\" using these settings:\n",config.pg));
+			console.log(err);
 			process.exit(1);
 		});
 
@@ -59,8 +73,42 @@ module.exports = class PgConnector{
 
 	}
 
+	//////////////////////////////////////////////////////////////////////
+	// PgConnector.load_widgets(String definition_file) - Member function 
+	// for loading the widget definitions
+	//////////////////////////////////////////////////////////////////////	
+
 	load_widgets(definition_file){
 		this.widget_definitions = require(definition_file)(this);
+	}
+
+	//////////////////////////////////////////////////////////////////////
+	// PgConnector.verify_database(Function callback) - Member function 
+	// for checking if the database has been built
+	//////////////////////////////////////////////////////////////////////	
+
+	verify_database(callback){
+		let self = this;
+		self.client.query(
+			"SELECT schema_name FROM information_schema.schemata WHERE schema_name = 'public'",
+			function(err,results){
+				if(err){
+					callback(err);
+				}else if(results && results.rows && results.rows.length){
+					callback();
+				}else{
+					if(
+						readlineSync.keyInYN("Database '"+self.config.pg.database_name+"' has not been built.\nWould you like to build it?\n")
+					){
+						self.build_database(()=>{callback()});
+						return;
+					}else{
+						callback();
+					}
+				}
+				
+			}
+		);
 	}
 
 
@@ -115,10 +163,7 @@ module.exports = class PgConnector{
 				let trigger_promises = __build_pg_promises(self.trigger_definitions);
 
 				let promises = table_promises.concat(trigger_promises);
-
-				// Using promises allows us to check whether all the queries succeded without explicity chaining them together into a 'callback christmas tree'				
-				// Note: if one query fails the execution chain will stop.
-
+				
 				Promise.all(
 					promises
 				).then(

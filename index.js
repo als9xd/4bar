@@ -78,7 +78,8 @@ const argv = require('minimist')(
 			'help',
 			'build',
 			'destroy',
-			'rebuild'
+			'rebuild',
+			'clean'
 		],
 		alias: {
 			h: 'help',
@@ -88,7 +89,9 @@ const argv = require('minimist')(
 			
 			b: 'build',
 			d: 'destroy',
-			r: 'rebuild'
+			r: 'rebuild',
+
+			c: 'clean'
 		}
 	}
 );
@@ -96,7 +99,7 @@ const argv = require('minimist')(
 if(argv['help']){
     console.log(
 		"\n"+
-		"usage: node index.js [--help] [--environment env] [--password pass] [--build] [--destroy] [--rebuild]\n"+
+		"usage: node index.js [--help] [--environment env] [--password pass] [--build] [--destroy] [--rebuild] [--clean]\n"+
 		"\n"+
 		"  -h, --help                   : display usage information\n"+		
 		"  -e env, --environment env    : where env is the environment to use defined within '4bar/config.js'\n"+
@@ -104,26 +107,40 @@ if(argv['help']){
 		"  -b, --build                  : build the postgresql tables defined within '4bar/definitions/pg_table_definitions'\n"+
 		"  -d, --destroy                : destroy the postgresql tables\n"+
 		"  -r, --rebuild                : destroy and rebuild the postgresql tables defined within '4bar/definitions/pg_table_definitions'\n"+
+		"  -c, --clean                  : delete all community data files (wallpapers and icons)\n"+		
 		"\n"+
 		"example: node index.js --environment development --password pass --rebuild\n"
     );
     process.exit(0);
 }
 
-
 //////////////////////////////////////////////////////////////////////
-// Look for postgresql password on command line, then check 
-// '4bar/config.js'. If no password is found exit because the server
-// requires an active postgresql connection
+// Delete all community data if --clean,-c is passed as argument
 //////////////////////////////////////////////////////////////////////
 
-if(typeof argv['password'] !== 'undefined'){
-	config[env].pg.password = argv['password'];
-}
+if(argv['clean'] === true){
+	const fs = require('fs');
+	const path = require('path');
 
-if(typeof config[env].pg.password === 'undefined'){
-	console.log(new Error('Not postgresql password supplied'));
-	process.exit(1);
+	let dirs = [
+		config[env].root_dir+'/client/community_data/icons',
+		config[env].root_dir+'/client/community_data/wallpapers'
+	];
+
+	for(let i = 0;i < dirs.length;i++){
+		fs.readdir(dirs[i], (err, files) => {
+		  if (err) throw err;
+
+		  for (const file of files) {
+		  	if(file!=='_gitignore.txt'){
+			    fs.unlink(path.join(dirs[i], file), err => {
+			      if (err) throw err;
+			      console.log("Deleted \""+file+"\"");
+			    });
+		  	}
+		  }
+		});	
+	}
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -146,7 +163,13 @@ switch (true){
 					console.log(err);
 					process.exit(1);
 				}
-				server.start();
+				server.pg_conn.verify_database(err => {
+					if(err){
+						console.log(err);
+						process.exit(1);
+					}
+					server.start();
+				});
 			}
 		);
 	break;
@@ -182,15 +205,20 @@ switch (true){
 					console.log(err);
 					process.exit(1);
 				}
-				server.pg_conn.build_database(
-					err => {
+				server.pg_conn.build_database( err => {
 						if(err){
 							console.log(err);
 							process.exit(1);
 						}
-						server.start();
-					}
-				);
+
+						server.pg_conn.verify_database(err => {
+							if(err){
+								console.log(err);
+								process.exit(1);
+							}
+							server.start();
+						});
+				});
 			}
 		);
 	break;
@@ -200,6 +228,12 @@ switch (true){
 	//////////////////////////////////////////////////////////////////////
 
 	default:
-		server.start();
+		server.pg_conn.verify_database(err => {
+			if(err){
+				console.log(err);
+				process.exit(1);
+			}
+			server.start();
+		});
 }
 
