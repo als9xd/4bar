@@ -285,7 +285,7 @@ Example:
 // This example assuming a user named 'John Smith' that has a user_id of 3 and whose password is 'My_Secret_Password exists in the database.
 
 pg_conn.client.query(
-	"SELECT * FROM users where user_id=$1 AND password=$2,
+	"SELECT * FROM users where user_id=$1 AND password=$2",
 	[
 		3,
 		'My_Secret_Password'
