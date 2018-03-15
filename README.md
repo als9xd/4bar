@@ -103,26 +103,29 @@ Note: before you push your code make sure you aren't pushing any icons/wallpaper
 
 ### Directory Structure
 
-- 4bar/html 
+- 4bar/client/html
     * contains all front end non-handlebars files
 
-- 4bar/views 
+- 4bar/client/views 
     * contains all front end handlebars template files
 
-- 4bar/helpers
-    * contains all back end custom (but generalized) functions
+- 4bar/server/connectors
+    * contains back end objects that initialize and provide an interface to defintions files
 
-- 4bar/connectors
-    * contains all back end custom functions for interacting with specialized objects
+- 4bar/server/defintions
+    * contains back end objects that define various back end services in a more manageable and easy to read format
 
-- 4bar/community_data
-    * contains all front end media (is available without authentication) 
+- 4bar/client/community_data
+    * contains all front end media files such as community icons and community wallpapers
 
 - 4bar/config.js
     * contains all configuration settings for the webserver
 
+- 4bar/server/Server.js
+    * main server object (initalizes and holds all connectors)
+
 - 4bar/index.js
-    * main webserver application
+    * initializes the server based on configuration settings
 
 # Postgresql Database
 
