@@ -427,8 +427,8 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 
 				if(typeof req.files !== 'undefined'){
 					if(typeof req.files.u_avatar !== 'undefined'){
-						let avatar_url = '/avatars/'+req.session.user_id+'.'+req.files.u_avatar.name.split('.').pop();
-						req.files.u_avatar.mv(config.root_dir+'/client/user_data'+avatar_url,function(err){
+						let avatar_url = '/user/avatars/'+req.session.user_id+'.'+req.files.u_avatar.name.split('.').pop();
+						req.files.u_avatar.mv(config.root_dir+'/client/media'+avatar_url,function(err){
 							if(err){
 								console.log(err);				
 								res.render('public/error',{error:'Could not upload avatar'});
@@ -526,8 +526,8 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 							// Upload files
 							if(req.files){
 								if(req.files.c_icon){
-									icon_url = '/icons/'+unique_name+'.'+req.files.c_icon.name.split('.').pop();
-									req.files.c_icon.mv(config.root_dir+'/client/community_data'+icon_url,function(err){
+									icon_url = '/community/icons/'+unique_name+'.'+req.files.c_icon.name.split('.').pop();
+									req.files.c_icon.mv(config.root_dir+'/client/media'+icon_url,function(err){
 										if(err){
 											console.log(err);				
 											res.render('public/error',{error:'Could not upload icon'});
@@ -550,8 +550,8 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 									});	
 								}
 								if(req.files.c_wallpaper){
-									wallpaper_url = '/wallpapers/'+unique_name+'.'+req.files.c_wallpaper.name.split('.').pop();
-									req.files.c_wallpaper.mv(config.root_dir+'/client/community_data'+wallpaper_url,function(err){
+									wallpaper_url = '/community/wallpapers/'+unique_name+'.'+req.files.c_wallpaper.name.split('.').pop();
+									req.files.c_wallpaper.mv(config.root_dir+'/client/media'+wallpaper_url,function(err){
 										if(err){
 											console.log(err);					
 											res.render('public/error',{error:'Could not upload wallpaper'});

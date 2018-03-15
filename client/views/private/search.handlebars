@@ -121,7 +121,7 @@
           {{#each results.communities}}
             <li>
               <a class="row" href="{{url}}">
-                <img src="{{#if icon includeZero=true}}{{icon}}{{else}}/site_media/no-image.jpg{{/if}}" style="width:30px;height:30px;">
+                <img src="{{#if icon includeZero=true}}{{icon}}{{else}}/site/no-icon.jpg{{/if}}" style="width:30px;height:30px;">
                 <h3 style="margin-left: 10px">{{name}}</h3>
               </a>
               <div class="row">
@@ -247,7 +247,7 @@
           {{#each results.users}}
             <li>
               <a class="row" href="\profile?id={{id}}">
-                <img style="height: 30px;width:30px;margin-right: 5px" src="{{#if avatar includeZero=true}}{{{avatar}}}{{else}}/site_media/no-avatar.jpg{{/if}}"><h3>{{username}}</h3>
+                <img style="height: 30px;width:30px;margin-right: 5px" src="{{#if avatar includeZero=true}}{{{avatar}}}{{else}}/site/no-icon.jpg{{/if}}"><h3>{{username}}</h3>
               </a>
               <div class="row">
                 <h5>Full Name</h5>: {{name}}
