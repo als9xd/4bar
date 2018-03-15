@@ -16,7 +16,7 @@
 
 2. Create a new route in `4bar/server/definitions/express/express_route_definitions.js`
 	
-	* This will setup the url (route) so when a client tries to access that url the server how to respond
+	* This will setup the url (route) so when a client tries to access that url the server knows how to respond
 	
 The most basic route that you can setup would look like this
 

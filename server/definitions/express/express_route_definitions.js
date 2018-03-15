@@ -198,6 +198,91 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 		//////////////////////////////////////////////////////////////////////
 
 		() => {
+			let sort_filters = {
+
+				//////////////////////////////////////////////////////////////////////
+				// Community Search Filters
+				//////////////////////////////////////////////////////////////////////
+
+				communities: {
+
+					name: (a,b) => {
+						if(a.name < b.name){
+							return -1;
+						}
+						if(a.name > b.name){
+							return 1;
+						}
+						return 0;
+					},
+
+					last_activity: (a,b) => {
+						if(typeof a.last_activity !== 'undefined' && typeof b.last_activity !== 'undefined'){
+							let a_d = a.last_activity.split('/');
+							let b_d = b.last_activity.split('/');
+
+							for(let time_unit = 2; time_unit >= 0; time_unit--){
+								if(a_d[time_unit] > b_d[time_unit]){
+									return -1;
+								}
+								if(a_d[time_unit] < b_d[time_unit]){
+									return 1;
+								}
+							}
+						}
+						return 0;						
+					},
+
+					num_members: (a,b) =>{
+						if(a.num_members > b.num_members){
+							return -1;
+						}
+						if(a.num_members < b.num_members){
+							return 1;
+						}
+						return 0;
+					}
+				},
+
+				//////////////////////////////////////////////////////////////////////
+				// User Search Filters
+				//////////////////////////////////////////////////////////////////////
+
+				users: {
+					
+					username: (a,b) => {
+						if(a.username < b.username){
+							return -1;
+						}
+						if(a.username > b.username){
+							return 1;
+						}
+						return 0;
+					},
+
+					name: (a,b) => {
+						if(a.name < b.name){
+							return -1;
+						}
+						if(a.name > b.name){
+							return 1;
+						}
+						return 0;
+					},
+
+					email: (a,b) => {
+						if(a.email < b.name){
+							return -1;
+						}
+						if(a.name > b.name){
+							return 1;
+						}
+						return 0;
+					}
+
+				}
+
+			};
 
 			app.get('/search',middleware['check_authorization'],function(req,res){
 				
@@ -239,6 +324,21 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 					results = results.reduce(function(r,a){
 						return Object.assign(r,a);
 					},{});
+
+					if(typeof req.query['sort_by'] !== 'undefined' && typeof results[req.query['query_field']] !== 'undefined'){
+
+						let sort_filter_field = sort_filters[req.query['query_field']];
+						if(typeof sort_filter_field === 'undefined'){
+							res.render('public/error',{error:'Unknown sort field "'+req.query['query_field']+'"'});
+							return;
+						}	
+						let sort_filter = sort_filter_field[req.query['sort_by']];
+						if(typeof sort_filter === 'undefined'){
+							res.render('public/error',{error:'Unknown sort filter "'+req.query['sort_by']+'" in "'+req.query['query_field']+'"'});
+							return;
+						}
+						results[req.query['query_field']].sort(sort_filter);
+					}
 
 				 	res.render('private/search',{
 				 		results: results,
@@ -283,32 +383,85 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 							c_names_arr.push(community_names.rows[i].name);
 						}
 
-						// Private View of Profile
-						if(req.query['id'] === req.session.user_id){
-							res.render('private/profile',{
-								username: req.session.username,
-								user_id: req.session.user_id,
-								full_name: req.session.full_name,
-								email: req.session.email,
-								c_names: c_names_arr
-							});	
-						}
-						// Public View of Profile
-						else{
-							res.render('private/profile',{
-								username: req.session.username,
-								user_id: req.session.user_id,
-								full_name: req.session.full_name,
-								email: req.session.email,
-								c_names: c_names_arr
-							});				
-						}
-						
+						pg_conn.client.query(
+							"SELECT avatar FROM users WHERE id = $1 LIMIT 1",
+							[
+								req.query['id'] || req.session.user_id
+							],
+							function(err,avatars){
+								if(err){
+									console.log(err);
+									res.render('public/error',{error:'Could not get user avatar'});
+									return;
+								}
+
+								res.render('private/profile',{
+									username: req.session.username,
+									user_id: req.session.user_id,
+									full_name: req.session.full_name,
+									email: req.session.email,
+									avatar: avatars.rows[0].avatar,
+									c_names: c_names_arr,
+									modify_priveleges: typeof req.query['id'] === 'undefined' ||(Number(req.query['id']) === req.session.user_id)
+								});	
+
+							}
+
+						);
+					
 					}
 				);	
 			});		
 
 		},
+
+		/********************************************************************************/
+
+		//////////////////////////////////////////////////////////////////////
+		// This allows a user to modify their profile
+		//////////////////////////////////////////////////////////////////////
+
+		() => {
+
+			app.post('/upload_avatar', middleware['check_authorization'], function(req, res){
+
+				if(typeof req.files !== 'undefined'){
+					if(typeof req.files.u_avatar !== 'undefined'){
+						let avatar_url = '/avatars/'+req.session.user_id+'.'+req.files.u_avatar.name.split('.').pop();
+						req.files.u_avatar.mv(config.root_dir+'/client/user_data'+avatar_url,function(err){
+							if(err){
+								console.log(err);				
+								res.render('public/error',{error:'Could not upload avatar'});
+								return;
+							}
+							pg_conn.client.query(
+								"UPDATE users "+
+								"SET avatar = $1 "+
+								"WHERE id = $2"
+								,
+								[
+									avatar_url,
+									req.session.user_id
+								],
+								function(err){
+									if(err){
+										console.log(err);
+										res.render('public/error',{error:'Could not save avatar url to profile'});
+										return;
+									}
+									res.redirect('/profile?message=Successfully Uploaded avatar');
+									return;
+								}
+							);
+						});	
+					}else{
+						res.redirect('profile');
+					}
+				}
+
+			});		
+
+		},		
 
 		/********************************************************************************/
 

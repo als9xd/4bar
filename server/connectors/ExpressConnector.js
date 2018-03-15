@@ -126,7 +126,13 @@ module.exports = class ExpressConnector{
 				// Right now this includes: 
 				// 		community icons,
 				//		community wallpapers
-				path.join(config.root_dir,'/client/community_data')
+				path.join(config.root_dir,'/client/community_data'),
+
+				// This contains all the public user file uploads
+				// Right now this includes: 
+				// 		user avatars
+				path.join(config.root_dir,'/client/user_data'),
+
 		];
 
 		for(let i = 0; i < this.public_directories.length;i++){

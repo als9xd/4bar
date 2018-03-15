@@ -118,16 +118,19 @@ if(argv['help']){
 // Delete all community data if --clean,-c is passed as argument
 //////////////////////////////////////////////////////////////////////
 
+
 if(argv['clean'] === true){
 	const fs = require('fs');
 	const path = require('path');
 
 	let dirs = [
-		config[env].root_dir+'/client/community_data/icons',
-		config[env].root_dir+'/client/community_data/wallpapers'
+		path.join(config[env].root_dir,'/client/community_data/icons'),
+		path.join(config[env].root_dir,'/client/community_data/wallpapers'),
+		path.join(config[env].root_dir,'/client/user_data/avatars')
 	];
 
 	for(let i = 0;i < dirs.length;i++){
+		console.log("Cleaning files in directory: \""+dirs[i]+"\"");
 		fs.readdir(dirs[i], (err, files) => {
 		  if (err) throw err;
 
@@ -141,6 +144,7 @@ if(argv['clean'] === true){
 		  }
 		});	
 	}
+	process.exit(0);
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -153,10 +157,11 @@ let server = new Server(config[env]);
 switch (true){
 	
 	//////////////////////////////////////////////////////////////////////
-	// Build the postgres database then start the server
+	// Build the postgres database then exit
 	//////////////////////////////////////////////////////////////////////
 
 	case argv['build']:
+		console.log("Building database");
 		server.pg_conn.build_database(
 			err => {
 				if(err){
@@ -168,7 +173,8 @@ switch (true){
 						console.log(err);
 						process.exit(1);
 					}
-					server.start();
+					console.log("Done");
+					process.exit(0);
 				});
 			}
 		);
@@ -179,6 +185,7 @@ switch (true){
 	//////////////////////////////////////////////////////////////////////
 
 	case argv['destroy']:
+		console.log("Destroying Database");
 		server.pg_conn.destroy_database(
 			err => {
 				if(err){
@@ -186,19 +193,18 @@ switch (true){
 					process.exit(1);
 				}
 
-				// Terminate the process because the server won't start 
-				// without the database having the proper tables and
-				// triggers
+				console.log("Done");
 				process.exit(0);
 			}
 		);
 	break;
 
 	//////////////////////////////////////////////////////////////////////
-	// Destroy the postgres database, then build it, then start server
+	// Destroy the postgres database, then build it, then exit
 	//////////////////////////////////////////////////////////////////////
 
 	case argv['rebuild']:
+		console.log("Rebuilding Database");
 		server.pg_conn.destroy_database(
 			err => {
 				if(err){
@@ -216,7 +222,8 @@ switch (true){
 								console.log(err);
 								process.exit(1);
 							}
-							server.start();
+							console.log("Done");
+							process.exit(0);
 						});
 				});
 			}

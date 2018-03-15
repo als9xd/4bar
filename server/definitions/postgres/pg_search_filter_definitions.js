@@ -143,7 +143,7 @@ module.exports = function(pg_client){
 			return new Promise(
 				function(resolve,reject){
 					pg_client.query(
-						"SELECT username,name,email,id FROM users "+
+						"SELECT username,name,email,id,avatar FROM users "+
 						"WHERE "+
 						"(to_tsvector(users.username) @@ plainto_tsquery($1) OR LENGTH($1) = 0) "+conjunction+" "+
 						"(to_tsvector(users.name) @@ plainto_tsquery($2) OR LENGTH($2) = 0) "+conjunction+" "+

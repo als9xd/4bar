@@ -18,6 +18,24 @@
     <script src="/socket.io/socket.io.js"></script>
     <script type="text/javascript">let socket = io();</script>
 
+    <script>
+      function get_url_parameter(name,url){
+          if (!url){
+            url = window.location.href;
+          }
+          name = name.replace(/[\[\]]/g, "\\$&");
+          let regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+              results = regex.exec(url);
+          if (!results){
+            return null;
+          }
+          if (!results[2]){ 
+            return '';
+          }
+          return decodeURIComponent(results[2].replace(/\+/g, " "));
+      }
+    </script>
+
     <link rel="stylesheet" href="/css/search.css">
     
  </head>
@@ -59,13 +77,22 @@
 
       <div class="search-field">
         <h1>Communities</h1>
-        <div class="row" onclick="toggle_advanced_search(this)">
+        <div class="row" onclick="toggle_advanced_search(this)" id="advanced-search-communities">
           <h6 class='advanced-search-button'>Advanced Search</h6>
           <div class="advanced-search-arrow arrow-down"></div>
         </div>
         <form class="advanced-search-input" action="/search" method="GET" style="display:none">
 
           <input type="hidden" name="query_field" value="communities">  
+        
+          <div class="form-group">
+            <label for="sort-by-communities" >Sort By:</label>
+            <select class="form-control" id="sort-by-communities" name="sort_by">
+              <option value="name">Name</option>
+              <option value="last_activity">Last Activity</option>
+              <option value="num_members">Number of Members</option>
+            </select>
+          </div>
 
           <div class="form-group">
             <label for="c_name"><span class="req">* </span> Name: </label>
@@ -94,7 +121,7 @@
           {{#each results.communities}}
             <li>
               <a class="row" href="{{url}}">
-                <img src="{{icon}}" style="width:30px;height:30px;">
+                <img src="{{#if icon includeZero=true}}{{icon}}{{else}}/site_media/no-image.jpg{{/if}}" style="width:30px;height:30px;">
                 <h3 style="margin-left: 10px">{{name}}</h3>
               </a>
               <div class="row">
@@ -123,7 +150,7 @@
 
       <div class="search-field">      
         <h1>Tournaments</h1>
-        <div class="row" onclick="toggle_advanced_search(this)">
+        <div class="row" onclick="toggle_advanced_search(this)" id="advanced-search-tournaments">
           <h6 class='advanced-search-button'>Advanced Search</h6>
           <div class="advanced-search-arrow arrow-down"></div>
         </div>
@@ -175,7 +202,7 @@
 
       <div class="search-field">      
         <h1>Users</h1>
-        <div class="row" onclick="toggle_advanced_search(this)">
+        <div class="row" onclick="toggle_advanced_search(this)" id="advanced-search-users">
           <h6 class='advanced-search-button'>Advanced Search</h6>
           <div class="advanced-search-arrow arrow-down"></div>
         </div>
@@ -184,12 +211,22 @@
           <input type="hidden" name="query_field" value="users">
 
           <div class="form-group">
+            <label for="sort-by-users" >Sort By:</label>
+            <select class="form-control" id="sort-by-users" name="sort_by">
+              <option value="username">Username</option>
+              <option value="name">Name</option>
+              <option value="email">Email</option>
+            </select>
+          </div>
+
+
+          <div class="form-group">
             <label for="c_username"><span class="req">* </span> Username: </label>
             <input type="text" name="username" id="c_username" class="form-control" autocomplete="off" /> 
           </div>
 
           <div class="form-group">
-            <label for="u_name"><span class="req">* </span> Fullname: </label>
+            <label for="u_name"><span class="req">* </span> Name: </label>
             <input type="text" name="name" id="u_name" class="form-control" autocomplete="off" /> 
           </div>
           
@@ -210,7 +247,7 @@
           {{#each results.users}}
             <li>
               <a class="row" href="\profile?id={{id}}">
-                <h3>{{username}}</h3>
+                <img style="height: 30px;width:30px;margin-right: 5px" src="{{#if avatar includeZero=true}}{{{avatar}}}{{else}}/site_media/no-avatar.jpg{{/if}}"><h3>{{username}}</h3>
               </a>
               <div class="row">
                 <h5>Full Name</h5>: {{name}}
@@ -239,23 +276,35 @@
       function toggle_advanced_search(el){
         let all_advanced_search = $('.search-field');
         for(let i = 0; i < all_advanced_search.length;i++){
-          let advanced_search_input= $(all_advanced_search[i]).find('.advanced-search-input')[0];
+          let advanced_search_input = $(all_advanced_search[i]).find('.advanced-search-input')[0];
           let advanced_search_button = $(all_advanced_search[i]).find('.advanced-search-button')[0];
           let advanced_search_arrow = $(all_advanced_search[i]).find('.advanced-search-arrow')[0];
 
           if(!$(all_advanced_search[i]).is($(el).parent())){
             advanced_search_arrow.setAttribute('class','advanced-search-arrow arrow-down');
             advanced_search_input.style.display = 'none';            
-          }else if(advanced_search_input.style.display == 'block'){
+          }else if(advanced_search_input.style.display === 'block'){
             advanced_search_arrow.setAttribute('class','advanced-search-arrow arrow-down');
             advanced_search_input.style.display = 'none';           
           }else{
             advanced_search_arrow.setAttribute('class','advanced-search-arrow arrow-up');
-            advanced_search_input.style.display = 'block';              
+            advanced_search_input.style.display = 'block';
           }
         }
       }
 
+    </script>
+
+    <script>
+      let query_field = get_url_parameter('query_field');
+      let sort_by = get_url_parameter('sort_by');
+
+      if(typeof query_field !== 'undefined'){
+        toggle_advanced_search(document.getElementById('advanced-search-'+query_field));
+        if(typeof sort_by !== 'undefined'){
+           $('#sort-by-'+query_field).val(sort_by);
+        }
+      }
     </script>
 
     <script src="/js/NotificationHandler.js"></script>

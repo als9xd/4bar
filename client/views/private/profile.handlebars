@@ -62,6 +62,10 @@
             </thead>
             <tbody>
               <tr>
+                <th scope="row">Avatar</th>
+                <td><img src="{{#if avatar includeZero=true}}{{{avatar}}}{{else}}/site_media/no-avatar.jpg{{/if}}" style="height: 60px;width:60px"></td>
+              </tr>
+              <tr>
                 <th scope="row">Name</th>
                 <td>{{full_name}}</td>
               </tr>
@@ -83,6 +87,19 @@
                   </ul>
                 </td>
               </tr>
+              {{#if modify_priveleges}}
+              <form action="/upload_avatar" method="post" role="form" encType="multipart/form-data">
+                <tr>
+                  <th scope="row">Upload Avatar</th>
+                  <td>
+                    <input type="file" class="form-control-file" name="u_avatar" aria-describedby="fileHelp">
+                  </td>
+                  <td>
+                    <input class="btn btn-primary" type="submit" value="Submit">
+                  </td>
+                </tr>
+              </form>
+              {{/if}}
             </tbody>
           </table>
         </div>
