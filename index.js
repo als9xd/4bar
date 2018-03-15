@@ -124,9 +124,9 @@ if(argv['clean'] === true){
 	const path = require('path');
 
 	let dirs = [
-		path.join(config[env].root_dir,'/client/community_data/icons'),
-		path.join(config[env].root_dir,'/client/community_data/wallpapers'),
-		path.join(config[env].root_dir,'/client/user_data/avatars')
+		path.join(config[env].root_dir,'/client/media/community/icons'),
+		path.join(config[env].root_dir,'/client/media/community/wallpapers'),
+		path.join(config[env].root_dir,'/client/media/user/avatars')
 	];
 
 	for(let i = 0;i < dirs.length;i++){
