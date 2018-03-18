@@ -207,7 +207,6 @@ module.exports = function(config,pg_conn){
 					return invalid_msgs;					
 				}
 
-
 				// This is custom method that checks the password against the rules defined in the config file
 				let invalid_pwd_msgs = __check_password_validity(data.password);
 				if(invalid_pwd_msgs.length){

@@ -71,6 +71,8 @@ module.exports = class PgConnector{
 		this.search_filter_definitions = require(config.root_dir+'/server/definitions/postgres/pg_search_filter_definitions')(this.client);
 		this.widget_definitions = require(config.root_dir+'/server/definitions/postgres/pg_widget_definitions')(this.client);
 
+		this.sort_filter_definitions = require(config.root_dir+'/server/definitions/postgres/pg_sort_filter_definitions');
+
 	}
 
 	//////////////////////////////////////////////////////////////////////

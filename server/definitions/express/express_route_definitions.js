@@ -198,91 +198,6 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 		//////////////////////////////////////////////////////////////////////
 
 		() => {
-			let sort_filters = {
-
-				//////////////////////////////////////////////////////////////////////
-				// Community Search Filters
-				//////////////////////////////////////////////////////////////////////
-
-				communities: {
-
-					name: (a,b) => {
-						if(a.name < b.name){
-							return -1;
-						}
-						if(a.name > b.name){
-							return 1;
-						}
-						return 0;
-					},
-
-					last_activity: (a,b) => {
-						if(typeof a.last_activity !== 'undefined' && typeof b.last_activity !== 'undefined'){
-							let a_d = a.last_activity.split('/');
-							let b_d = b.last_activity.split('/');
-
-							for(let time_unit = 2; time_unit >= 0; time_unit--){
-								if(a_d[time_unit] > b_d[time_unit]){
-									return -1;
-								}
-								if(a_d[time_unit] < b_d[time_unit]){
-									return 1;
-								}
-							}
-						}
-						return 0;						
-					},
-
-					num_members: (a,b) =>{
-						if(a.num_members > b.num_members){
-							return -1;
-						}
-						if(a.num_members < b.num_members){
-							return 1;
-						}
-						return 0;
-					}
-				},
-
-				//////////////////////////////////////////////////////////////////////
-				// User Search Filters
-				//////////////////////////////////////////////////////////////////////
-
-				users: {
-					
-					username: (a,b) => {
-						if(a.username < b.username){
-							return -1;
-						}
-						if(a.username > b.username){
-							return 1;
-						}
-						return 0;
-					},
-
-					name: (a,b) => {
-						if(a.name < b.name){
-							return -1;
-						}
-						if(a.name > b.name){
-							return 1;
-						}
-						return 0;
-					},
-
-					email: (a,b) => {
-						if(a.email < b.name){
-							return -1;
-						}
-						if(a.name > b.name){
-							return 1;
-						}
-						return 0;
-					}
-
-				}
-
-			};
 
 			app.get('/search',middleware['check_authorization'],function(req,res){
 				
@@ -327,7 +242,7 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 
 					if(typeof req.query['sort_by'] !== 'undefined' && typeof results[req.query['query_field']] !== 'undefined'){
 
-						let sort_filter_field = sort_filters[req.query['query_field']];
+						let sort_filter_field = pg_conn.sort_filter_definitions[req.query['query_field']];
 						if(typeof sort_filter_field === 'undefined'){
 							res.render('public/error',{error:'Unknown sort field "'+req.query['query_field']+'"'});
 							return;

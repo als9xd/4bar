@@ -129,22 +129,58 @@ if(argv['clean'] === true){
 		path.join(config[env].root_dir,'/client/media/user/avatars')
 	];
 
-	for(let i = 0;i < dirs.length;i++){
-		console.log("Cleaning files in directory: \""+dirs[i]+"\"");
-		fs.readdir(dirs[i], (err, files) => {
-		  if (err) throw err;
+	let dir_promises = [];
 
-		  for (const file of files) {
-		  	if(file!=='_gitignore.txt'){
-			    fs.unlink(path.join(dirs[i], file), err => {
-			      if (err) throw err;
-			      console.log("Deleted \""+file+"\"");
-			    });
-		  	}
-		  }
-		});	
+	for(let i = 0;i < dirs.length;i++){
+		dir_promises.push(
+			new Promise(
+				(resolve,reject) => {
+					console.log("Cleaning files in directory: \""+dirs[i]+"\"");
+					fs.readdir(dirs[i], 
+						(err,files) => {
+						
+							if(err) {
+								throw err;
+							}
+
+							let file_promises = [];
+
+							for(let file of files){
+								if(file !== '_gitignore.txt'){
+									file_promises.push(
+										new Promise (
+											(resolve,reject) => {
+												fs.unlink(path.join(dirs[i], file), 
+													(err) => {
+														if(err) {
+															throw err;
+														}else{
+															console.log("Deleted \""+file+"\"");
+															resolve();
+														}
+													}
+												);	
+											}
+										)
+									);
+
+								}
+							}
+
+							Promise.all(file_promises).then(()=>{resolve()});
+						}
+					);
+				}
+			)
+		);
 	}
-	process.exit(0);
+	
+	Promise.all(dir_promises).then(
+		() =>{
+			console.log("Done");
+			process.exit(0);
+		}
+	);
 }
 
 //////////////////////////////////////////////////////////////////////

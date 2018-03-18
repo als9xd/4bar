@@ -83,9 +83,9 @@ module.exports = function(pg_client){
 
 		communities: function(input,settings){
 			let conjunction = 'AND';
-			if(settings && settings.intersection && settings.intersection === true){
+			if(settings && settings.intersection === true){
 				conjunction = 'AND';
-			}else if(settings && settings.union && settings.union === true){
+			}else if(settings && settings.union === true){
 				conjunction = 'OR';
 			}
 			return new Promise(
@@ -134,9 +134,9 @@ module.exports = function(pg_client){
 
 		users: function(input,settings){
 			let conjunction = 'AND';
-			if(settings && settings.intersection && settings.intersection === true){
+			if(settings && settings.intersection === true){
 				conjunction = 'AND';
-			}else if(settings && settings.union && settings.union === true){
+			}else if(settings && settings.union === true){
 				conjunction = 'OR';
 			}
 
