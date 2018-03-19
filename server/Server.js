@@ -7,12 +7,12 @@
 // Constructor Objectives: 
 //   1. Initialize the Postgres Connector
 //   2. Initialize the Express Connector
-//   3. Start the http/https servers 
+//   3. Initialize the http/https servers 
 //   4. Initialize the Socket.io Connector
 //
 // Public Functions:
 //   
-//	 start()
+//	 Server.start()
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -89,11 +89,12 @@ module.exports = class Server{
 	// Server.start() - Member function for starting the 4bar server
 	// 
 	// Objectives:
-	// 	1. Build static express routes
-	//  2. Build community express routes from database
-	//  3. Attach the express session to socket.io
-	//  4. Build the socket.io routes
-	//  5. Start http/https servers
+	//  1. Load the widgets from their definitions
+	// 	2. Build static express routes
+	//  3. Build community express routes from database
+	//  4. Attach the express session to socket.io
+	//  5. Build the socket.io routes
+	//  6. Start http/https servers
 	//
 	//////////////////////////////////////////////////////////////////////	
 

@@ -15,11 +15,11 @@
 //
 // });
 //
-// The req variable passed to each middleware in the route is the data the 
-// is sending to the server. The res variable is the data that the server
-// responds with. There is also a third 'hidden'/optional variable called next
-// that passes all the data onto the next middleware 
-// (kind of like how 'return' functions)
+// The req variable passed to each middleware in the route is the data 
+// the client is sending to the server. The res variable is the data 
+// that the server responds with. There is also a third 'hidden'/optional
+// variable called next that passes all the data onto the next middleware 
+// (kind of like how 'return' functions in most programming languages)
 //
 // More about express routing:
 //
@@ -40,7 +40,7 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 
 	return [
 
-		/*********************** How to add a new route *********************************/
+		/****************************** Example ******************************************/
 
 		/* 
 
@@ -66,8 +66,12 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 				// Send a regular html file back to the client (without any backend data)
 				res.sendFile(config.root_dir + >>path_to_file<< );
 
+				// Or
+
 				// Send a handlebars template file to the client (with backend data)
 				res.render('private/'+ >>handlebars_filename<<, >>handlebars_data<< );
+
+				// Or
 
 				// Redirect the client to another route
 				res.redirect(>>route_name<<);
@@ -81,8 +85,12 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 				// Send a regular html file back to the client (without any backend data)
 				res.sendFile(config.root_dir + >>some_other_path_to_file<< );
 
+				// Or
+
 				// Send a handlebars template file to the client (with backend data)
 				res.render('private/'+ >>some_other_handlebars_filename<<, >>some_other_handlebars_data<< );
+
+				// Or
 
 				// Redirect the client to another route
 				res.redirect(>>some_other_route_name<<);
@@ -97,7 +105,8 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 		/********************************************************************************/
 
 		//////////////////////////////////////////////////////////////////////
-		// This route redirects all routes threw the http redirect middlware
+		// This route redirects all routes through the http redirect middlware
+		// which redirects http urls to their https equivalent
 		//////////////////////////////////////////////////////////////////////
 
 		() => {
@@ -135,7 +144,7 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 		/********************************************************************************/
 
 		//////////////////////////////////////////////////////////////////////
-		// This route allows the user to register a new user
+		// This route allows a client to register a new user
 		//////////////////////////////////////////////////////////////////////
 
 		() => {
@@ -147,8 +156,8 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 		/********************************************************************************/
 
 		//////////////////////////////////////////////////////////////////////
-		// This route renders the home page with along with all the 
-		// communities that user is a member of
+		// This route renders the home page along with all the communities
+		// that user is a member of
 		//////////////////////////////////////////////////////////////////////
 
 		() => {
@@ -162,10 +171,10 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 							return;
 						}
 						pg_conn.client.query(
-							"SELECT 1 FROM community_members "+
-							"INNER JOIN communities ON communities.id = community_members.community_id "+
-							"INNER JOIN users ON community_members.user_id = users.id AND users.username = $1 "+
-							"LIMIT 1",
+							"SELECT 1 FROM community_members \
+							INNER JOIN communities ON communities.id = community_members.community_id \
+							INNER JOIN users ON community_members.user_id = users.id AND users.username = $1 \
+							LIMIT 1",
 							[
 								req.session.username
 							],
@@ -271,17 +280,17 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 		/********************************************************************************/
 
 		//////////////////////////////////////////////////////////////////////
-		// This route renders a users profile information based on their
-		// user_id
+		// This route renders a users profile information based on the
+		// requested user_id if supplied or else the session data's user_id
 		//////////////////////////////////////////////////////////////////////
 
 		() => {
 
 			app.get('/profile', middleware['check_authorization'], function(req, res){
 				pg_conn.client.query(
-					"SELECT communities.name FROM community_members "+
-					"INNER JOIN communities ON communities.id = community_members.community_id "+
-					"INNER JOIN users ON community_members.user_id = users.id AND users.id = $1",
+					"SELECT communities.name FROM community_members \
+					INNER JOIN communities ON communities.id = community_members.community_id \
+					INNER JOIN users ON community_members.user_id = users.id AND users.id = $1",
 					[
 						req.query['id']
 					],
@@ -332,7 +341,8 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 		/********************************************************************************/
 
 		//////////////////////////////////////////////////////////////////////
-		// This allows a user to modify their profile
+		// This route allows a user to upload a file to use as their profile's
+		// avatar
 		//////////////////////////////////////////////////////////////////////
 
 		() => {
@@ -363,7 +373,7 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 										res.render('public/error',{error:'Could not save avatar url to profile'});
 										return;
 									}
-									res.redirect('/profile?message=Successfully Uploaded avatar');
+									res.redirect('/profile?message=Successfully Uploaded Avatar');
 									return;
 								}
 							);
@@ -381,6 +391,7 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 
 		//////////////////////////////////////////////////////////////////////
 		// (Community Creation Wizard)
+		//
 		// This route renders a page that allows a user to create a new 
 		// community
 		//////////////////////////////////////////////////////////////////////
@@ -397,7 +408,8 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 		/********************************************************************************/
 
 		//////////////////////////////////////////////////////////////////////
-		// (Community Creation Wizard)
+		// (Community Creation Submit)
+		//
 		// This route allows a user to submit a new community.
 		// 	* Right now this is linked from within '4bar.org/cc_wizard'
 		// 
@@ -520,9 +532,9 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 							let community_url = '/b/'+unique_name;
 
 							pg_conn.client.query(
-								"INSERT INTO communities (name,unique_name,url,description,icon,wallpaper,layout,last_activity,num_members) "+
-								"VALUES ($1,$2,$3,$4,$5,$6,$7,$8,0) "+
-								"RETURNING id",
+								"INSERT INTO communities (name,unique_name,url,description,icon,wallpaper,layout,last_activity,num_members) \
+								VALUES ($1,$2,$3,$4,$5,$6,$7,$8,0) \
+								RETURNING id",
 								[
 									req.body.c_name,
 									unique_name,
@@ -644,9 +656,9 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 
 		//////////////////////////////////////////////////////////////////////
 		// This route allows a user to logout by destroying their session data
-		// and redirects them to '4bar.org/home' which should then redirect
-		// them to '4bar.org/login' since the user no longer has session data
-		// and thus can't authenticate
+		// It then redirects them to '4bar.org/home' which should in turn
+		// redirect them to '4bar.org/login' since the user no longer has 
+		// session data and thus can't authenticate with their credentials
 		//////////////////////////////////////////////////////////////////////
 
 		() => {

@@ -5,6 +5,7 @@
 - [Send Data from Client to Server](#send-data-from-client-to-server)
 - [Send Data from Server to Client](#send-data-from-server-to-client)
 - [Query the Postgresql Database](#query-the-postgresql-database)
+- [Create a Community Webpage Widget](#create-a-community-webpage-widget)
 
 # Developer Guide
 
@@ -217,7 +218,7 @@ function get_url_parameter(name,url){
 console.log(get_url_parameter('some_query_data')); // Will output 'Hello World'
 ```
 
-# Query the Postgresql Database
+## Query the Postgresql Database
 
 For PostgreSQL in particular it is very important that you have at least a basic understanding of callbacks since PostgreSQL extensively leverages node's asynchronous capabilities
 
@@ -299,3 +300,86 @@ pg_conn.client.query(
 	}
 );
 ```
+
+## Create a Community Webpage Widget
+
+1. Add widget creation html to `4bar/server/views/private/cc_layout.handlebars` ( This html is used to add the widget with its data to the database)
+
+```html
+
+/*
+	String >>widget_id<<
+	String >>widget_name<< (must be the same as in '4bar/server/definitions/pg/pg_widget_definitions')
+	Key >>widget_input_key<<
+*/
+
+<div class="form-group">
+  <label for=">>widget_id<<"><span class="req">* </span> Some Input: </label>
+  <input required type="text" id=">>widget_id<<" class="form-control" autocomplete="off" /> 
+</div>
+
+<div class="form-group">
+    <button class="btn btn-primary" onclick="
+	    widget_submit(
+		    >>widget_name<<,
+		    {
+			    >>widget_input_key<< : document.getElementById(>>widget_id<<).value
+		    }
+		);
+	">
+	Create
+	</button>
+</div>
+```
+
+2. Add widget html element creation callback function to `4bar/client/html/public/js/WidgetUIDefinitions.js` ( This callback creates and loads the widget's actual html)
+
+A simple example would look like this:
+
+```javascript
+>>widget_name<< : function(data,widget_container){
+  // The data argument is input data passed as the second argument of widget_submit() used in the previous step
+  // The widget_container argument is the gray box that holds the widget. You can
+  // manipulate the widget container to fix modify its looks
+  
+  return document.createElement(div); // The html element that is returned is the widget
+},
+ ```
+
+3. Create the necessary widget database manipulation functions in `4bar/server/defintions/pg/pg_widget_definitions.js` for:
+
+- getting a widget by id (>>widget_name<<.get)
+
+- getting all of instances of a specific widget within a community by that community's id (>>widget_name<<.available)
+ 
+- adding a widget to a community (>>widget_name<<.add)
+
+```javascript
+/*
+	Key >>widget_name<<
+	String >>community_id<<
+	Bool >>add_successfull<<
+	Key >>notification_type<< (success or error)
+	String >>success_notification<<
+	String >>error_notification<<
+	Object >>widget_data<<
+*/
+
+>>widget_name<< : {
+	get: function(widget_id,callback){
+		// Get the >>widget_data<< of a widget with an id of 'widget_id' (integer)
+		callback(>>widget_data<<);
+	},
+	available: function(community_id,callback){
+		// Get >>widget_data<< of a community with an id of >>community_id<< (integer)
+		callback(>>widget_data<<);
+	},
+	add: function(community_id,data,callback){
+		// Add a widget that has data of 'data';
+		callback{>>add_successfull<<,{>>notification_type<< : >>notification_message<<}};
+	}
+},
+```
+
+4. Add necessary widget database tables in `4bar/server/definitions/pg/pg_table_definitions.js`
+

@@ -2,7 +2,7 @@
 // 4bar/server/connectors/PgConnector.js
 //
 // Overview: 
-//	- Builds a connector for postgres related functionality 
+//	- Builds a connector between postgres related functionality 
 //    and definitions
 //  
 // Constructor Objectives:
@@ -12,8 +12,10 @@
 //
 // Public Functions:
 //   
-//   build_database(Function callback)
-//   destroy_database(Function callback)
+//   PgConnector.load_widgets(String definition_file);
+//   PgConnector.verify_database(Function callback);
+//   PgConnector.build_database(Function callback);
+//   PgConnector.destroy_database(Function callback);
 //
 // More about postgres with node:
 //
@@ -24,9 +26,10 @@
 'use strict';
 
 //////////////////////////////////////////////////////////////////////
-// This is used to get input from user to:
-//   1. Enter postgres password
-//   2. Prompt to build database
+// This is used to get input from user for:
+//   1. Enter postgres password if none is provided in the config file
+//   2. Prompt to build database if it doesn't already exist
+//
 //////////////////////////////////////////////////////////////////////
 
 const readlineSync = require('readline-sync');
@@ -43,6 +46,11 @@ module.exports = class PgConnector{
 		this.config = config;
 
 		this.pg = require('pg');
+
+		//////////////////////////////////////////////////////////////////////
+		// If password doesn't exist within config file prompt for it on the
+		// command line
+		//////////////////////////////////////////////////////////////////////
 
 		if(typeof config.pg.password === 'undefined'){
 			config.pg.password = readlineSync.question("Postgres Password: ",{
@@ -62,16 +70,18 @@ module.exports = class PgConnector{
 		});
 
 		//////////////////////////////////////////////////////////////////////
-		// Load postgres definitions from their respective files
+		// Load all postgres definitions from their respective files expect 
+		// for widget definitions (requires socket.io be started)
 		//////////////////////////////////////////////////////////////////////
 
 		this.table_definitions = require(config.root_dir+'/server/definitions/postgres/pg_table_definitions')(config);
 		this.trigger_definitions = require(config.root_dir+'/server/definitions/postgres/pg_trigger_definitions')(config);
 
 		this.search_filter_definitions = require(config.root_dir+'/server/definitions/postgres/pg_search_filter_definitions')(this.client);
-		this.widget_definitions = require(config.root_dir+'/server/definitions/postgres/pg_widget_definitions')(this.client);
 
 		this.sort_filter_definitions = require(config.root_dir+'/server/definitions/postgres/pg_sort_filter_definitions');
+
+		this.widget_definitions;
 	}
 
 	//////////////////////////////////////////////////////////////////////
@@ -189,7 +199,7 @@ module.exports = class PgConnector{
 
 	//////////////////////////////////////////////////////////////////////
 	// PgConnector.destroy_database(Function callback) - Member function 
-	// for destorying the database
+	// for destroying the database
 	//
 	// Objectives:
 	// 	1. Destory database

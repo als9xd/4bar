@@ -1,3 +1,12 @@
+//////////////////////////////////////////////////////////////////////
+// 4bar/client/html/public/js/UrlMessageHandler.js
+//
+// Overview: 
+//  - Provides an interface for receiving messages from the server 
+//    using url query paramaters
+//
+//////////////////////////////////////////////////////////////////////
+
 function get_url_parameter(name,url){
     if (!url){
       url = window.location.href;

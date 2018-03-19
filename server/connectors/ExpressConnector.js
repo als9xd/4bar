@@ -2,12 +2,12 @@
 // 4bar/server/connectors/ExpressConnector.js
 //
 // Overview: 
-//	- Builds a connector for express related functionality 
+//	- Builds a connector between express related functionality 
 //    and definitions
 //  
 // Constructor Objectives:
 //  1. Import and initialize all express related modules
-//  2. Set express and express handlebars views directory to 
+//  2. Set express and express-handlebars views directory to 
 //     '4bar/client/views'
 //  3. Load all custom express routing middleware from 
 //     '4bar/server/definitions/express/express_middleware_definitions.js'
@@ -15,7 +15,11 @@
 //
 // Public Functions:
 //   
-//   build_routes(PgConnector pg_conn,SocketIOConnector socket_io_conn)
+//   ExpressConnector.build_routes(
+//     String definitions_file,
+//     PgConnector pg_conn,
+//     SocketIOConnector socket_io_conn
+//   );
 //
 // More about express routing:
 //
@@ -35,13 +39,24 @@ module.exports = class ExpressConnector{
 
 		this.config = config;
 
+		//////////////////////////////////////////////////////////////////////
+		// Initialize express
+		//////////////////////////////////////////////////////////////////////		
+
 		this.express = require('express');
 
 		this.app = this.express();
+
+		//////////////////////////////////////////////////////////////////////
+		// Set express views directory to '4bar/client/views'
+		//////////////////////////////////////////////////////////////////////
+
 		this.app.set('views',config.root_dir+'/client/views');
 
 		//////////////////////////////////////////////////////////////////////
-		// Node.js Middleware
+		// Load custom routing middeware
+		//
+		// Node.js Middleware:
 		//
 		// Whenever you app.use(middleware()) it adds it to all the routes automatically
 		//
@@ -60,10 +75,10 @@ module.exports = class ExpressConnector{
 		//
 		//////////////////////////////////////////////////////////////////////
 
-		this.middleware = require(config.root_dir+'/server/definitions/express/express_middleware_definitions')(this.config);
+		this.middleware = require(config.root_dir+'/server/definitions/express/express_middleware_definitions')();
 
 		//////////////////////////////////////////////////////////////////////
-		// This is another middleware that is used to parse forms (same as body-parser)
+		// This middleware is used to parse forms (same as body-parser)
 		// that have multipart/form-data which is required for file uploads
 		//
 		// - On the server ---------------------------------------------------
@@ -84,7 +99,9 @@ module.exports = class ExpressConnector{
 		this.app.use(express_fileupload());
 
 		//////////////////////////////////////////////////////////////////////
-		// Express Sessions
+		// Initialize express-session
+		//
+		// Express Sessions:
 		//
 		// Sessions are used to save a client's information on the server side.
 		// For example when a user logs in we can set req.session.username. Then 
@@ -101,6 +118,10 @@ module.exports = class ExpressConnector{
 
 		this.app.use(this.session);
 
+		//////////////////////////////////////////////////////////////////////
+		// This middlware is used to parse form data
+		//////////////////////////////////////////////////////////////////////
+
 		const body_parser = require('body-parser');
 		this.app.use(body_parser.urlencoded({
 			extended: true
@@ -109,7 +130,8 @@ module.exports = class ExpressConnector{
 
 		//////////////////////////////////////////////////////////////////////
 		// These middleware allow client-side access to all files in each of
-		// the respective directories without authentication
+		// their respective directories without authentication or explicity
+		// sending the file within a route
 		//////////////////////////////////////////////////////////////////////
 
 		let path = require('path');
@@ -138,7 +160,9 @@ module.exports = class ExpressConnector{
 		}
 
 		//////////////////////////////////////////////////////////////////////
-		// Handlebars Templating Engine
+		// Load templating engine 
+		//
+		// Handlebars Templating Engine:
 		//
 		// Templating engines are used to send clients html files with server-side
 		// letiable within them. 
@@ -177,19 +201,20 @@ module.exports = class ExpressConnector{
 	}
 
 	//////////////////////////////////////////////////////////////////////
-	// ExpressConnector.build_routes(PgConnector pg_conn, SocketIOConnector socket_io_conn)
-	// - Member function for building the static routes from their definitions
+	// ExpressConnector.build_routes(
+	//     String definition_file,
+	//     PgConnector pg_conn,
+	//     SocketIOConnector socket_io_conn
+	// );
 	//
-	// Objectives:
-	// 	1. Build tables from their definitions
-	//  2. Build triggers from their definitions
+	// - Member function for building the static routes from their definitions
 	// 
 	//////////////////////////////////////////////////////////////////////	
 
 	build_routes(definition_file,pg_conn,socket_io_conn){
 		
 		//////////////////////////////////////////////////////////////////////
-		// Load route definitions from the at definition_file
+		// Load route definitions from the file located at definition_file
 		//////////////////////////////////////////////////////////////////////
 
 		this.routes = require(definition_file)(

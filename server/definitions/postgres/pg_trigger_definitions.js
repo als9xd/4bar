@@ -2,7 +2,7 @@
 // 4bar/server/definitions/postgres/pg_trigger_definitions.js
 //
 // Overview: 
-//	- Contains definitions for postgreql database triggers
+//	- Contains definitions for creating postgreql database triggers
 //
 // More about database triggers in Posgresql:
 //   
