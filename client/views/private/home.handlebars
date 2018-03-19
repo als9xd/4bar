@@ -102,12 +102,15 @@
             new_row.classList.add('clickable_row');
             new_row.setAttribute('href',coms[com].url);
 
-
             let new_icon_col = document.createElement('td');
             let new_icon = document.createElement('img');
             if(coms[com].icon){
               new_icon.src = coms[com].icon;
+            }else{
+              new_icon.src = '/site/no-icon.jpg';
             }
+            new_icon.style.height = '30px';
+            new_icon.style.width = '30px';
             new_icon_col.appendChild(new_icon);
             new_row.appendChild(new_icon_col);
 

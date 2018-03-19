@@ -240,6 +240,21 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 						return Object.assign(r,a);
 					},{});
 
+					if(typeof req.query['sort_by'] !== 'undefined' && typeof results[req.query['query_field']] !== 'undefined'){
+
+						let sort_filter_field = pg_conn.sort_filter_definitions[req.query['query_field']];
+						if(typeof sort_filter_field === 'undefined'){
+							res.render('public/error',{error:'Unknown sort field "'+req.query['query_field']+'"'});
+							return;
+						}	
+						let sort_filter = sort_filter_field[req.query['sort_by']];
+						if(typeof sort_filter === 'undefined'){
+							res.render('public/error',{error:'Unknown sort filter "'+req.query['sort_by']+'" in "'+req.query['query_field']+'"'});
+							return;
+						}
+						results[req.query['query_field']].sort(sort_filter);
+					}
+
 				 	res.render('private/search',{
 				 		results: results,
 				 		username: req.session.username,
@@ -283,32 +298,84 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 							c_names_arr.push(community_names.rows[i].name);
 						}
 
-						// Private View of Profile
-						if(req.query['id'] === req.session.user_id){
-							res.render('private/profile',{
-								username: req.session.username,
-								user_id: req.session.user_id,
-								full_name: req.session.full_name,
-								email: req.session.email,
-								c_names: c_names_arr
-							});	
-						}
-						// Public View of Profile
-						else{
-							res.render('private/profile',{
-								username: req.session.username,
-								user_id: req.session.user_id,
-								full_name: req.session.full_name,
-								email: req.session.email,
-								c_names: c_names_arr
-							});				
-						}
-						
+						pg_conn.client.query(
+							"SELECT avatar FROM users WHERE id = $1 LIMIT 1",
+							[
+								req.query['id'] || req.session.user_id
+							],
+							function(err,avatars){
+								if(err){
+									console.log(err);
+									res.render('public/error',{error:'Could not get user avatar'});
+									return;
+								}
+
+								res.render('private/profile',{
+									username: req.session.username,
+									user_id: req.session.user_id,
+									full_name: req.session.full_name,
+									email: req.session.email,
+									avatar: avatars.rows[0].avatar,
+									c_names: c_names_arr,
+									modify_priveleges: typeof req.query['id'] === 'undefined' ||(Number(req.query['id']) === req.session.user_id)
+								});	
+
+							}
+
+						);
 					}
 				);	
 			});		
 
 		},
+
+		/********************************************************************************/
+
+		//////////////////////////////////////////////////////////////////////
+		// This allows a user to modify their profile
+		//////////////////////////////////////////////////////////////////////
+
+		() => {
+
+			app.post('/upload_avatar', middleware['check_authorization'], function(req, res){
+
+				if(typeof req.files !== 'undefined'){
+					if(typeof req.files.u_avatar !== 'undefined'){
+						let avatar_url = '/user/avatars/'+req.session.user_id+'.'+req.files.u_avatar.name.split('.').pop();
+						req.files.u_avatar.mv(config.root_dir+'/client/media'+avatar_url,function(err){
+							if(err){
+								console.log(err);				
+								res.render('public/error',{error:'Could not upload avatar'});
+								return;
+							}
+							pg_conn.client.query(
+								"UPDATE users "+
+								"SET avatar = $1 "+
+								"WHERE id = $2"
+								,
+								[
+									avatar_url,
+									req.session.user_id
+								],
+								function(err){
+									if(err){
+										console.log(err);
+										res.render('public/error',{error:'Could not save avatar url to profile'});
+										return;
+									}
+									res.redirect('/profile?message=Successfully Uploaded avatar');
+									return;
+								}
+							);
+						});	
+					}else{
+						res.redirect('profile');
+					}
+				}
+
+			});		
+
+		},		
 
 		/********************************************************************************/
 
@@ -373,8 +440,8 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 							// Upload files
 							if(req.files){
 								if(req.files.c_icon){
-									icon_url = '/icons/'+unique_name+'.'+req.files.c_icon.name.split('.').pop();
-									req.files.c_icon.mv(config.root_dir+'/client/community_data'+icon_url,function(err){
+									icon_url = '/community/icons/'+unique_name+'.'+req.files.c_icon.name.split('.').pop();
+									req.files.c_icon.mv(config.root_dir+'/client/media'+icon_url,function(err){
 										if(err){
 											console.log(err);				
 											res.render('public/error',{error:'Could not upload icon'});
@@ -397,8 +464,8 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 									});	
 								}
 								if(req.files.c_wallpaper){
-									wallpaper_url = '/wallpapers/'+unique_name+'.'+req.files.c_wallpaper.name.split('.').pop();
-									req.files.c_wallpaper.mv(config.root_dir+'/client/community_data'+wallpaper_url,function(err){
+									wallpaper_url = '/community/wallpapers/'+unique_name+'.'+req.files.c_wallpaper.name.split('.').pop();
+									req.files.c_wallpaper.mv(config.root_dir+'/client/media'+wallpaper_url,function(err){
 										if(err){
 											console.log(err);					
 											res.render('public/error',{error:'Could not upload wallpaper'});
