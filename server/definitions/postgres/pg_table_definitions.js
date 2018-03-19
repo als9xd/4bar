@@ -49,7 +49,8 @@ module.exports = function(config){
 				password BYTEA NOT NULL,\
 				password_salt VARCHAR("+Math.ceil(config.crypto.password.salt_bytes*(4/3)/4) * 4+") NOT NULL,\
 				password_iterations NUMERIC NOT NULL,\
-				email VARCHAR("+config.pg.varchar_limits.users.email+")\
+				email VARCHAR("+config.pg.varchar_limits.users.email+"),\
+				avatar TEXT\
 			)"		
 		,
 

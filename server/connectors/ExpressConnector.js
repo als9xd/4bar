@@ -122,11 +122,13 @@ module.exports = class ExpressConnector{
 				// This contains all the public handlebars templates
 				path.join(config.root_dir,'/client/views/public'),
 
-				// This contains all the public community file uploads
+				// This contains all the public media files
 				// Right now this includes: 
 				// 		community icons,
-				//		community wallpapers
-				path.join(config.root_dir,'/client/community_data')
+				//		community wallpapers,
+				//		user avatars,
+				//		site default images
+				path.join(config.root_dir,'/client/media')
 		];
 
 		for(let i = 0; i < this.public_directories.length;i++){

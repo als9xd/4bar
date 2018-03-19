@@ -118,29 +118,69 @@ if(argv['help']){
 // Delete all community data if --clean,-c is passed as argument
 //////////////////////////////////////////////////////////////////////
 
+
 if(argv['clean'] === true){
 	const fs = require('fs');
 	const path = require('path');
 
 	let dirs = [
-		config[env].root_dir+'/client/community_data/icons',
-		config[env].root_dir+'/client/community_data/wallpapers'
+		path.join(config[env].root_dir,'/client/media/community/icons'),
+		path.join(config[env].root_dir,'/client/media/community/wallpapers'),
+		path.join(config[env].root_dir,'/client/media/user/avatars')
 	];
 
-	for(let i = 0;i < dirs.length;i++){
-		fs.readdir(dirs[i], (err, files) => {
-		  if (err) throw err;
+	let dir_promises = [];
 
-		  for (const file of files) {
-		  	if(file!=='_gitignore.txt'){
-			    fs.unlink(path.join(dirs[i], file), err => {
-			      if (err) throw err;
-			      console.log("Deleted \""+file+"\"");
-			    });
-		  	}
-		  }
-		});	
+	for(let i = 0;i < dirs.length;i++){
+		dir_promises.push(
+			new Promise(
+				(resolve,reject) => {
+					console.log("Cleaning files in directory: \""+dirs[i]+"\"");
+					fs.readdir(dirs[i], 
+						(err,files) => {
+						
+							if(err) {
+								throw err;
+							}
+
+							let file_promises = [];
+
+							for(let file of files){
+								if(file !== '_gitignore.txt'){
+									file_promises.push(
+										new Promise (
+											(resolve,reject) => {
+												fs.unlink(path.join(dirs[i], file), 
+													(err) => {
+														if(err) {
+															throw err;
+														}else{
+															console.log("Deleted \""+file+"\"");
+															resolve();
+														}
+													}
+												);	
+											}
+										)
+									);
+
+								}
+							}
+
+							Promise.all(file_promises).then(()=>{resolve()});
+						}
+					);
+				}
+			)
+		);
 	}
+	
+	Promise.all(dir_promises).then(
+		() =>{
+			console.log("Done");
+			process.exit(0);
+		}
+	);
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -153,10 +193,11 @@ let server = new Server(config[env]);
 switch (true){
 	
 	//////////////////////////////////////////////////////////////////////
-	// Build the postgres database then start the server
+	// Build the postgres database then exit
 	//////////////////////////////////////////////////////////////////////
 
 	case argv['build']:
+		console.log("Building database");
 		server.pg_conn.build_database(
 			err => {
 				if(err){
@@ -168,7 +209,8 @@ switch (true){
 						console.log(err);
 						process.exit(1);
 					}
-					server.start();
+					console.log("Done");
+					process.exit(0);
 				});
 			}
 		);
@@ -179,6 +221,7 @@ switch (true){
 	//////////////////////////////////////////////////////////////////////
 
 	case argv['destroy']:
+		console.log("Destroying Database");
 		server.pg_conn.destroy_database(
 			err => {
 				if(err){
@@ -186,19 +229,18 @@ switch (true){
 					process.exit(1);
 				}
 
-				// Terminate the process because the server won't start 
-				// without the database having the proper tables and
-				// triggers
+				console.log("Done");
 				process.exit(0);
 			}
 		);
 	break;
 
 	//////////////////////////////////////////////////////////////////////
-	// Destroy the postgres database, then build it, then start server
+	// Destroy the postgres database, then build it, then exit
 	//////////////////////////////////////////////////////////////////////
 
 	case argv['rebuild']:
+		console.log("Rebuilding Database");
 		server.pg_conn.destroy_database(
 			err => {
 				if(err){
@@ -216,7 +258,8 @@ switch (true){
 								console.log(err);
 								process.exit(1);
 							}
-							server.start();
+							console.log("Done");
+							process.exit(0);
 						});
 				});
 			}

@@ -83,9 +83,9 @@ module.exports = function(pg_client){
 
 		communities: function(input,settings){
 			let conjunction = 'AND';
-			if(settings && settings.intersection && settings.intersection === true){
+			if(settings && settings.intersection === true){
 				conjunction = 'AND';
-			}else if(settings && settings.union && settings.union === true){
+			}else if(settings && settings.union === true){
 				conjunction = 'OR';
 			}
 			return new Promise(
@@ -134,16 +134,16 @@ module.exports = function(pg_client){
 
 		users: function(input,settings){
 			let conjunction = 'AND';
-			if(settings && settings.intersection && settings.intersection === true){
+			if(settings && settings.intersection === true){
 				conjunction = 'AND';
-			}else if(settings && settings.union && settings.union === true){
+			}else if(settings && settings.union === true){
 				conjunction = 'OR';
 			}
 
 			return new Promise(
 				function(resolve,reject){
 					pg_client.query(
-						"SELECT username,name,email,id FROM users "+
+						"SELECT username,name,email,id,avatar FROM users "+
 						"WHERE "+
 						"(to_tsvector(users.username) @@ plainto_tsquery($1) OR LENGTH($1) = 0) "+conjunction+" "+
 						"(to_tsvector(users.name) @@ plainto_tsquery($2) OR LENGTH($2) = 0) "+conjunction+" "+
