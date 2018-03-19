@@ -12,7 +12,7 @@
 
 'use strict';
 
-module.exports = function(config){
+module.exports = function(){
 
 	return {
 

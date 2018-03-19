@@ -2,8 +2,8 @@
 // 4bar/server/definitions/postgres/pg_sort_filter_definitions.js
 //
 // Overview: 
-//	- Contains definitions for sort filters for database tables by
-//    column
+//	- Contains definitions for sort filters for sorting database 
+// tables by a specific column
 //
 // More about the sort function in javascript:
 //
@@ -84,7 +84,7 @@ module.exports = {
 	/********************************************************************************/		
 
 	//////////////////////////////////////////////////////////////////////
-	// Community Sort Filters
+	// Communities Table Sort Filters
 	//////////////////////////////////////////////////////////////////////
 
 	communities: {
@@ -130,7 +130,7 @@ module.exports = {
 	/********************************************************************************/
 
 	//////////////////////////////////////////////////////////////////////
-	// User Sort Filters
+	// Users Table Sort Filters
 	//////////////////////////////////////////////////////////////////////
 
 	users: {

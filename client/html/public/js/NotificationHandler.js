@@ -1,3 +1,44 @@
+//////////////////////////////////////////////////////////////////////
+// 4bar/client/html/public/js/NotificationHandler.js
+//
+// Overview: 
+//  - Provides an interface for receiving messages from the server 
+//    using socket.io and displaying them on the client using 
+//    toaster.js 
+//
+// To send an error message from the back-end, within the socket listener use:
+// 
+// socket.emit('notificication',
+//  {
+//      title : >>title_of_message<<, 
+//      error: >>error_message<<
+//  }
+// );
+//
+// To send an success message from the back-end, within the socket listener use:
+//
+// socket.emit('notificication',
+//  {
+//      title : >>title_of_message<<, 
+//      success: >>success_message<<
+//  }
+// );
+//
+// Note: >>error_message<< and >>success_message<< can be either a string 
+// or an array of strings.
+//
+//
+// More about toaster.js:
+//
+//   https://github.com/CodeSeven/toastr/blob/master/README.md
+// 
+// More about socket.io:
+//   
+//   https://socket.io/docs/
+//
+//////////////////////////////////////////////////////////////////////
+
+
 function NotificationHandler(toastr,socket,callbacks){
     toastr.options = {
         "closeButton": false,

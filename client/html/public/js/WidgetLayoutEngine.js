@@ -1,3 +1,15 @@
+//////////////////////////////////////////////////////////////////////
+// 4bar/client/html/public/js/WidgetLayoutEngine.js
+//
+// Overview: 
+//  - Provides an interface for building, submitting, and displaying
+//    a layout of webpage community widgets
+//
+// Information on how to create your own webpage widget can be found
+// in '4bar/DEVGUID.md'
+//
+//////////////////////////////////////////////////////////////////////
+
 let WidgetLayoutEngine = function(widget_ui_definitions,parent,settings){
 
   let __wle = this;
@@ -149,9 +161,8 @@ let WidgetLayoutEngine = function(widget_ui_definitions,parent,settings){
   }
 
   //////////////////////////////////////////////////////////////////////
-  // Functions
+  // Class Member Functions
   //////////////////////////////////////////////////////////////////////    
-
 
   __wle.add_column = function(row){
     let new_col = document.createElement('div');

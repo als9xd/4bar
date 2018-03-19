@@ -4,7 +4,7 @@
 // Overview: 
 //	- Has all the definitions for socket.io listeners
 //
-// When to use Socket.io
+// When to use Socket.io:
 //
 // Suppose we have two users A and B. Imagine A is creating a new community and
 // B is looking at a list of communities. Once A creates a new community B's
@@ -16,8 +16,10 @@
 // A real world example can be found on '4bar/client/views/private/home.handlebars'
 //////////////////////////////////////////////////////////////////////
 
-// This module is used for password encryption within the 'login' and 'register' 
-//socket listeners
+//////////////////////////////////////////////////////////////////////
+// This module is used for password encryption within the 'login' and
+// 'register' socket listeners
+//////////////////////////////////////////////////////////////////////
 const crypto = require('crypto');
 
 module.exports = function(config,pg_conn){	
@@ -50,7 +52,6 @@ module.exports = function(config,pg_conn){
 		//////////////////////////////////////////////////////////////////////
 		// This listener allows a user to login
 		//////////////////////////////////////////////////////////////////////
-
 
 		(socket) => {
 
@@ -314,6 +315,10 @@ module.exports = function(config,pg_conn){
 
 		/********************************************************************************/
 
+		//////////////////////////////////////////////////////////////////////
+		// This listener gets all the widgets for a particular community
+		//////////////////////////////////////////////////////////////////////
+
 		(socket) => {
 
 			socket.on('widgets_req',function(community_id){
@@ -361,6 +366,11 @@ module.exports = function(config,pg_conn){
 
 		/********************************************************************************/
 
+		//////////////////////////////////////////////////////////////////////
+		// This listener is used to allow a community to submit a layout for
+		// their available widgets
+		//////////////////////////////////////////////////////////////////////
+
 		(socket) => {
 
 			socket.on('layout_submit_req',function(data){
@@ -387,6 +397,11 @@ module.exports = function(config,pg_conn){
 
 		/********************************************************************************/
 
+		//////////////////////////////////////////////////////////////////////
+		// This listener sends all the widgets that a community is able to 
+		// choose from to add to their community
+		//////////////////////////////////////////////////////////////////////
+
 		(socket) => {
 
 			socket.on('available_widgets_req',function(community_id){
@@ -412,6 +427,11 @@ module.exports = function(config,pg_conn){
 
 		/********************************************************************************/
 
+		//////////////////////////////////////////////////////////////////////
+		// This listener allows a community to submit a new widget with data
+		// to be loaded into the database
+		//////////////////////////////////////////////////////////////////////
+
 		(socket) => {
 
 			socket.on('widget_submit_req',function(widget){
@@ -428,6 +448,12 @@ module.exports = function(config,pg_conn){
 		},
 
 		/********************************************************************************/
+
+
+		//////////////////////////////////////////////////////////////////////
+		// This listener allows user to toggle whether they are a member of 
+		// a community
+		//////////////////////////////////////////////////////////////////////
 
 		(socket) => {
 

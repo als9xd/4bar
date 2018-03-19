@@ -1,8 +1,8 @@
 //////////////////////////////////////////////////////////////////////
-// 4bar/server/connectors/ExpressConnector.js
+// 4bar/server/connectors/SocketIOConnector.js
 //
 // Overview: 
-//	- Builds a connector for socket.io related functionality 
+//	- Builds a connector between socket.io related functionality 
 //    and definitions
 //  
 // Constructor Objectives:
@@ -11,8 +11,8 @@
 //
 // Public Functions:
 //   
-//	 attach_session(ExpressConnector.session session)
-//   build_listeners(PgConnector pg_conn)
+//	 SocketIOConnector.attach_session(ExpressConnector.session session)
+//   SocketIOConnector.build_listeners(PgConnector pg_conn)
 //
 // More about socket.io:
 //
@@ -43,6 +43,11 @@ module.exports = class SocketIOConnector{
 	}
 
 	//////////////////////////////////////////////////////////////////////
+	// SocketIOConnector.attach_session(
+	//   String definition_file,
+	//   ExpressConnector.session session
+	// );
+	//
 	// This function attaches a new middleware that allows socket.io 
 	// connections to access express session data
 	//
@@ -60,6 +65,12 @@ module.exports = class SocketIOConnector{
 	}
 
 	//////////////////////////////////////////////////////////////////////
+	// SocketIOConnector.build_listeners(
+	//   String definition_file,
+	//   PgConnector pg_conn,
+	//   PgConnector.widget_definitions widget_definitions
+	// );
+	//
 	// This builds all socket.io listeners from their definitions in 
 	// '4bar/server/definitions/socket_io/socket_io_listener_definitions'
 	//
@@ -71,11 +82,11 @@ module.exports = class SocketIOConnector{
 	//			
 	//          // This is the listener
 	//			socket.on('some_message',function(){
-	//				console.log('I listened and heard');
+	//				console.log('I listened for and heard "some_message"!');
 	//			});
 	//	   });
-	//
-	//////////////////////////////////////////////////////////////////////		
+	// 
+	//////////////////////////////////////////////////////////////////////	
 
 	build_listeners(definition_file,pg_conn,widget_definitions){
 

@@ -5,7 +5,6 @@
 //	- contains the default configuration settings to be used to start
 //    the 4bar server
 //  
-//
 //////////////////////////////////////////////////////////////////////
 
 'use strict';

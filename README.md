@@ -115,8 +115,13 @@ Note: before you push your code make sure you aren't pushing any icons/wallpaper
 - 4bar/server/defintions
     * contains back end objects that define various back end services in a more manageable and easy to read format
 
+<<<<<<< HEAD
+- 4bar/client/community_data
+    * contains all front end media files such as community icons and community wallpapers
+=======
 - 4bar/client/media
     * contains all front end media files such as community icons, community wallpapers, user avatars, default site images, etc...
+>>>>>>> 40be7241ed249407b4280ece1c2cece23578d0bd
 
 - 4bar/config.js
     * contains all configuration settings for the webserver

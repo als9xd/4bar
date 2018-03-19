@@ -4,11 +4,10 @@
 // Overview: 
 //   - Start 4bar server using settings from '4bar/config.js'
 //  
-// Function: 
+// Objectives: 
 //   1. Load configuration settings from '4bar/config.js'
-//   2. Load command line arguments into configuation settings
-//   3. Optionally either build,destroy, or rebuild the database
-//   4. Start the 4bar server
+//   2. Process and respond to command line arguments
+//   3. Start the 4bar server
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -115,9 +114,9 @@ if(argv['help']){
 }
 
 //////////////////////////////////////////////////////////////////////
-// Delete all community data if --clean,-c is passed as argument
+// Delete all user submitted media files if --clean,-c is passed as
+// an argument
 //////////////////////////////////////////////////////////////////////
-
 
 if(argv['clean'] === true){
 	const fs = require('fs');
@@ -184,7 +183,7 @@ if(argv['clean'] === true){
 }
 
 //////////////////////////////////////////////////////////////////////
-// Initialize and start the 4bar server
+// Initialize the 4bar server
 //////////////////////////////////////////////////////////////////////
 
 let Server = require(config[env].root_dir+'/server/Server.js');
@@ -193,7 +192,7 @@ let server = new Server(config[env]);
 switch (true){
 	
 	//////////////////////////////////////////////////////////////////////
-	// Build the postgres database then exit
+	// Build the postgres database and then exit
 	//////////////////////////////////////////////////////////////////////
 
 	case argv['build']:
@@ -217,7 +216,7 @@ switch (true){
 	break;
 
 	//////////////////////////////////////////////////////////////////////
-	// Destroy the postgres database then exit
+	// Destroy the postgres database and then exit
 	//////////////////////////////////////////////////////////////////////
 
 	case argv['destroy']:
@@ -228,7 +227,6 @@ switch (true){
 					console.log(err);
 					process.exit(1);
 				}
-
 				console.log("Done");
 				process.exit(0);
 			}
@@ -236,7 +234,8 @@ switch (true){
 	break;
 
 	//////////////////////////////////////////////////////////////////////
-	// Destroy the postgres database, then build it, then exit
+	// Destroy the postgres database, then build it, then verify it exists
+	// , and finally exit
 	//////////////////////////////////////////////////////////////////////
 
 	case argv['rebuild']:
@@ -247,7 +246,8 @@ switch (true){
 					console.log(err);
 					process.exit(1);
 				}
-				server.pg_conn.build_database( err => {
+				server.pg_conn.build_database( 
+					err => {
 						if(err){
 							console.log(err);
 							process.exit(1);
@@ -261,22 +261,25 @@ switch (true){
 							console.log("Done");
 							process.exit(0);
 						});
-				});
+					}
+				);
 			}
 		);
 	break;
 
 	//////////////////////////////////////////////////////////////////////
-	// Start the server
+	// Verify the database exists then start the server
 	//////////////////////////////////////////////////////////////////////
 
 	default:
-		server.pg_conn.verify_database(err => {
-			if(err){
-				console.log(err);
-				process.exit(1);
+		server.pg_conn.verify_database(
+			err => {
+				if(err){
+					console.log(err);
+					process.exit(1);
+				}
+				server.start();
 			}
-			server.start();
-		});
+		);
 }
 

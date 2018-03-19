@@ -1,4 +1,40 @@
+//////////////////////////////////////////////////////////////////////
+// 4bar/client/html/public/js/NotificationHandler.js
+//
+// Overview: 
+//  - Provides defintions for the callbacks that build a widget's html
+//    that will be displayed on a community's page
+//
+// Information on how to create your own webpage widget can be found
+// in '4bar/DEVGUID.md'
+//
+//////////////////////////////////////////////////////////////////////
+
 const WidgetUIDefinitions = {
+
+  /******************************** Example ***************************************/
+
+  /* 
+  
+  Key >>widget_name<< ( Must be the same as in `4bar/server/defintions/pg/pg_widget_definitions.js` )
+
+  ==================================================================================
+   
+  Within this file:
+
+  >>widget_name<< : function(data,widget_container){
+    // The data argument is input data passed as the second argument of widget_submit
+    // The widget_container argument is the gray box that holds the widget. You can
+    // manipulate the widget container to fix modify its looks
+    
+    return document.createElement(div); // The html element that is returned is the widget
+  },
+
+  etc...
+
+  */
+  
+  /********************************************************************************/
 
  youtube: function(data,widget_container){
     let widget = document.createElement('iframe');
