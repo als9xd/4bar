@@ -1,10 +1,10 @@
 //////////////////////////////////////////////////////////////////////
 // 4bar/server/definitions/express/express_route_definitions.js
 //
-// Overview: 
+// Overview:
 //	- Contains definitions for express routes
 //
-// Express Routes: 
+// Express Routes:
 //
 // These are the 'paths' users can take
 //
@@ -15,10 +15,10 @@
 //
 // });
 //
-// The req variable passed to each middleware in the route is the data 
-// the client is sending to the server. The res variable is the data 
+// The req variable passed to each middleware in the route is the data
+// the client is sending to the server. The res variable is the data
 // that the server responds with. There is also a third 'hidden'/optional
-// variable called next that passes all the data onto the next middleware 
+// variable called next that passes all the data onto the next middleware
 // (kind of like how 'return' functions in most programming languages)
 //
 // More about express routing:
@@ -30,7 +30,7 @@
 'use strict';
 
 module.exports = function(express_conn,pg_conn,socket_io_conn) {
-	
+
 	let config = express_conn.config;
 
 	let app = express_conn.app;
@@ -42,7 +42,7 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 
 		/****************************** Example ******************************************/
 
-		/* 
+		/*
 
 		String route_url
 		String path_to_file
@@ -57,12 +57,12 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 		String some_other_route_name
 
 		==================================================================================
-		 
+
 		Within this file:
 
 		() => {
 			app.get(>>route_url<<,function(req,res){
-				
+
 				// Send a regular html file back to the client (without any backend data)
 				res.sendFile(config.root_dir + >>path_to_file<< );
 
@@ -78,7 +78,7 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 
 			});
 		},
-	
+
 		() =>{
 			app.get(>>some_other_route_url<<,function(req,res){
 
@@ -95,13 +95,13 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 				// Redirect the client to another route
 				res.redirect(>>some_other_route_name<<);
 
-			});	
+			});
 		},
 
 		etc...
-	
+
 		*/
-		
+
 		/********************************************************************************/
 
 		//////////////////////////////////////////////////////////////////////
@@ -117,9 +117,9 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 
 		//////////////////////////////////////////////////////////////////////
 		// This route sets the default url ('4bar.org/') to redirect to home
-		// 
-		// Note: If a user isn't logged in they will be redirected to 
-		//       '4bar.org/login' since '4bar.org/home' checks for 
+		//
+		// Note: If a user isn't logged in they will be redirected to
+		//       '4bar.org/login' since '4bar.org/home' checks for
 		//       authentication
 		//////////////////////////////////////////////////////////////////////
 
@@ -195,7 +195,7 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 							}
 						);
 					}
-				);					
+				);
 			});
 		},
 
@@ -209,7 +209,7 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 		() => {
 
 			app.get('/search',middleware['check_authorization'],function(req,res){
-				
+
 				let search_filter_promises = [];
 
 				if(typeof req.query['query_field'] !== 'undefined'){
@@ -238,12 +238,12 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 								)
 							);
 						}
-					}		
+					}
 				}
 
 				Promise.all(search_filter_promises).then(results =>{
-					
-					// Each results are returned as an array of key/value pairs [ {communities : results_of_communities} , {users : results_of_users} ] 
+
+					// Each results are returned as an array of key/value pairs [ {communities : results_of_communities} , {users : results_of_users} ]
 					// In order to make it easier to handle on the front end this converts the results to this form {communities: results_of_communities, users: results_of_users}
 					results = results.reduce(function(r,a){
 						return Object.assign(r,a);
@@ -255,7 +255,7 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 						if(typeof sort_filter_field === 'undefined'){
 							res.render('public/error',{error:'Unknown sort field "'+req.query['query_field']+'"'});
 							return;
-						}	
+						}
 						let sort_filter = sort_filter_field[req.query['sort_by']];
 						if(typeof sort_filter === 'undefined'){
 							res.render('public/error',{error:'Unknown sort filter "'+req.query['sort_by']+'" in "'+req.query['query_field']+'"'});
@@ -268,7 +268,7 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 				 		results: results,
 				 		username: req.session.username,
 						user_id: req.session.user_id
-				 	});	
+				 	});
 
 				}).catch( err =>{
 					res.render('public/error',{error:err});
@@ -327,14 +327,14 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 									avatar: avatars.rows[0].avatar,
 									c_names: c_names_arr,
 									modify_priveleges: typeof req.query['id'] === 'undefined' ||(Number(req.query['id']) === req.session.user_id)
-								});	
+								});
 
 							}
 
 						);
 					}
-				);	
-			});		
+				);
+			});
 
 		},
 
@@ -354,7 +354,7 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 						let avatar_url = '/user/avatars/'+req.session.user_id+'.'+req.files.u_avatar.name.split('.').pop();
 						req.files.u_avatar.mv(config.root_dir+'/client/media'+avatar_url,function(err){
 							if(err){
-								console.log(err);				
+								console.log(err);
 								res.render('public/error',{error:'Could not upload avatar'});
 								return;
 							}
@@ -377,22 +377,22 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 									return;
 								}
 							);
-						});	
+						});
 					}else{
 						res.redirect('profile');
 					}
 				}
 
-			});		
+			});
 
-		},		
+		},
 
 		/********************************************************************************/
 
 		//////////////////////////////////////////////////////////////////////
 		// (Community Creation Wizard)
 		//
-		// This route renders a page that allows a user to create a new 
+		// This route renders a page that allows a user to create a new
 		// community
 		//////////////////////////////////////////////////////////////////////
 
@@ -401,7 +401,7 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 			  res.render('private/cc_wizard',{
 			  	username: req.session.username,
 			  	user_id: req.session.user_id
-			  });				
+			  });
 			});
 		},
 
@@ -412,9 +412,9 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 		//
 		// This route allows a user to submit a new community.
 		// 	* Right now this is linked from within '4bar.org/cc_wizard'
-		// 
+		//
 		// Should probably be converted to socket.io in the future however the
-		// file uploading functionality will require a redesign since it 
+		// file uploading functionality will require a redesign since it
 		// currently uses form data
 		//
 		//////////////////////////////////////////////////////////////////////
@@ -455,7 +455,7 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 									icon_url = '/community/icons/'+unique_name+'.'+req.files.c_icon.name.split('.').pop();
 									req.files.c_icon.mv(config.root_dir+'/client/media'+icon_url,function(err){
 										if(err){
-											console.log(err);				
+											console.log(err);
 											res.render('public/error',{error:'Could not upload icon'});
 											return;
 										}
@@ -473,18 +473,18 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 												}
 											}
 										);
-									});	
+									});
 								}
 								if(req.files.c_wallpaper){
 									wallpaper_url = '/community/wallpapers/'+unique_name+'.'+req.files.c_wallpaper.name.split('.').pop();
 									req.files.c_wallpaper.mv(config.root_dir+'/client/media'+wallpaper_url,function(err){
 										if(err){
-											console.log(err);					
+											console.log(err);
 											res.render('public/error',{error:'Could not upload wallpaper'});
 											return;
 										}
-									});				
-								}				
+									});
+								}
 							}
 
 							let d = new Date;
@@ -497,7 +497,7 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 									if(lengths_obj[i][0].length > config.pg.varchar_limits[table_name][lengths_obj[i][1]]){
 										inv_lens.push({table_name: lengths_obj[i][1],limit: config.pg.varchar_limits[table_name][lengths_obj[i][1]]})
 									}
-									
+
 								}
 								return inv_lens;
 							}
@@ -527,7 +527,7 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 								}
 								res.redirect('/cc_wizard?error='+invalid_length_errors.join(','));
 								return;
-							}	
+							}
 
 							let community_url = '/b/'+unique_name;
 
@@ -546,7 +546,7 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 									date,
 								],
 								function(err,community_id){
-									
+
 									if(err){
 										console.log(err);
 										res.render('public/error',{error:'Could not insert into communities'});
@@ -554,7 +554,7 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 									}
 
 									let tags_split = req.body.tags.split(',');
-									
+
 									let invalid_tag_lengths = []
 									for(let i = 0; i < tags_split.length;i++){
 										if(tags_split[i].length >  config.pg.varchar_limits.community_tags.tag){
@@ -579,9 +579,9 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 											if(err){
 												console.log(err);
 												res.render('public/error',{error:'Could not insert tags for community'});
-												return;									
+												return;
 											}
-									        
+
 									        // This builds a new route for the community page
 											app.get(community_url, middleware['check_authorization'], function(com_req, com_res){
 												pg_conn.client.query(
@@ -602,7 +602,7 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 																username: com_req.session.username,
 																user_id: req.session.user_id,
 																c_name: req.body.c_name,
-																c_wallpaper: wallpaper_url, 
+																c_wallpaper: wallpaper_url,
 																c_id: community_id.rows[0].id,
 																c_url: community_url,
 																is_member: (is_member && is_member.rowCount)
@@ -620,7 +620,7 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 											  		username: com_req.session.username,
 													user_id: req.session.user_id,
 											  		c_name: req.body.c_name,
-											  		c_wallpaper: wallpaper_url, 
+											  		c_wallpaper: wallpaper_url,
 											  		c_id: community_id.rows[0].id,
 											  		c_url: community_url
 											  	});
@@ -657,18 +657,48 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 		//////////////////////////////////////////////////////////////////////
 		// This route allows a user to logout by destroying their session data
 		// It then redirects them to '4bar.org/home' which should in turn
-		// redirect them to '4bar.org/login' since the user no longer has 
+		// redirect them to '4bar.org/login' since the user no longer has
 		// session data and thus can't authenticate with their credentials
 		//////////////////////////////////////////////////////////////////////
 
 		() => {
 			app.get('/logout',function(req,res){
-				req.session.destroy();	
-				res.redirect('/home');	
+				req.session.destroy();
+				res.redirect('/home');
 			});
-		}
+		},
 
 		/********************************************************************************/
+
+		() => {
+			app.get(
+				'/tournaments', // This is the base url ('4bar.org/tournaments')
+				function(req,res){
+					pg_conn.client.query(
+					"SELECT * FROM tournaments where id = $1",
+					[
+					  req.query['id'] // This is whatever '4bar.org/tournaments/id=' is set to
+					],
+					function(err,results){
+							if(err){
+								console.log(err);
+								return;
+							}
+							res.render(
+								'/tournaments',  //This is handlebars filename
+							 	{
+									tournament_name: results.rows[0].name,
+									tournament_loc: results.rows[0].location,
+									tournament_limit: results.rows[0].attendee_limit,
+									tournament_deadline: results.rows[0].signup_deadline,
+									tournament_date: results.rows[0].start_date
+								}
+							);
+						}
+					);
+				}
+			);
+		}
 
 	];
 }
