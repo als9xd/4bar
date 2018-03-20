@@ -51,7 +51,13 @@ const config = {
 				community_stats: {
 					stat_name: 30,
 					stat_value: 255
-				}
+				},
+				events: {
+					event_name: 40,
+					street_address: 255,
+					city: 40,
+					state: 13,
+				},
 			}
 		},
 		crypto: {
@@ -113,7 +119,13 @@ const config = {
 				community_stats: {
 					stat_name: 30,
 					stat_value: 255
-				}
+				},
+				events: {
+					event_name: 40,
+					street_address: 255,
+					city: 40,
+					state: 13,
+				},
 			}
 		},
 		crypto: {

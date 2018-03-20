@@ -106,6 +106,20 @@ module.exports = function(config){
 
 		/********************************************************************************/
 
+		events:
+			"CREATE TABLE IF NOT EXISTS events(\
+				event_name VARCHAR("+config.pg.varchar_limits.events.event_name+") NOT NULL, \
+				event_date DATE NOT NULL, \
+				start_time TIME NOT NULL, \
+				end_time TIME, \
+				street_address VARCHAR("+config.pg.varchar_limits.events.street_address+") NOT NULL, \
+				city VARCHAR("+config.pg.varchar_limits.events.city+") NOT NULL, \
+				state VARCHAR("+config.pg.varchar_limits.events.state+") NOT NULL,\
+				)"
+		,
+		
+		/********************************************************************************/		
+
 		stats_widget:
 			"CREATE TABLE IF NOT EXISTS stats_widget(\
 				user_id NUMERIC NOT NULL,\
