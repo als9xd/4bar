@@ -114,7 +114,7 @@ module.exports = function(config){
 				end_time TIME, \
 				street_address VARCHAR("+config.pg.varchar_limits.events.street_address+") NOT NULL, \
 				city VARCHAR("+config.pg.varchar_limits.events.city+") NOT NULL, \
-				state VARCHAR("+config.pg.varchar_limits.events.state+") NOT NULL,\
+				state VARCHAR("+config.pg.varchar_limits.events.state+") NOT NULL \
 				)"
 		,
 		
