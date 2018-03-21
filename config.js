@@ -51,6 +51,13 @@ const config = {
 				community_stats: {
 					stat_name: 30,
 					stat_value: 255
+				},
+				tournament: {
+					name: 255
+					loc: 255
+				},
+				tournament_tags: {
+					tag: 20
 				}
 			}
 		},
@@ -113,6 +120,13 @@ const config = {
 				community_stats: {
 					stat_name: 30,
 					stat_value: 255
+				},
+				tournament: {
+					name: 255
+					loc: 255
+				},
+				tournament_tags: {
+					tag: 20
 				}
 			}
 		},

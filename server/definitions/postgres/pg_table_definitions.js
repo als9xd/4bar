@@ -137,5 +137,46 @@ module.exports = function(config){
 
 		/********************************************************************************/
 
+		tournaments:
+			"CREATE TABLE IF NOT EXISTS tournament( \
+				id SERIAL PRIMARY KEY, \
+				name VARCHAR("+config.pg.varchar_limits.tournament.name+") NOT NULL, \
+				location VARCHAR ("+config.pg.varchar_limits.tournament.loc+") NOT NULL, \
+				attendee_limit INTEGER NOT NULL, \
+				signup_deadline DATE NOT NULL, \
+				start_date DATE NOT NULL \
+			)"
+		,
+		
+		/********************************************************************************/
+
+		tournament_tags:
+			"CREATE TABLE IF NOT EXISTS tournament_tags( \
+				tournament_id NUMERIC NOT NULL,\
+				tag VARCHAR("+config.pg.varchar_limits.tournament_tags.tag+") NOT NULL, \
+				UNIQUE (tournament_id,tag) \
+			)"
+		,
+
+		/********************************************************************************/
+
+		tournament_attend:
+			"CREATE TABLE IF NOT EXISTS tournament_attendees( \
+				tournament_id NUMERIC NOT NULL, \
+				user_id NUMERIC NOT NULL,\
+				UNIQUE (tournament_id,user_id) \
+			)"
+		,
+
+		/********************************************************************************/
+		tournament_brackets:
+			"CREATE TABLE IF NOT EXISTS tournament_brackets(\
+				id SERIAL PRIMARY KEY,\
+				tournament_id NUMERIC NOT NULL,\
+				parent_id NUMERIC,\
+				player_id NUMERIC\
+			)"
+		/********************************************************************************/
+
 	}
 };

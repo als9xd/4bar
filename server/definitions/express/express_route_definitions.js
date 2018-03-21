@@ -670,5 +670,88 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 
 		/********************************************************************************/
 
+		() => {
+			app.get(
+				'/tournaments', // This is the base url ('4bar.org/tournaments')
+				function(req,res){
+					pg_conn.client.query(
+					"SELECT * FROM tournaments where id = $1",
+					[
+					  req.query['id'] // This is whatever '4bar.org/tournaments/id=' is set to
+					],
+					function(err,results){
+							if(err){
+								console.log(err);
+								return;
+							}
+							pg_conn.client.query(
+							"SELECT * FROM tournament_brackets where tournament_id = $1",
+							[
+							  req.query['id'] // This is whatever '4bar.org/tournaments/id=' is set to
+							],
+							function(err,results2){
+									if(err){
+										console.log(err);
+										return;
+									}
+									pg_conn.client.query(
+									"SELECT * FROM tournament_attend where tournament_id = $1",
+									[
+									  req.query['id'] // This is whatever '4bar.org/tournaments/id=' is set to
+									],
+									function(err,results3){
+											if(err){
+												console.log(err);
+												return;
+											}
+											res.render(
+												'/tournaments',  //This is handlebars filename
+												{
+													tournament_name: results.rows[0].name,
+													tournament_loc: results.rows[0].location,
+													tournament_limit: results.rows[0].attendee_limit,
+													tournament_deadline: results.rows[0].signup_deadline,
+													tournament_date: results.rows[0].start_date,
+													tournament_ID: results.rows[0].tournament_id,
+													tournament_brackets: results2.rows,
+													tournament_participants: results3.rows
+												}
+											);
+										}
+									);
+									/*
+									res.render(
+										'/tournaments',  //This is handlebars filename
+										{
+											tournament_name: results.rows[0].name,
+											tournament_loc: results.rows[0].location,
+											tournament_limit: results.rows[0].attendee_limit,
+											tournament_deadline: results.rows[0].signup_deadline,
+											tournament_date: results.rows[0].start_date,
+											tournament_ID: results.rows[0].tournament_id,
+											tournament_brackets: results2.rows
+										}
+									);
+									*/
+								}
+							);
+							/*
+							res.render(
+								'/tournaments',  //This is handlebars filename
+							 	{
+									tournament_name: results.rows[0].name,
+									tournament_loc: results.rows[0].location,
+									tournament_limit: results.rows[0].attendee_limit,
+									tournament_deadline: results.rows[0].signup_deadline,
+									tournament_date: results.rows[0].start_date
+								}
+							);
+							*/
+						}
+					);
+				}
+			);
+		}
+
 	];
 }
