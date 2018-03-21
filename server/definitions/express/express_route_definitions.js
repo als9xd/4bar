@@ -666,16 +666,23 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 		/********************************************************************************/
 
 		() => {
+
 			app.get(
 				'/tournaments', // This is the base url ('4bar.org/tournaments')
 				middleware['check_authorization'],
 				function(req,res){
+					if(typeof req.query['id'] === 'undefined'){
+						res.render('/public/error',{error:'No tournament id supplied'});
+						return;
+					}
+
+
 					pg_conn.client.query(
-					"SELECT * FROM tournaments where id = $1",
-					[
-					  req.query['id'] // This is whatever '4bar.org/tournaments/id=' is set to
-					],
-					function(err,results){
+						"SELECT * FROM tournaments where id = $1",
+						[
+					  	req.query['id'] // This is whatever '4bar.org/tournaments/id=' is set to
+						],
+						function(err,results){
 							if(err){
 								console.log(err);
 								return;

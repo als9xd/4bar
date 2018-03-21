@@ -154,8 +154,8 @@ module.exports = function(config){
 				description TEXT, \
 				location VARCHAR ("+config.pg.varchar_limits.tournament.loc+") NOT NULL, \
 				attendee_limit INTEGER NOT NULL, \
-				signup_deadline DATE NOT NULL, \
-				start_date DATE NOT NULL \
+				signup_deadline TEXT NOT NULL, \
+				start_date TEXT NOT NULL \
 			)"
 		,
 		

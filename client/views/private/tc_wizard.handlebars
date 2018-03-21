@@ -23,10 +23,10 @@
     <script type="text/javascript">let socket = io();</script>
 
     <script type="text/javascript">
-      console.log("test{{{c_id}}}");
+        console.log({{{c_id}}},'test');
       let submit_tournament = function(data){
         socket.emit('tc_submit',{
-          community_id : {{{c_id}}},
+          community_id : Number('{{{c_id}}}'),
           name : document.getElementById('t_name').value,
           description: document.getElementById('t_description').value,
           location: document.getElementById('t_location').value,

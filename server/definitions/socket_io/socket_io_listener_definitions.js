@@ -592,6 +592,7 @@ module.exports = function(config,pg_conn){
 						}
 						socket.emit('last_node_id',results.rows[0].id);
 					}
+				);
 			});
 		},
 
@@ -616,6 +617,7 @@ module.exports = function(config,pg_conn){
 						}
 						socket.emit('bracket_nodes',results.rows);
 					}
+				);
 			});
 		},
 
@@ -624,7 +626,7 @@ module.exports = function(config,pg_conn){
 		//////////////////////////////////////////////////////////////////////
 		// This listener updates a tournament bracket node 
 		//////////////////////////////////////////////////////////////////////
-		
+
 		(socket) => {
 			socket.on('update_bracket_node',function(node_data){
 				pg_conn.client.query(
@@ -643,6 +645,7 @@ module.exports = function(config,pg_conn){
 						}
 						socket.emit('notification',{success:'Successfully updated bracket node'});
 					}
+				);
 			});
 		}
 
