@@ -52,6 +52,9 @@
         </ul>
       </div>
     </nav>
+    <script type="text/javascript">
+    ($Tournament_bracket).append(Display_Brackets(tournament_brackets,NULL)); //Use jQuery to append html element with already generated brackets
+    </script>
 
     <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
 
@@ -68,6 +71,138 @@
       );
     </script>
 
+  <button onclick="GenerateTournament()">Generate Tournament Brackets</button> <!--Make button only show up when no rows exist with tournament_id (when coms is empty).-->
+  <div id="Tournament_bracket"></div>
   </body>
 
 </html>
+
+<script type="text/javascript">
+function GenerateTournament()
+{
+  var nodes = tournament_brackets;
+  var teams = tournament_participants;
+  //Should remove entries in forest table with tournament_id. But for the time being it won't.
+  //Just returns if brackets already exist for this tournament.
+  if(nodes.length>0){
+    return;
+  }
+  //Get number of teams
+  var teamNum = teams.length;
+  var Depth = Math.floor(Math.log(teamNum));
+  generate_tree(NULL, Depth, nodes, teams);
+  //leafNodes = list of teams in forest with tournament_id
+  var leafNodes = socket.emit('get_bracket_nodes',{
+      tournament_ID
+    }).bracket_nodes;
+  //RemainingTeams = list of teams not in tournament and not in forest.
+  var RemainingTeams;
+  var allTeams; //all teams present in leafNodes
+  for(let c in leafNodes){
+    if(leafNodes[c].player_id !=NULL && allTeams.indexOf(leafNodes[c].player_id)<0/*leafNode[c].player not in allTeams*/){
+      allTeams+=leafNodes[c].player_id;
+    }
+  }
+  for(let t in teams){
+    var found = false;
+    for(let s in allTeams){
+      if(teams[t].user_id == allTeams[s]){
+        found = true;
+      }
+    }
+    if(found==false){
+      RemainingTeams+=teams[t].user_id;
+    }
+  }
+  for(let team in remainingTeams){
+    //Retrieve random leafNode and edit the player to be Null
+    var randNode = leafNodes[Math.floor(Math.random() * leafNodes.length)];
+    socket.emit('update_bracket_node',{ //update row to have NULL player_id
+      node_id: data.id,
+      player_id: NULL
+    });
+    //Save a new node with previous leafNode node as parent and leafNode player as player.
+    socket.emit('add_bracket_node',{ //Adds row to table
+      tournament_id : tournament_ID,
+      parent_id: randNode.id,
+      player_id: randNode.player_id
+    });
+    //Save a new node with previous leafNode node as parent and team as player.
+    socket.emit('add_bracket_node',{ //Adds row to table
+      tournament_id : tournament_ID,
+      parent_id: randNode.id,
+      player_id: remainingTeams[team]
+    });
+    //remove leafNode node from leafNode list.
+    var index = leafNodes.indexOf(randNode);
+    if (index > -1) {
+       leafNodes.splice(index, 1);
+    }
+  }
+  nodes = socket.emit('get_bracket_nodes',{
+    tournament_ID
+  }).bracket_nodes;
+  ($Tournament_bracket).append(Display_Brackets(nodes,NULL)); //Use jQuery to append html element with id == Tournament_bracket with the generated tree.
+  return;
+}
+function generate_tree(parent, Depth, nodes, teams)
+{
+  var allTeams; //all teams present in nodes
+  var notIncluded; //all teams not present in nodes
+  for(let c in nodes){
+    if(nodes[c].player_id !=NULL && allTeams.indexOf(nodes[c].player_id)<0/*cams[c].player not in allTeams*/){
+      allTeams+=nodes[c].player;
+    }
+  }
+  if(Depth==0){
+    //Save a new node with random player (from list of teams in tournament and not in forest)
+    for(let t in teams){
+      var found = false;
+      for(let s in allTeams){
+        if(teams[t].user_id == allTeams[s]){
+          found = true;
+        }
+      }
+      if(found==false){
+        notIncluded+=teams[t].user_id;
+      }
+    }
+    //data = {parent_id: parent, player_id:notIncluded[Math.floor(Math.random() * notIncluded.length)]};
+    socket.emit('add_bracket_node',{ //Adds row to table
+      tournament_id : tournament_ID,
+      parent_id: parent,
+      player_id: notIncluded[Math.floor(Math.random() * notIncluded.length)]
+    });
+    return;
+  }
+  //Save new node to forest table with id == node_id and parent==parent
+  //data = {parent_id: parent,data.player_id:NULL};
+  node_id = socket.emit('add_bracket_node',{ //Adds row to table
+        tournament_id : tournament_ID,
+        parent_id: parent,
+        player_id: NULL
+      }).last_node_id;
+  nodes = socket.emit('get_bracket_nodes',{
+      tournament_ID
+    }).bracket_nodes;
+  generate_tree(node_id, Depth-1, nodes, teams);
+  generate_tree(node_id, Depth-1, nodes, teams);
+  return;
+}
+function Display_Brackets(nodes,id)
+{
+  //children = list of nodes with id as parent
+  var children = nodes.filter(function(element){ return element.parent_id == id; });
+  var thisNode = (nodes.filter(function(element){ return element.id == id; })[0]);
+  var player = (thisNode.player_id == NULL? "": thisNode.player_id);
+  var NewHTML = "<div>"+player+"</div>";
+  if (children.length>0){
+    NewHTML+="<ul>";
+    for(let child in children){
+      NewHTML+="<li>"+Display_Brackets(nodes,children[child])+"</li>";
+    }
+    NewHTML+="</ul>";
+  }
+  return NewHTML;
+}
+</script>

@@ -177,7 +177,19 @@ module.exports = function(config){
 				user_id NUMERIC NOT NULL,\
 				UNIQUE (tournament_id,user_id) \
 			)"
+		,
 
 		/********************************************************************************/
+
+		tournament_brackets:
+			"CREATE TABLE IF NOT EXISTS tournament_brackets(\
+				id SERIAL PRIMARY KEY,\
+				tournament_id NUMERIC NOT NULL,\
+				parent_id NUMERIC,\
+				player_id NUMERIC\
+			)"
+		
+		/********************************************************************************/
+
 	}
 };
