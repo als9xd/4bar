@@ -626,6 +626,16 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 											  	});
 											});
 
+											// Build that communities tournament creation wizard route
+											app.get(community_url+'/tc_wizard', middleware['check_authorization'], function(com_req, com_res){
+												com_res.render('private/tc_wizard',{
+													username: com_req.session.username,
+													user_id: com_req.session.user_id,
+											  		c_id: community_id.rows[0].ids,
+											  		c_url: community_url
+												});
+											});
+
 											pg_conn.client.query(
 												"SELECT name,description,icon,wallpaper,last_activity,url FROM communities",
 												function(err,community_info){
@@ -652,27 +662,13 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 			});
 		},
 
-		/********************************************************************************/
-
-		//////////////////////////////////////////////////////////////////////
-		// This route allows a user to logout by destroying their session data
-		// It then redirects them to '4bar.org/home' which should in turn
-		// redirect them to '4bar.org/login' since the user no longer has
-		// session data and thus can't authenticate with their credentials
-		//////////////////////////////////////////////////////////////////////
-
-		() => {
-			app.get('/logout',function(req,res){
-				req.session.destroy();
-				res.redirect('/home');
-			});
-		},
 
 		/********************************************************************************/
 
 		() => {
 			app.get(
 				'/tournaments', // This is the base url ('4bar.org/tournaments')
+				middleware['check_authorization'],
 				function(req,res){
 					pg_conn.client.query(
 					"SELECT * FROM tournaments where id = $1",
@@ -698,7 +694,25 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 					);
 				}
 			);
+		},
+
+		/********************************************************************************/
+
+		//////////////////////////////////////////////////////////////////////
+		// This route allows a user to logout by destroying their session data
+		// It then redirects them to '4bar.org/home' which should in turn
+		// redirect them to '4bar.org/login' since the user no longer has
+		// session data and thus can't authenticate with their credentials
+		//////////////////////////////////////////////////////////////////////
+
+		() => {
+			app.get('/logout',function(req,res){
+				req.session.destroy();
+				res.redirect('/home');
+			});
 		}
+
+		/********************************************************************************/
 
 	];
 }

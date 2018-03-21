@@ -22,8 +22,7 @@
         socket.emit('widget_submit_req',
           {
             community_id:{{{c_id}}},
-            type:type,
-            data:input
+            type:type
           }
         );
       } 
@@ -94,6 +93,12 @@
                 <button class="btn btn-primary" onclick="widget_submit('twitter',{screen_name:document.getElementById('twitter_screen_name').value});">Create</button>
             </div>
 
+            <legend class="text-center">Community Tournaments List</legend>
+
+            <div class="form-group">
+                <button class="btn btn-primary" onclick="widget_submit('tournaments');">Create</button>
+            </div>
+
             <hr>
         </fieldset>
       </div>
@@ -120,11 +125,12 @@
         toastr,
         socket,
         {
-          on_success: function(notifcation){
-            if(notifcation.name == 'widget_submit_res'){
+          on_success: function(notification){
+            if(notification.name == 'widget_submit_res'){
               socket.emit('available_widgets_req',{{{c_id}}});
+              toastr.success(notification.success);
             }else{
-              toastr.success(notifcation.success);
+              toastr.success(notification.success);
             }
           }
         }

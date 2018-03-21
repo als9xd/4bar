@@ -511,6 +511,59 @@ module.exports = function(config,pg_conn){
 				);
 			});
 
+		},
+
+		/********************************************************************************/
+
+		(socket) => {
+
+			socket.on('tc_submit',function(data){
+				pg_conn.client.query(
+					"INSERT INTO tournaments (community_id,name, description, location, attendee_limit, signup_deadline, start_date) \
+						VALUES ($1,$2,$3,$4,$5,$6,$7) \
+						RETURNING id \
+					",
+					[
+						data.community_id,
+						data.name,
+						data.description,
+						data.location,
+						Number(data.attendee_limit) || -1,
+						data.signup_deadline,
+						data.start_date
+					],
+					function(err,tournament_id){
+						if(err){
+							console.log(err);
+							socket.emit('notification',{error:'Could not create tournament'});
+							return;
+						}
+
+
+						let tags_split = data.tags.split(',');
+
+						let tournament_ids_arr = Array(tags_split.length).fill(tournament_id.rows[0].id);
+
+						pg_conn.client.query(
+							"INSERT INTO tournament_tags (tournament_id,tag) SELECT * FROM UNNEST ($1::integer[], $2::text[])",
+							[
+								tournament_ids_arr,
+								tags_split
+							],
+							function(err){
+								if(err){
+									console.log(err);
+									socket.emit('notification',{error:'Could not add tournament tags'});
+									return;
+								}
+								socket.emit('notification',{success:'Successfully created tournament'});
+							}
+						);
+					}
+
+				);
+			});
+
 		}
 
 		/********************************************************************************/

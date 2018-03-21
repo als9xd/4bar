@@ -160,8 +160,7 @@ module.exports = class Server{
 						});
 
 						self.express_conn.app.get(community_info.rows[i].url+'/layout', self.express_conn.middleware['check_authorization'], function(req, res){
-							res.render(
-								'private/cc_layout',
+							res.render('private/cc_layout',
 								{
 									username: req.session.username,
 									user_id: req.session.user_id,
@@ -171,7 +170,18 @@ module.exports = class Server{
 									c_url: community_info.rows[i].url
 								}
 							);
-						});				
+						});	
+
+						// Build that communities tournament creation wizard route
+						self.express_conn.app.get(community_info.rows[i].url+'/tc_wizard', self.express_conn.middleware['check_authorization'], function(req, res){
+							res.render('private/tc_wizard',{
+								username: req.session.username,
+								user_id: req.session.user_id,
+								c_id: community_info.rows[i].id,
+								c_url: community_info.rows[i].url
+							});
+						});
+
 					}
 				}
 

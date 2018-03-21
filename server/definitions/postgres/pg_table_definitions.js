@@ -137,10 +137,21 @@ module.exports = function(config){
 
 		/********************************************************************************/
 
+		tournaments_widget:
+			"CREATE TABLE IF NOT EXISTS tournaments_widget(\
+				id SERIAL PRIMARY KEY,\
+				tournament_ids NUMERIC[] NOT NULL\
+			)"
+		,
+
+		/********************************************************************************/
+
 		tournaments:
-			"CREATE TABLE IF NOT EXISTS tournament( \
+			"CREATE TABLE IF NOT EXISTS tournaments( \
 				id SERIAL PRIMARY KEY, \
+				community_id NUMERIC NOT NULL, \
 				name VARCHAR("+config.pg.varchar_limits.tournament.name+") NOT NULL, \
+				description TEXT, \
 				location VARCHAR ("+config.pg.varchar_limits.tournament.loc+") NOT NULL, \
 				attendee_limit INTEGER NOT NULL, \
 				signup_deadline DATE NOT NULL, \
@@ -160,7 +171,7 @@ module.exports = function(config){
 
 		/********************************************************************************/
 
-		tournament_attend:
+		tournament_attendees:
 			"CREATE TABLE IF NOT EXISTS tournament_attendees( \
 				tournament_id NUMERIC NOT NULL, \
 				user_id NUMERIC NOT NULL,\

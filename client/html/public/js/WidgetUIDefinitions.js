@@ -36,7 +36,7 @@ const WidgetUIDefinitions = {
   
   /********************************************************************************/
 
- youtube: function(data,widget_container){
+  youtube: function(data,widget_container){
     let widget = document.createElement('iframe');
 
     widget.setAttribute('width','450');
@@ -69,5 +69,12 @@ const WidgetUIDefinitions = {
 
     });
     return widget;
-  }  
+  },
+
+  tournaments: function(data,widget_container){
+    let widget = document.createElement('table');
+    widget.href = data.c_url+'/tournament?id='+data.t_id;
+    widget.innerHTML = data.name;
+    return widget;
+  }
 }

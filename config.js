@@ -17,10 +17,10 @@ const config = {
 		},
 		server: {
 			http: {
-				port: 9999
+				port: 80
 			},
 			https:{
-				port: 440
+				port: 443
 			}
 		},
 		pg: {
@@ -35,15 +35,6 @@ const config = {
 					name: 226,
 					email: 254
 				},
-<<<<<<< HEAD
-=======
-				games: {
-					title: 200
-				},
-				platforms: {
-					name: 20
-				},
->>>>>>> 32a2e689adf44b3240cff321555b48e08d78d0c3
 				market_items: {
 					name: 200
 				},
@@ -62,7 +53,7 @@ const config = {
 					stat_value: 255
 				},
 				tournament: {
-					name: 255
+					name: 255,
 					loc: 255
 				},
 				tournament_tags: {
@@ -113,15 +104,6 @@ const config = {
 					name: 226,
 					email: 254
 				},
-<<<<<<< HEAD
-=======
-				games: {
-					title: 200
-				},
-				platforms: {
-					name: 20
-				},
->>>>>>> 32a2e689adf44b3240cff321555b48e08d78d0c3
 				market_items: {
 					name: 200
 				},
@@ -140,7 +122,11 @@ const config = {
 					stat_value: 255
 				},
 				tournament: {
-					tournament_name: 255
+					name: 255,
+					loc: 255
+				},
+				tournament_tags: {
+					tag: 20
 				}
 			}
 		},

@@ -42,6 +42,7 @@
                 <div class="dropdown-item" id="toggle-membership-btn" data-is-member="false" style="cursor:pointer;" onclick="toggle_community_membership()">Join Community</div>                
               {{/if}}
               <a class="dropdown-item" href="{{{c_url}}}/layout">Edit Layout</a>
+              <a class="dropdown-item" href="{{{c_url}}}/tc_wizard">Create Tournament</a>
             </div>
           </li>
           <li class="nav-item">
@@ -69,7 +70,6 @@
     <script type="text/javascript">let socket = io();</script>
     
     <script>
-<<<<<<< HEAD:client/views/private/cc_template.handlebars
       let toggle_membership_btn = document.getElementById('toggle-membership-btn');
       function toggle_community_membership(){
         socket.emit('toggle_community_membership',{{{c_id}}});
@@ -81,11 +81,6 @@
           toggle_membership_btn.innerHTML = 'Join Community';
           toggle_membership_btn.setAttribute('data-is-member','false');
         }
-=======
-
-      function join_community(){
-        socket.emit('join_community_req',{{{c_id}}});
->>>>>>> 32a2e689adf44b3240cff321555b48e08d78d0c3:views/private/cc_template.handlebars
       }
 
     </script>

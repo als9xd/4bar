@@ -182,7 +182,7 @@ module.exports = function(pg_conn){
 						}
 						callback(results.rows);
 					}
-				)
+				);
 			},
 			available: function(community_id,callback){
 				pg_client.query(
@@ -198,7 +198,7 @@ module.exports = function(pg_conn){
 						}
 						callback(results.rows);	
 					}
-				)			
+				);		
 			},
 			add: function(community_id,data,callback){
 				if(!data.screen_name || data.screen_name.length==0){
@@ -221,8 +221,84 @@ module.exports = function(pg_conn){
 						}
 						callback(true,{success:'Successfully created Twitter widget!'});
 					}
-				)
+				);
 			}
+		},
+
+		tournaments: {
+
+			get: function(widget_id,callback){
+				pg_client.query(
+					"SELECT tournaments.name,tournaments_widget.id \
+						FROM tournaments_widget \
+						INNER JOIN tournaments ON tournaments.id = ANY(tournaments_widget.tournament_ids) \
+						WHERE tournaments_widget.id = $1\
+					",
+					[
+						widget_id
+					],
+					function(err,results){
+						if(err){
+							console.log(err);
+							callback(false,{error:'Could not get tournament widget'});
+							return;
+						}
+						callback(results.rows);
+					}
+				);
+			},
+
+			available: function(community_id,callback){
+				pg_client.query(
+					"SELECT tournaments.name,tournaments_widget.id \
+						FROM tournaments_widget \
+						INNER JOIN tournaments ON tournaments.id = ANY(tournaments_widget.tournament_ids) \
+						WHERE tournaments.community_id = $1 \
+					",
+					[
+						community_id
+					],
+					function(err,results){
+						if(err){
+							console.log(err);
+							callback(false,{error:'Could not get tournament widget'});
+							return;
+						}
+						callback(results.rows);
+					}
+				);			
+			},
+
+			add: function(community_id,data,callback){
+				console.log('Community_id',community_id);
+				pg_client.query(
+					"SELECT id FROM tournaments WHERE tournaments WHERE community_id = $1",
+					[
+						community_id
+					],
+					function(err,tournament_ids){
+						pg_client.query(
+							"INSERT INTO tournaments_widget (tournament_ids) \
+							VALUES ($1)",
+							[
+								typeof tournament_ids !== 'undefined' ? tournament_ids.rows : []
+							],
+							function(err){
+								if(err){
+									console.log(err);
+						    		callback(false,{error:'Could not create tournament widget'});
+						    		return;
+								}
+								callback(true,{success:'Successfully created tournament widget!'});
+							}
+						);	
+
+					}
+				);
+			
+			}
+
 		}
-	}	
+
+	}
 };
