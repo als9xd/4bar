@@ -184,14 +184,28 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 									res.render('public/error',{error:'Could not get community'});
 									return;
 								}
-								res.render(
-									'private/home',
-									{
-										username: req.session.username,
-										user_id: req.session.user_id,
-										is_member: is_member.rowCount
-									}
-								);
+								pg_conn.client.query(
+									"SELECT location FROM tournaments",
+									function(err, locations){
+										if(err){
+											console.log(err);
+											res.render('public/error',{error:'Could not get tournament locations'});
+											return;
+										}
+										let locations_arr = [];
+										for(let i = 0; i < locations.rows.length;i++){
+											locations_arr.push(locations.rows[i].location);
+										}
+										res.render(
+											'private/home',
+											{
+												username: req.session.username,
+												user_id: req.session.user_id,
+												is_member: is_member.rowCount,
+												locations: locations_arr
+											}
+										);
+								});
 							}
 						);
 					}
