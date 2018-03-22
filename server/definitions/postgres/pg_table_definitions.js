@@ -145,6 +145,20 @@ module.exports = function(config){
 			')'
 		,
 		
+		/********************************************************************************/
+		tournaments:
+			"CREATE TABLE IF NOT EXISTS tournaments( \
+				id SERIAL PRIMARY KEY, \
+				community_id NUMERIC NOT NULL, \
+				name VARCHAR NOT NULL, \
+				description TEXT, \
+				location VARCHAR NOT NULL, \
+				attendee_limit INTEGER NOT NULL, \
+				signup_deadline TEXT NOT NULL, \
+				start_date TEXT NOT NULL, \
+				UNIQUE (community_id,name) \
+			)"
+		,
 		
 		/********************************************************************************/
 		match_participants:

@@ -168,13 +168,21 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 		//////////////////////////////////////////////////////////////////////
 		// This route renders the match history page
 		//////////////////////////////////////////////////////////////////////
-		() => {
-			app.get('/past_matches',function(req, res){
-				res.render('private/match_history',{
-					username: req.session.username,
-				});
-			});
-		},
+
+        () => {
+            app.get('/past_matches', function(req,res){
+				pg_conn.client.query(
+					"SELECT matches.* FROM matches INNER JOIN match_participants ON match_partipants.match_id = matches.id WHERE match_participants.username = $1",
+					[
+						req.query['username']
+					],
+					
+					
+				
+                );
+            });
+        },
+	
 		/********************************************************************************/
 		//////////////////////////////////////////////////////////////////////
 		// This route renders the home page along with all the communities
@@ -205,12 +213,27 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 									res.render('public/error',{error:'Could not get community'});
 									return;
 								}
-								res.render(
-									'private/home',
-									{
-										username: req.session.username,
-										user_id: req.session.user_id,
-										is_member: is_member.rowCount
+								pg_conn.client.query(
+									"SELECT location FROM tournaments",
+									function(err, locations){
+										if(err){
+											console.log(err);
+											res.render('public/error',{error:'Could not get tournament locations'});
+											return;
+										}
+										let locations_arr = [];
+										for(let i in locations.rows){
+											locations_arr.push(locations.rows[i].location);
+										}
+										res.render(
+												'private/home',
+												{
+													username: req.session.username,
+													user_id: req.session.user_id,
+													is_member: is_member.rowCount,
+													locations: locations_arr
+												}
+										);
 									}
 								);
 							}
@@ -741,6 +764,8 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 			}
 			);
 		},
+		
+
 		/********************************************************************************/
 
 		//////////////////////////////////////////////////////////////////////
