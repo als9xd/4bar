@@ -182,7 +182,7 @@ module.exports = function(pg_conn){
 						}
 						callback(results.rows);
 					}
-				)
+				);
 			},
 			available: function(community_id,callback){
 				pg_client.query(
@@ -198,7 +198,7 @@ module.exports = function(pg_conn){
 						}
 						callback(results.rows);	
 					}
-				)			
+				);		
 			},
 			add: function(community_id,data,callback){
 				if(!data.screen_name || data.screen_name.length==0){
@@ -221,8 +221,104 @@ module.exports = function(pg_conn){
 						}
 						callback(true,{success:'Successfully created Twitter widget!'});
 					}
-				)
+				);
 			}
+		},
+
+		tournaments: {
+
+			get: function(widget_id,callback){
+				pg_client.query(
+					"SELECT id,community_id FROM tournaments_widget WHERE id = $1",
+					[
+						widget_id
+					],
+					function(err,widgets){
+						if(err){
+							console.log(err);
+							callback(false,{error:'Could not get tournament widget'});
+							return;
+						}
+						pg_client.query(
+							"SELECT id,name,description FROM tournaments WHERE community_id = $1",
+							[
+								widgets.rows[0].community_id
+							],
+							function(err,tournaments){
+								if(err){
+									console.log(err);
+									callback(false,{error:'Could not get tournament widget'});
+									return;
+								}
+								for(let i = 0; i < widgets.rows.length;i++){
+									widgets.rows[i].tournaments = tournaments.rows;
+								}
+								callback(widgets.rows);					
+							}					
+
+						);	
+					}					
+
+				);	
+
+			},
+
+			available: function(community_id,callback){
+
+				pg_client.query(
+					"SELECT id,name,description FROM tournaments WHERE community_id = $1",
+					[
+						community_id
+					],
+					function(err,tournaments){
+						if(err){
+							console.log(err);
+							callback(false,{error:'Could not get tournament widget'});
+							return;
+						}
+						pg_client.query(
+							"SELECT id FROM tournaments_widget WHERE community_id = $1",
+							[
+								community_id
+							],
+							function(err,widgets){
+								if(err){
+									console.log(err);
+									callback(false,{error:'Could not get tournament widget'});
+									return;
+								}
+								for(let i = 0; i < widgets.rows.length;i++){
+									widgets.rows[i].tournaments = tournaments.rows;
+								}
+								callback(widgets.rows);
+							}					
+
+						);				
+					}					
+
+				);	
+			},
+
+			add: function(community_id,data,callback){
+
+				pg_client.query(
+					"INSERT INTO tournaments_widget (community_id) \
+					VALUES ($1)",
+					[
+						community_id
+					],
+					function(err){
+						if(err){
+							console.log(err);
+				    		callback(false,{error:'Could not create tournament widget'});
+				    		return;
+						}
+						callback(true,{success:'Successfully created tournament widget!'});
+					}
+				);
+			}
+
 		}
-	}	
+
+	}
 };

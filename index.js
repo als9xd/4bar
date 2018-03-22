@@ -14,7 +14,7 @@
 'use strict';
 
 //////////////////////////////////////////////////////////////////////
-// Load configuration settings for an envirnoment 
+// Load configuration settings for an envirnoment
 //
 // The two currently available environments are:
 //
@@ -26,9 +26,9 @@
 //		- Use signed ssl certifcate within '4BAR/../ssl' directory
 // 		- Enter postgresql credentials on startup
 //
-// These can be set using 
-// - 'SET NODE_ENV=production' or 'SET NODE_ENV=development' on windows  
-// - 'export NODE_ENV=production' or 'export NODE_ENV=development' on osx/linux 
+// These can be set using
+// - 'SET NODE_ENV=production' or 'SET NODE_ENV=development' on windows
+// - 'export NODE_ENV=production' or 'export NODE_ENV=development' on osx/linux
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -43,7 +43,6 @@ const config = require(config_file);
 //		or 		
 //		%NODE_ENV%  (windows)
 // is not set
-//
 // The operating environment determines which config settings to use 
 // within '4bar\config.js'
 //////////////////////////////////////////////////////////////////////
@@ -54,6 +53,7 @@ if(typeof config === 'undefined' || typeof config[env] === 'undefined'){
 	console.log(new Error("Could not find environment \""+env+"\" in \""+config_file+"\""));
 	process.exit(1);
 }
+
 
 //////////////////////////////////////////////////////////////////////
 // Set the applications root directory so that we don't have to use 
@@ -203,10 +203,12 @@ switch (true){
 					console.log(err);
 					process.exit(1);
 				}
+
 				server.pg_conn.verify_database(err => {
 					if(err){
 						console.log(err);
 						process.exit(1);
+
 					}
 					console.log("Done");
 					process.exit(0);

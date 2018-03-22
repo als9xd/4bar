@@ -37,7 +37,7 @@ const config = {
 				},
 				market_items: {
 					name: 200
-				},			
+				},
 				communities: {
 					name: 30,
 					unique_name: 255,
@@ -52,12 +52,19 @@ const config = {
 					stat_name: 30,
 					stat_value: 255
 				},
-				events: {
+				tournaments: {
+					name: 255,
+					location: 255
+				},
+				tournament_tags: {
+					tag: 20
+				},
+        events: {
 					event_name: 40,
 					street_address: 255,
 					city: 40,
 					state: 13,
-				},
+				}
 			}
 		},
 		crypto: {
@@ -105,7 +112,7 @@ const config = {
 				},
 				market_items: {
 					name: 200
-				},	
+				},
 				communities: {
 					name: 30,
 					unique_name: 255,
@@ -120,12 +127,19 @@ const config = {
 					stat_name: 30,
 					stat_value: 255
 				},
+				tournaments: {
+					name: 255,
+					location: 255
+				},
+				tournament_tags: {
+					tag: 20
+				},
 				events: {
 					event_name: 40,
 					street_address: 255,
 					city: 40,
 					state: 13,
-				},
+				}
 			}
 		},
 		crypto: {

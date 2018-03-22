@@ -168,5 +168,48 @@ module.exports = function(pg_client){
 	
 		/********************************************************************************/
 
+		tournaments: function(input,settings){
+			let conjunction = 'AND';
+			if(settings && settings.intersection === true){
+				conjunction = 'AND';
+			}else if(settings && settings.union === true){
+				conjunction = 'OR';
+			}
+
+			return new Promise(
+				function(resolve,reject){
+					pg_client.query(
+						"SELECT t.name,t.start_date,t.location,t.description,t.id,t.community_id,communities.name as community_name,array_agg(tournament_tags.tag) as tags \
+						FROM tournament_tags,\
+							(SELECT tournaments.* FROM tournaments \
+							INNER JOIN tournament_tags on tournaments.id = tournament_tags.tournament_id \
+							WHERE \
+							(to_tsvector(tournaments.name) @@ plainto_tsquery($1) OR LENGTH($1) = 0) "+conjunction+" \
+							(to_tsvector(tournaments.location) @@ plainto_tsquery($2) OR LENGTH($2) = 0) "+conjunction+" \
+							(to_tsvector(tournament_tags.tag) @@ plainto_tsquery($3) OR LENGTH($3) = 0) \
+							GROUP BY tournaments.id) as t INNER JOIN communities ON communities.id = t.community_id WHERE t.id = tournament_tags.tournament_id \
+						GROUP BY t.name,t.start_date,t.location,t.description,t.id,t.community_id,communities.name \
+						",
+						[
+							(typeof input == 'string' || input instanceof String) ? input || '' : input.name || '',
+							(typeof input == 'string' || input instanceof String) ? input || '' : input.location || '',
+							(typeof input == 'string' || input instanceof String) ? input || '' : input.tag || ''
+						],
+						function(err,tournaments){
+							if(err){
+								console.log(err);
+								reject('Could not search for tournaments');
+							}else{
+								resolve({tournaments:tournaments.rows});
+							}	
+						}
+					);	
+				}	
+			);	
+		},
+
+
+		/********************************************************************************/
+
 	}
 }

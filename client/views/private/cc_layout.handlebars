@@ -23,7 +23,7 @@
           {
             community_id:{{{c_id}}},
             type:type,
-            data:input
+            data: input
           }
         );
       } 
@@ -47,13 +47,13 @@
         </form>
 
         <ul class="navbar-nav ml-auto">
-          <li class="nav-item dropdown">
+          <li class="nav-item dropdown active">
             <a class="nav-link dropdown-toggle" href="#" id="dropdown01" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{{c_name}}}</a>
             <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdown01">
               <a class="dropdown-item" href="{{{c_url}}}">Community Homepage</a>
             </div>
           </li>
-          <li class="nav-item active">
+          <li class="nav-item">
             <a class="nav-link" href="/home">Home <span class="sr-only">(current)</span></a>
           </li>
           <li class="nav-item">
@@ -97,6 +97,12 @@
                 <button class="btn btn-primary" onclick="widget_submit('twitter',{screen_name:document.getElementById('twitter_screen_name').value});">Create</button>
             </div>
 
+            <legend class="text-center">Community Tournaments List</legend>
+
+            <div class="form-group">
+                <button class="btn btn-primary" onclick="widget_submit('tournaments');">Create</button>
+            </div>
+
             <hr>
         </fieldset>
       </div>
@@ -123,11 +129,12 @@
         toastr,
         socket,
         {
-          on_success: function(notifcation){
-            if(notifcation.name == 'widget_submit_res'){
+          on_success: function(notification){
+            if(notification.name == 'widget_submit_res'){
               socket.emit('available_widgets_req',{{{c_id}}});
+              toastr.success(notification.success);
             }else{
-              toastr.success(notifcation.success);
+              toastr.success(notification.success);
             }
           }
         }

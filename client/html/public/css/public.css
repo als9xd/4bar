@@ -25,3 +25,29 @@ body {
      -moz-box-shadow: inset 0px 0px 7px black;
           box-shadow: inset 0px 0px 7px black;
 }
+
+.btn-outline-primary{
+  color: rgba(255,255,255,.5);
+  border-color: rgba(255,255,255,.5);
+}
+
+.btn-outline-primary:hover{
+  color: rgba(255,255,255,1);
+  border-color: rgba(255,255,255,.5);
+  background-color: rgba(255,255,255,.5);
+}
+
+.btn-outline-primary:active {
+  background-color: #313435;
+  outline: none !important;
+  -webkit-box-shadow: inset 0px 0px 7px black;
+     -moz-box-shadow: inset 0px 0px 7px black;
+          box-shadow: inset 0px 0px 7px black;
+}
+
+.btn-outline-primary:focus{
+  outline: 0 !important;
+  -webkit-box-shadow: inset 0px 0px 0px black;
+     -moz-box-shadow: inset 0px 0px 0px black;
+          box-shadow: inset 0px 0px 0px black;
+}

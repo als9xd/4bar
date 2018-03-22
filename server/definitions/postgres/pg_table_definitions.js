@@ -106,20 +106,6 @@ module.exports = function(config){
 
 		/********************************************************************************/
 
-		events:
-			"CREATE TABLE IF NOT EXISTS events(\
-				event_name VARCHAR("+config.pg.varchar_limits.events.event_name+") NOT NULL, \
-				event_date DATE NOT NULL, \
-				start_time TIME NOT NULL, \
-				end_time TIME, \
-				street_address VARCHAR("+config.pg.varchar_limits.events.street_address+") NOT NULL, \
-				city VARCHAR("+config.pg.varchar_limits.events.city+") NOT NULL, \
-				state VARCHAR("+config.pg.varchar_limits.events.state+") NOT NULL \
-				)"
-		,
-		
-		/********************************************************************************/		
-
 		stats_widget:
 			"CREATE TABLE IF NOT EXISTS stats_widget(\
 				user_id NUMERIC NOT NULL,\
@@ -149,6 +135,76 @@ module.exports = function(config){
 			)"
 		,
 
+		/********************************************************************************/
+
+		tournaments_widget:
+			"CREATE TABLE IF NOT EXISTS tournaments_widget(\
+				id SERIAL PRIMARY KEY,\
+				community_id NUMERIC NOT NULL\
+			)"
+		,
+
+		/********************************************************************************/
+
+		tournaments:
+			"CREATE TABLE IF NOT EXISTS tournaments( \
+				id SERIAL PRIMARY KEY, \
+				community_id NUMERIC NOT NULL, \
+				name VARCHAR("+config.pg.varchar_limits.tournaments.name+") NOT NULL, \
+				description TEXT, \
+				location VARCHAR ("+config.pg.varchar_limits.tournaments.location+") NOT NULL, \
+				attendee_limit INTEGER NOT NULL, \
+				signup_deadline TEXT NOT NULL, \
+				start_date TEXT NOT NULL, \
+				UNIQUE (community_id,name) \
+			)"
+		,
+		
+		/********************************************************************************/
+
+		tournament_tags:
+			"CREATE TABLE IF NOT EXISTS tournament_tags( \
+				tournament_id NUMERIC NOT NULL,\
+				tag VARCHAR("+config.pg.varchar_limits.tournament_tags.tag+") NOT NULL, \
+				UNIQUE (tournament_id,tag) \
+			)"
+		,
+
+		/********************************************************************************/
+
+		tournament_attendees:
+			"CREATE TABLE IF NOT EXISTS tournament_attendees( \
+				tournament_id NUMERIC NOT NULL, \
+				user_id NUMERIC NOT NULL,\
+				UNIQUE (tournament_id,user_id) \
+			)"
+		,
+
+		/********************************************************************************/
+
+		tournament_brackets:
+			"CREATE TABLE IF NOT EXISTS tournament_brackets(\
+				id SERIAL PRIMARY KEY,\
+				tournament_id NUMERIC NOT NULL,\
+				parent_id NUMERIC,\
+				player_id NUMERIC\
+			)"
+    ,
+    
+		/********************************************************************************/
+
+		events:
+			"CREATE TABLE IF NOT EXISTS events(\
+				event_name VARCHAR("+config.pg.varchar_limits.events.event_name+") NOT NULL, \
+				event_date DATE NOT NULL, \
+				start_time TIME NOT NULL, \
+				end_time TIME, \
+				street_address VARCHAR("+config.pg.varchar_limits.events.street_address+") NOT NULL, \
+				city VARCHAR("+config.pg.varchar_limits.events.city+") NOT NULL, \
+				state VARCHAR("+config.pg.varchar_limits.events.state+") NOT NULL \
+				)"
+		    
+		
 		/********************************************************************************/
 
 	}

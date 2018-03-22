@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>4BAR - Tournament Creation</title>
+
+<link href="//maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
+
+    <link href="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" rel="stylesheet"/>
+
+    <link rel="stylesheet" href="/css/public.css">
+<!--     <link rel="stylesheet" href="/css/tc_wizard.css">
+ -->
+    <link rel="stylesheet" href="/css/jquery.tagsinput.css">
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script type="text/javascript">let socket = io();</script>
+
+    <script type="text/javascript">
+      let submit_tournament = function(data){
+        socket.emit('tc_submit',{
+          community_id : Number('{{{c_id}}}'),
+          name : document.getElementById('t_name').value,
+          description: document.getElementById('t_description').value,
+          location: document.getElementById('t_location').value,
+          attendee_limit: document.getElementById('t_attendee_limit').value,
+          tags: document.getElementById('t_tags').value,
+          signup_deadline: document.getElementById('t_signup_deadline').value,
+          start_date: document.getElementById('t_start_date').value
+        });
+      }
+
+    </script>
+
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.21.0/moment.min.js"></script>
+
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/tempusdominus-bootstrap-4/5.0.0-alpha14/js/tempusdominus-bootstrap-4.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tempusdominus-bootstrap-4/5.0.0-alpha14/css/tempusdominus-bootstrap-4.min.css" />
+
+  </head>
+
+  <body>
+
+    <nav class="navbar navbar-toggleable-md navbar-inverse bg-inverse fixed-top">
+      <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target=".navbar-collapse" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <a class="navbar-brand" href="/home">4BAR</a>
+
+      <div class="collapse navbar-collapse" >
+
+        <form class="form-inline my-2 my-md-0" action="/search" method="GET">
+            <input name="query" class="form-control mr-sm-2">
+            <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+        </form>
+
+        <ul class="navbar-nav ml-auto">
+          <li class="nav-item dropdown active">
+            <a class="nav-link dropdown-toggle" href="#" id="dropdown01" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{{c_name}}}</a>
+            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdown01">
+              <a class="dropdown-item" href="{{{c_url}}}/layout">Edit Layout</a>
+              <a class="dropdown-item" href="{{{c_url}}}">Community Homepage</a>
+            </div>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/home">Home <span class="sr-only">(current)</span></a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/cc_wizard">Community Creation</a>
+          </li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="dropdown01" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{{username}}}'s Profile</a>
+            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdown01">
+              <a class="dropdown-item" href="\profile?id={{user_id}}">View</a>
+              <a class="dropdown-item" href="\logout">Logout</a>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </nav>
+
+    <div class="page-body">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-6" style="margin:auto">
+            <form role="form" encType="multipart/form-data">
+              <fieldset><legend class="text-center">Tournament Creation Wizard</legend>
+
+                  <div class="form-group">
+                    <label for="t_name"><span class="req">* </span> Name: </label>
+                    <input required type="text" id="t_name" class="form-control" autocomplete="off" /> 
+                  </div>
+
+                  <div class="form-group">   
+                    <label for="t_description"><span class="req"> </span> Description: </label>
+                    <textarea class="form-control" type="text"  rows="5" id="t_description"  autocomplete="off"  /> </textarea> 
+                  </div>
+
+                  <div class="form-group">
+                    <label for="t_location"><span class="req">* </span> Location: </label>
+                    <input required type="text" id="t_location" class="form-control" autocomplete="off" /> 
+                  </div>
+
+                  <div class="form-group">
+                    <label for="t_attendee_limit"><span class="req">* </span> Attendee Limit: </label>
+                    <input required type="text" id="t_attendee_limit" class="form-control" autocomplete="off" /> 
+                  </div>
+
+                  <div class="form-group">
+                    <input name="tags" id="t_tags"/>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="t_signup_deadline"><span class="req">* </span> Signup Deadline: </label>
+                    <input type="text" class="form-control datetimepicker-input" id="t_signup_deadline" data-toggle="datetimepicker" data-target="#t_signup_deadline"/>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="t_start_date"><span class="req">* </span> Start Date: </label>
+                    <input type="text" class="form-control datetimepicker-input" id="t_start_date" data-toggle="datetimepicker" data-target="#t_start_date"/>
+                  </div>
+
+                  <hr>
+
+                  <div class="form-group">
+                      <input class="btn btn-primary" type="button" value="Submit" onclick="submit_tournament()">
+                  </div>
+                
+                </div>
+              </fieldset>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script>
+    
+    <script src="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
+
+    <script src="/js/UrlMessageHandler.js"></script>
+
+    <script src="/js/NotificationHandler.js"></script>
+    <script type="text/javascript">
+      let ntf_hndlr = NotificationHandler(
+        toastr,
+        socket
+      );
+    </script>
+
+    <script src="/js/jquery.tagsinput.js"></script>
+    <script type="text/javascript">
+      $('#t_tags').tagsInput();
+    </script>
+
+  </body>
+
+</html>
