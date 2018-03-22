@@ -168,5 +168,40 @@ module.exports = function(pg_client){
 	
 		/********************************************************************************/
 
+		tournaments: function(input,settings){
+			let conjunction = 'AND';
+			if(settings && settings.intersection === true){
+				conjunction = 'AND';
+			}else if(settings && settings.union === true){
+				conjunction = 'OR';
+			}
+
+			return new Promise(
+				function(resolve,reject){
+					pg_client.query(
+						"SELECT name,id,community_id FROM tournaments \
+						WHERE \
+						(to_tsvector(tournaments.name) @@ plainto_tsquery($1) OR LENGTH($1) = 0) "+conjunction+" \
+						(to_tsvector(tournaments.location) @@ plainto_tsquery($2) OR LENGTH($2) = 0) ",
+						[
+							(typeof input == 'string' || input instanceof String) ? input || '' : input.name || '',
+							(typeof input == 'string' || input instanceof String) ? input || '' : input.location || ''
+						],
+						function(err,tournaments){
+							if(err){
+								console.log(err);
+								reject('Could not search for tournaments')
+							}else{
+								resolve({tournaments:tournaments.rows});
+							}	
+						}
+					);	
+				}	
+			);	
+		},
+
+
+		/********************************************************************************/
+
 	}
 }

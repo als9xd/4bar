@@ -164,14 +164,10 @@
           </div>
 
           <div class="form-group">
-            <label for="t_name"><span class="req">* </span> Creation Date: </label>
-            <input type="text" name="desc" id="t_desc" class="form-control" autocomplete="off" /> 
+            <label for="t_location"><span class="req">* </span> Location: </label>
+            <input type="text" name="location" id="t_location" class="form-control" autocomplete="off" /> 
           </div>
           
-          <div class="form-group">
-            <label for="t_labels"><span class="req">* </span> Last Activity: </label>
-            <input type="text" name="tags" id="t_labels" class="form-control" autocomplete="off" /> 
-          </div>
 
           <button class="btn btn-primary my-2 my-sm-0" type="submit">Search</button>
 
@@ -184,7 +180,7 @@
         <ul class="results-list">
           {{#each results.tournaments}}
             <li>
-              <a class="row" href="/tournaments?{{id}}">
+              <a class="row" href="/tournaments?id={{id}}">
                 <h3>{{name}}</h3>
               </a>
               <div class="row">

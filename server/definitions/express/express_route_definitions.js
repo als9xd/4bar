@@ -672,10 +672,9 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 				middleware['check_authorization'],
 				function(req,res){
 					if(typeof req.query['id'] === 'undefined'){
-						res.render('/public/error',{error:'No tournament id supplied'});
+						res.render('public/error',{error:'No tournament id supplied'});
 						return;
 					}
-
 
 					pg_conn.client.query(
 						"SELECT * FROM tournaments where id = $1",
@@ -687,7 +686,7 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 								console.log(err);
 								return;
 							}
-							if(typeof results.rows === 'undefined' || results.rows.length ){
+							if(typeof results.rows === 'undefined' || results.rows.length === 0){
 								res.render('public/error',{error:'No tournament with id of '+req.query['id']});
 								return;
 							}
