@@ -66,19 +66,19 @@
             <tbody>
               <tr>
                 <th scope="row">Avatar</th>
-                <td><img src="{{#if avatar includeZero=true}}{{{avatar}}}{{else}}/site/no-avatar.jpg{{/if}}" style="height: 60px;width:60px"></td>
+                <td><img src="{{#if profile_data.avatar includeZero=true}}{{{profile_data.avatar}}}{{else}}/site/no-avatar.jpg{{/if}}" style="height: 60px;width:60px"></td>
               </tr>
               <tr>
                 <th scope="row">Name</th>
-                <td>{{full_name}}</td>
+                <td>{{profile_data.full_name}}</td>
               </tr>
               <tr>
                 <th scope="row">Username</th>
-                <td>{{{username}}}</td>
+                <td>{{{profile_data.username}}}</td>
               </tr>
               <tr>
                 <th scope="row">Contact</th>
-                <td>{{{email}}}</td>
+                <td>{{{profile_data.email}}}</td>
               </tr>
               <tr>
                 <th scope="row">Communities</th>

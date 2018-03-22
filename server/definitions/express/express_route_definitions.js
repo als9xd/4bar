@@ -184,14 +184,28 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 									res.render('public/error',{error:'Could not get community'});
 									return;
 								}
-								res.render(
-									'private/home',
-									{
-										username: req.session.username,
-										user_id: req.session.user_id,
-										is_member: is_member.rowCount
-									}
-								);
+								pg_conn.client.query(
+									"SELECT location FROM tournaments",
+									function(err, locations){
+										if(err){
+											console.log(err);
+											res.render('public/error',{error:'Could not get tournament locations'});
+											return;
+										}
+										let locations_arr = [];
+										for(let i = 0; i < locations.rows.length;i++){
+											locations_arr.push(locations.rows[i].location);
+										}
+										res.render(
+											'private/home',
+											{
+												username: req.session.username,
+												user_id: req.session.user_id,
+												is_member: is_member.rowCount,
+												locations: locations_arr
+											}
+										);
+								});
 							}
 						);
 					}
@@ -308,11 +322,11 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 						}
 
 						pg_conn.client.query(
-							"SELECT avatar FROM users WHERE id = $1 LIMIT 1",
+							"SELECT avatar,username,name as full_name,email FROM users WHERE id = $1 LIMIT 1",
 							[
 								req.query['id'] || req.session.user_id
 							],
-							function(err,avatars){
+							function(err,profile){
 								if(err){
 									console.log(err);
 									res.render('public/error',{error:'Could not get user avatar'});
@@ -322,9 +336,7 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 								res.render('private/profile',{
 									username: req.session.username,
 									user_id: req.session.user_id,
-									full_name: req.session.full_name,
-									email: req.session.email,
-									avatar: avatars.rows[0].avatar,
+									profile_data: profile.rows[0],
 									c_names: c_names_arr,
 									modify_priveleges: typeof req.query['id'] === 'undefined' ||(Number(req.query['id']) === req.session.user_id)
 								});
