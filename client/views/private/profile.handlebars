@@ -61,7 +61,11 @@
         <div class="row">
           <table class="table">
             <thead>
+              {{#if modify_priveleges}}
               <h2>My Profile</h2>
+              {{else}}
+              <h2>{{{profile_data.username}}}'s Profile</h2>
+              {{/if}}
             </thead>
             <tbody>
               <tr>
