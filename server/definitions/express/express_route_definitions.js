@@ -154,7 +154,28 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 		},
 
 		/********************************************************************************/
-
+		//////////////////////////////////////////////////////////////////////
+		// This route renders the match creation page
+		//////////////////////////////////////////////////////////////////////
+		() => {
+			app.get('/mc_wizard',function(req, res){
+				res.render('private/mc_wizard',{
+					username: req.session.username,
+				});
+			});
+		},
+		/********************************************************************************/
+		//////////////////////////////////////////////////////////////////////
+		// This route renders the match history page
+		//////////////////////////////////////////////////////////////////////
+		() => {
+			app.get('/past_matches',function(req, res){
+				res.render('private/match_history',{
+					username: req.session.username,
+				});
+			});
+		},
+		/********************************************************************************/
 		//////////////////////////////////////////////////////////////////////
 		// This route renders the home page along with all the communities
 		// that user is a member of
@@ -406,7 +427,7 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 		},
 
 		/********************************************************************************/
-
+		
 		//////////////////////////////////////////////////////////////////////
 		// (Community Creation Submit)
 		//
@@ -651,7 +672,81 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 
 			});
 		},
+		/********************************************************************************/
+		//////////////////////////////////////////////////////////////////////
+		// (Match Creation Submit)
+		//
+		// This route allows a user to submit a new match.
+		//////////////////////////////////////////////////////////////////////
+		() => {
+			app.post('/mc_submit', middleware['check_authorization'], function(req,res){
+				let today_date = new Date();
+				let dd = today_date.getDate();
+				let mm = today_date.getMonth()+1; //January is 0!
+				let yyyy = today_date.getFullYear();
+				if(dd<10){
+					dd='0'+dd;
+				} 
+				if(mm<10){
+					mm='0'+mm;
+				} 
+				today_date = dd+'/'+mm+'/'+yyyy;
 
+				if (req.body.winning_team == "team1") {
+					var result = 1;
+				}else{
+					var result = 2;
+				}
+				
+				let csv_players = req.body.c_team_one + ',' + req.body.c_team_two;
+				let participants = csv_players.split(',');
+				
+				console.log(typeof req.body.c_com_name)
+				pg_conn.client.query(
+					"INSERT INTO matches(community_name,result,date) "+
+					"VALUES ($1,$2,$3) "+
+					"RETURNING id",
+					[
+						req.body.c_com_name,
+						result,
+						today_date,
+					],
+					function(err, last_id){
+						if(err){
+							console.log(err);
+							res.render('public/error',{error:'Could not create match entry'});
+							return;
+						}
+						for (let i = 0; i < participants.length; i++){
+							pg_conn.client.query(
+								"INSERT INTO match_participants(match_id,username) "+
+								"VALUES ($1,$2) ",
+								[
+									last_id.rows[0].id,
+									participants[i].trim(),    
+								],
+								function(err){
+									if(err){
+										console.log(err);
+										res.render('public/error',{error:'Could not insert match participants'});
+										return;
+									}
+								}
+							);
+						}
+						res.redirect('/home');
+					}
+
+				);
+						res.render('private/profile',{
+							username: req.session.username,
+							full_name: req.session.full_name,
+							email: req.session.email,
+							c_names: c_names_arr
+						});
+			}
+			);
+		},
 		/********************************************************************************/
 
 		//////////////////////////////////////////////////////////////////////

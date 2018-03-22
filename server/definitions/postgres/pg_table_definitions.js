@@ -136,6 +136,25 @@ module.exports = function(config){
 		,
 
 		/********************************************************************************/
-
+		matches:
+			'CREATE TABLE IF NOT EXISTS matches('+
+				'id SERIAL PRIMARY KEY,'+
+				'community_name VARCHAR('+config.pg.varchar_limits.communities.name+'),'+
+				'result NUMERIC NOT NULL,'+
+				'date VARCHAR'+
+			')'
+		,
+		
+		
+		/********************************************************************************/
+		match_participants:
+			'CREATE TABLE IF NOT EXISTS match_participants('+
+				'match_id NUMERIC NOT NULL,'+
+				'username VARCHAR NOT NULL'+
+			')'
+		,
+		
+		
+		/********************************************************************************/
 	}
 };
