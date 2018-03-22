@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>4BAR - Tournament</title>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
+
+    <link href="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" rel="stylesheet"/>
+
+    <link rel="stylesheet" href="/css/public.css">
+    <link rel="stylesheet" href="/css/home.css">
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script type="text/javascript">let socket = io();</script>
+
+ </head>
+
+  <body>
+
+    <nav class="navbar navbar-toggleable-md navbar-inverse bg-inverse fixed-top">
+      <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target=".navbar-collapse" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <a class="navbar-brand" href="/home">4BAR</a>
+
+      <div class="collapse navbar-collapse" >
+
+        <form class="form-inline my-2 my-md-0" action="/search" method="GET">
+            <input name="query" class="form-control mr-sm-2">
+            <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+        </form>
+
+        <ul class="navbar-nav ml-auto">
+          {{#if is_member}}
+             <button class="btn btn-outline-primary my-2 my-sm-0" id='toggle-membership-btn'   data-is-member="true"  onclick="toggle_membership();">Leave Tournament</button>
+          {{else}}
+            <button class="btn btn-outline-primary my-2 my-sm-0" id='toggle-membership-btn'  data-is-member="false"  onclick="toggle_membership();">Join Tournament</button>           
+          {{/if}}
+          <li class="nav-item active">
+            <a class="nav-link" href="/home">Home <span class="sr-only">(current)</span></a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/cc_wizard">Community Creation</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/calendar">Calendar</a>
+          </li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="dropdown01" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{{username}}}'s Profile</a>
+            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdown01">
+              <a class="dropdown-item" href="\profile?id={{user_id}}">View</a>
+              <a class="dropdown-item" href="\logout">Logout</a>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </nav>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+    <script type="text/javascript">
+
+    </script>
+
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script>
+
+    <script src="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
+
+    <script src="/js/NotificationHandler.js"></script>
+    <script type="text/javascript">
+      let ntf_hndlr = NotificationHandler(
+        toastr,
+        socket
+      );
+    </script>
+
+    <script>
+      let toggle_membership_btn = document.getElementById('toggle-membership-btn');
+      function toggle_membership(){
+        socket.emit('toggle_tournament_membership',{{tournament_id}});
+        if(toggle_membership_btn.getAttribute('data-is-member') === 'false'){
+          toggle_membership_btn.innerHTML = 'Leave Tournament';
+          toggle_membership_btn.setAttribute('data-is-member','true');
+        }
+        else if(toggle_membership_btn.getAttribute('data-is-member') === 'true'){
+          toggle_membership_btn.innerHTML = 'Join Tournament';
+          toggle_membership_btn.setAttribute('data-is-member','false');
+        }
+      }
+
+    </script>
+
+
+  <button onclick="GenerateTournament()">Generate Tournament Brackets</button> <!--Make button only show up when no rows exist with tournament_id (when coms is empty).-->
+  <div class="Tournament_bracket"></div>
+  </body>
+
+</html>
+
+<script type="text/javascript">
+var tournament_ID = {{tournament_data}};
+var tournament_brackets = socket.emit('get_brackets',{
+		tournament_ID
+	  }).bracket_nodes;
+if (typeof tournament_brackets == 'undefined'){
+	tournament_brackets = [];
+}
+//console.log(typeof tournament_ID);
+var tournament_participants = socket.emit('get_participants',{
+		tournament_ID
+	  }).participants;
+if (typeof tournament_participants == 'undefined'){
+	tournament_participants = [];
+}
+$( ".Tournament_bracket" ).append(Display_Brackets(tournament_brackets,null)); //Use jQuery to append html element with already generated brackets	
+
+function GenerateTournament()
+{
+  var nodes = tournament_brackets;
+  var teams = tournament_participants;
+  //Should remove entries in forest table with tournament_id. But for the time being it won't.
+  //Just returns if brackets already exist for this tournament.
+  if(nodes.length>0 || teams.length == 0){
+    return;
+  }
+  //Get number of teams
+  var teamNum = teams.length;
+  var Depth = Math.floor(Math.log(teamNum));
+  generate_tree(null, Depth, nodes, teams);
+  //leafNodes = list of teams in forest with tournament_id
+  var leafNodes = socket.emit('get_bracket_nodes',{
+      tournament_ID
+    }).bracket_nodes;
+  //RemainingTeams = list of teams not in tournament and not in forest.
+  var RemainingTeams = [];
+  var allTeams; //all teams present in leafNodes
+  for(let c in leafNodes){
+    if(leafNodes[c].player_id !=null && allTeams.indexOf(leafNodes[c].player_id)<0/*leafNode[c].player not in allTeams*/){
+      allTeams+=leafNodes[c].player_id;
+    }
+  }
+  for(let t in teams){
+    var found = false;
+    for(let s in allTeams){
+      if(teams[t].user_id == allTeams[s]){
+        found = true;
+      }
+    }
+    if(found==false){
+      RemainingTeams+=teams[t].user_id;
+    }
+  }
+  for(let team in remainingTeams){
+    //Retrieve random leafNode and edit the player to be Null
+    var randNode = leafNodes[Math.floor(Math.random() * leafNodes.length)];
+    socket.emit('update_bracket_node',{ //update row to have null player_id
+      node_id: data.id,
+      player_id: null
+    });
+    //Save a new node with previous leafNode node as parent and leafNode player as player.
+    socket.emit('add_bracket_node',{ //Adds row to table
+      tournament_id : tournament_ID,
+      parent_id: randNode.id,
+      player_id: randNode.player_id
+    });
+    //Save a new node with previous leafNode node as parent and team as player.
+    socket.emit('add_bracket_node',{ //Adds row to table
+      tournament_id : tournament_ID,
+      parent_id: randNode.id,
+      player_id: remainingTeams[team]
+    });
+    //remove leafNode node from leafNode list.
+    var index = leafNodes.indexOf(randNode);
+    if (index > -1) {
+       leafNodes.splice(index, 1);
+    }
+  }
+  nodes = socket.emit('get_bracket_nodes',{
+    tournament_ID
+  }).bracket_nodes;
+  ($Tournament_bracket).append(Display_Brackets(nodes,null)); //Use jQuery to append html element with id == Tournament_bracket with the generated tree.
+  return;
+}
+function generate_tree(parent, Depth, nodes, teams)
+{
+  if (teams.length == 0){
+	return;
+  }
+  var allTeams; //all teams present in nodes
+  var notIncluded; //all teams not present in nodes
+  for(let c in nodes){
+    if(nodes[c].player_id !=null && allTeams.indexOf(nodes[c].player_id)<0/*cams[c].player not in allTeams*/){
+      allTeams+=nodes[c].player;
+    }
+  }
+  if(Depth==0){
+    //Save a new node with random player (from list of teams in tournament and not in forest)
+    for(let t in teams){
+      var found = false;
+      for(let s in allTeams){
+        if(teams[t].user_id == allTeams[s]){
+          found = true;
+        }
+      }
+      if(found==false){
+        notIncluded+=teams[t].user_id;
+      }
+    }
+    //data = {parent_id: parent, player_id:notIncluded[Math.floor(Math.random() * notIncluded.length)]};
+    socket.emit('add_bracket_node',{ //Adds row to table
+      tournament_id : tournament_ID,
+      parent_id: parent,
+      player_id: notIncluded[Math.floor(Math.random() * notIncluded.length)]
+    });
+    return;
+  }
+  //Save new node to forest table with id == node_id and parent==parent
+  //data = {parent_id: parent,data.player_id:null};
+  node_id = socket.emit('add_bracket_node',{ //Adds row to table
+        tournament_id : tournament_ID,
+        parent_id: parent,
+        player_id: null
+      }).last_node_id;
+  nodes = socket.emit('get_bracket_nodes',{
+      tournament_ID
+    }).bracket_nodes;
+  generate_tree(node_id, Depth-1, nodes, teams);
+  generate_tree(node_id, Depth-1, nodes, teams);
+  return;
+}
+function Display_Brackets(nodes,id)
+{
+  //children = list of nodes with id as parent
+  if(nodes.length == 0 ){
+	return;
+  }
+  console.log(nodes);
+  var children = nodes.filter(function(element){ return element.parent_id == id; });
+  var thisNode = (nodes.filter(function(element){ return element.id == id; })[0]);
+  var player = (thisNode.player_id == null? "": thisNode.player_id);
+  var NewHTML = "<div>"+player+"</div>";
+  if (children.length>0){
+    NewHTML+="<ul>";
+    for(let child in children){
+      NewHTML+="<li>"+Display_Brackets(nodes,children[child])+"</li>";
+    }
+    NewHTML+="</ul>";
+  }
+  return NewHTML;
+}
+</script>
