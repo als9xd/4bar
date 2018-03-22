@@ -143,10 +143,18 @@
 		});	
 	}
 	
+	let locations = [];
+	{{#each locations}}
+		locations.push("{{this}}");
+	{{/each}}
 
-	get_coords("208 E 11 Rolla MO 65401", function(result){
+	for(let i = 0; i < locations.length;i++){
+		
+		get_coords(locations[i], function(result){
 		var marker = L.marker(result).addTo(map);
-	});
+		});
+	}
+
 
 	
 	</script>
