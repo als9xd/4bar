@@ -58,6 +58,12 @@ const config = {
 				},
 				tournament_tags: {
 					tag: 20
+				},
+        events: {
+					event_name: 40,
+					street_address: 255,
+					city: 40,
+					state: 13,
 				}
 			}
 		},
@@ -127,6 +133,12 @@ const config = {
 				},
 				tournament_tags: {
 					tag: 20
+				},
+				events: {
+					event_name: 40,
+					street_address: 255,
+					city: 40,
+					state: 13,
 				}
 			}
 		},

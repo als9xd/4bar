@@ -720,6 +720,24 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 				}
 			);
 		},
+    
+    /********************************************************************************/ 
+
+		//////////////////////////////////////////////////////////////////////
+		// (Calendar)
+		//
+		// This route renders a page with calendar of events 
+		// 
+		//////////////////////////////////////////////////////////////////////
+
+		() => {
+			app.get('/calendar',middleware['check_authorization'],function(req,res){
+			  res.render('private/calendar',{
+			  	username: req.session.username,
+			  	user_id: req.session.user_id
+			  });				
+			});
+		},
 
 		/********************************************************************************/
 
