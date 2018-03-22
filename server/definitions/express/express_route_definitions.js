@@ -738,12 +738,6 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 					}
 
 				);
-						res.render('private/profile',{
-							username: req.session.username,
-							full_name: req.session.full_name,
-							email: req.session.email,
-							c_names: c_names_arr
-						});
 			}
 			);
 		},

@@ -14,7 +14,10 @@
 
     <link rel="stylesheet" href="/css/public.css">
     <link rel="stylesheet" href="/css/home.css">
-
+	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.3.1/dist/leaflet.css"
+		integrity="sha512-Rksm5RenBEKSKFjgI3a41vrjkw4EVPlJ3+OiI65vTjIdo9brlAacEuKOiQ5OFh7cOI1bkDwLqdLw3Zg0cRJAAQ=="
+		crossorigin=""/>
+		
     <script src="/socket.io/socket.io.js"></script>
     <script type="text/javascript">let socket = io();</script>
 
@@ -68,21 +71,24 @@
       </div>
     </div>
 
-    <div class="container" style="margin-top: 40px">
+    <div class="container" style="margin-top: 40px; margin-bottom: 40px">
       <div class="row">
-        <table class="table table-responsive" style="display:table;">
-          <h2>My Communities</h2>
-            <thead>
-              <tr>
-                <th scope="col"></th>
-                <th scope="col" style="min-width: 150px"></th>
-                <th scope="col">Description</th>
-                <th scope="col">Recent Activity</th>
-              </tr>
-            </thead>
-            <tbody id="c_table">
-            </tbody>
-        </table>
+		<div id="mapid" class="col-md-6"></div>
+		<div class="col-md-6">
+			<table class="table table-responsive">
+			  <h2>Popular Communities</h2>
+				<thead>
+				  <tr>
+					<th scope="col"></th>
+					<th scope="col" style="min-width: 150px"></th>
+					<th scope="col">Description</th>
+					<th scope="col">Recent Activity</th>
+				  </tr>
+				</thead>
+				<tbody id="c_table">
+				</tbody>
+			</table>
+		</div>
       </div>
     </div>
 
@@ -91,7 +97,21 @@
       document.getElementById('no-communities').style="display:block;"
       </script>
     {{/unless}}
-
+	
+	<script src="https://unpkg.com/leaflet@1.3.1/dist/leaflet.js"
+   integrity="sha512-/Nsx9X4HebavoBvEBuyp3I7od5tA0UzAxs+j83KgC8PU0kgB4XiK4Lfe4y4cgBtaRJQEIFCW+oC506aPT2L1zw=="
+   crossorigin="">
+   </script>
+   
+   <script>
+    var map = L.map('mapid',{
+    center: [37.951424, -91.768959],
+    zoom: 15
+    });
+    L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+	</script>
     <script type="text/javascript">
       const c_search_list = document.getElementById('c_search_list');
 
