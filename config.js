@@ -123,7 +123,7 @@ const config = {
 				},
 				tournaments: {
 					name: 255,
-					localhost: 255
+					location: 255
 				},
 				tournament_tags: {
 					tag: 20
