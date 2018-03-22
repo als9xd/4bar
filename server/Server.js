@@ -177,6 +177,7 @@ module.exports = class Server{
 							res.render('private/tc_wizard',{
 								username: req.session.username,
 								user_id: req.session.user_id,
+								c_name: community_info.rows[i].name,
 								c_id: community_info.rows[i].id,
 								c_url: community_info.rows[i].url
 							});

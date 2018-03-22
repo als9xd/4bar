@@ -164,10 +164,14 @@
           </div>
 
           <div class="form-group">
+            <label for="t_tag"><span class="req">* </span> Tag: </label>
+            <input type="text" name="tag" id="t_tag" class="form-control" autocomplete="off" /> 
+          </div>
+
+          <div class="form-group">
             <label for="t_location"><span class="req">* </span> Location: </label>
             <input type="text" name="location" id="t_location" class="form-control" autocomplete="off" /> 
-          </div>
-          
+          </div>          
 
           <button class="btn btn-primary my-2 my-sm-0" type="submit">Search</button>
 
@@ -184,11 +188,20 @@
                 <h3>{{name}}</h3>
               </a>
               <div class="row">
-                <h5>Creation Date</h5>: {{creation_date}}
+                <h5>Hosting Community</h5>: {{community_name}}
               </div>
               <div class="row">
-                <h5>Last Activity</h5>: {{last_activity}}
-              </div>              
+                <h5>Tags</h5>: {{tags}}
+              </div>
+              <div class="row">
+                <h5>Description</h5>: {{description}}
+              </div>
+              <div class="row">
+                <h5>Start Date</h5>: {{start_date}}
+              </div>
+              <div class="row">
+                <h5>Location</h5>: {{location}}
+              </div>                    
             </li>
           {{/each}}
         </ul>

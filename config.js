@@ -52,9 +52,9 @@ const config = {
 					stat_name: 30,
 					stat_value: 255
 				},
-				tournament: {
+				tournaments: {
 					name: 255,
-					loc: 255
+					location: 255
 				},
 				tournament_tags: {
 					tag: 20
@@ -121,9 +121,9 @@ const config = {
 					stat_name: 30,
 					stat_value: 255
 				},
-				tournament: {
+				tournaments: {
 					name: 255,
-					loc: 255
+					localhost: 255
 				},
 				tournament_tags: {
 					tag: 20

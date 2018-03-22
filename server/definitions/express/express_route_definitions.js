@@ -631,7 +631,8 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 												com_res.render('private/tc_wizard',{
 													username: com_req.session.username,
 													user_id: com_req.session.user_id,
-											  		c_id: community_id.rows[0].ids,
+											  		c_name: req.body.c_name,
+											  		c_id: community_id.rows[0].id,
 											  		c_url: community_url
 												});
 											});
@@ -679,7 +680,7 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 					pg_conn.client.query(
 						"SELECT * FROM tournaments where id = $1",
 						[
-					  		req.query['id'] // This is whatever '4bar.org/tournaments/id=' is set to
+					  		req.query['id'] // This is whatever '4bar.org/tournaments?id=' is set to
 						],
 						function(err,results){
 							if(err){

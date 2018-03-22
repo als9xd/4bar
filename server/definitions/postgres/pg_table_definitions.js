@@ -150,12 +150,13 @@ module.exports = function(config){
 			"CREATE TABLE IF NOT EXISTS tournaments( \
 				id SERIAL PRIMARY KEY, \
 				community_id NUMERIC NOT NULL, \
-				name VARCHAR("+config.pg.varchar_limits.tournament.name+") NOT NULL, \
+				name VARCHAR("+config.pg.varchar_limits.tournaments.name+") NOT NULL, \
 				description TEXT, \
-				location VARCHAR ("+config.pg.varchar_limits.tournament.loc+") NOT NULL, \
+				location VARCHAR ("+config.pg.varchar_limits.tournaments.location+") NOT NULL, \
 				attendee_limit INTEGER NOT NULL, \
 				signup_deadline TEXT NOT NULL, \
-				start_date TEXT NOT NULL \
+				start_date TEXT NOT NULL, \
+				UNIQUE (community_id,name) \
 			)"
 		,
 		

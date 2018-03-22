@@ -518,49 +518,92 @@ module.exports = function(config,pg_conn){
 		(socket) => {
 
 			socket.on('tc_submit',function(data){
+
+				if(typeof data.community_id === 'undefined'){
+					socket.emit('notification',{error:'No community id supplied'});
+					return;
+				}
+
+				if(typeof data.name === 'undefined' || data.name.length === 0){
+					socket.emit('notification',{error: 'Tournament name is required'});
+					return;
+				}
+
+				data.name = String(data.name);
+
+				if(data.name.length > config.pg.varchar_limits.tournaments.name){
+					socket.emit('notification',{error: 'Tournament name to long'});
+					return;
+				}
+
 				pg_conn.client.query(
-					"INSERT INTO tournaments (community_id,name, description, location, attendee_limit, signup_deadline, start_date) \
-						VALUES ($1,$2,$3,$4,$5,$6,$7) \
-						RETURNING id \
-					",
+					"SELECT 1 FROM tournaments where name = $1 AND community_id = $2 LIMIT 1",
 					[
-						data.community_id,
 						data.name,
-						data.description,
-						data.location,
-						Number(data.attendee_limit) || -1,
-						data.signup_deadline,
-						data.start_date
+						data.community_id
 					],
-					function(err,tournament_id){
+					function(err,results){
+						console.log(results);
 						if(err){
 							console.log(err);
-							socket.emit('notification',{error:'Could not create tournament'});
+							socket.emit('notification',{error: 'Could not check if tournament name already exists'});
 							return;
-						}
-
-
-						let tags_split = data.tags.split(',');
-
-						let tournament_ids_arr = Array(tags_split.length).fill(tournament_id.rows[0].id);
-
-						pg_conn.client.query(
-							"INSERT INTO tournament_tags (tournament_id,tag) SELECT * FROM UNNEST ($1::integer[], $2::text[])",
-							[
-								tournament_ids_arr,
-								tags_split
-							],
-							function(err){
-								if(err){
-									console.log(err);
-									socket.emit('notification',{error:'Could not add tournament tags'});
-									return;
-								}
-								socket.emit('notification',{success:'Successfully created tournament'});
+						}else if(typeof results !== 'undefined' && results.rows.length === 0){
+							//Convert attendee limit to number
+							if(isNaN(data.attendee_limit)){
+								socket.emit('notification',{error: 'Attendee limit must be a number'});
+								return;
 							}
-						);
-					}
+							let attendee_limit = Number(data.attendee_limit);
 
+							pg_conn.client.query(
+								"INSERT INTO tournaments (community_id, name, description, location, attendee_limit, signup_deadline, start_date) \
+									VALUES ($1,$2,$3,$4,$5,$6,$7) \
+									RETURNING id \
+								",
+								[
+									data.community_id,
+									data.name,
+									data.description,
+									data.location,
+									attendee_limit,
+									data.signup_deadline,
+									data.start_date
+								],
+								function(err,tournament_id){
+									if(err){
+										console.log(err);
+										socket.emit('notification',{error:'Could not create tournament'});
+										return;
+									}
+
+
+									let tags_split = data.tags.split(',');
+
+									let tournament_ids_arr = Array(tags_split.length).fill(tournament_id.rows[0].id);
+
+									pg_conn.client.query(
+										"INSERT INTO tournament_tags (tournament_id,tag) SELECT * FROM UNNEST ($1::integer[], $2::text[])",
+										[
+											tournament_ids_arr,
+											tags_split
+										],
+										function(err){
+											if(err){
+												console.log(err);
+												socket.emit('notification',{error:'Could not add tournament tags'});
+												return;
+											}
+											socket.emit('notification',{success:'Successfully created tournament'});
+										}
+									);
+								}
+
+							);
+						}else{
+							socket.emit('notification',{error: 'This community already has a tournament with this name. Please choose another.'})
+						}			
+					}
 				);
 			});
 
