@@ -52,11 +52,12 @@
         </ul>
       </div>
     </nav>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
     <script type="text/javascript">
-    ($Tournament_bracket).append(Display_Brackets(tournament_brackets,NULL)); //Use jQuery to append html element with already generated brackets
+
     </script>
 
-    <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb" crossorigin="anonymous"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script>
@@ -72,34 +73,50 @@
     </script>
 
   <button onclick="GenerateTournament()">Generate Tournament Brackets</button> <!--Make button only show up when no rows exist with tournament_id (when coms is empty).-->
-  <div id="Tournament_bracket"></div>
+  <div class="Tournament_bracket"></div>
   </body>
 
 </html>
 
 <script type="text/javascript">
+var tournament_ID = {{tournament_data}};
+var tournament_brackets = socket.emit('get_brackets',{
+		tournament_ID
+	  }).bracket_nodes;
+if (typeof tournament_brackets == 'undefined'){
+	tournament_brackets = [];
+}
+//console.log(typeof tournament_ID);
+var tournament_participants = socket.emit('get_participants',{
+		tournament_ID
+	  }).participants;
+if (typeof tournament_participants == 'undefined'){
+	tournament_participants = [];
+}
+$( ".Tournament_bracket" ).append(Display_Brackets(tournament_brackets,null)); //Use jQuery to append html element with already generated brackets	
+
 function GenerateTournament()
 {
   var nodes = tournament_brackets;
   var teams = tournament_participants;
   //Should remove entries in forest table with tournament_id. But for the time being it won't.
   //Just returns if brackets already exist for this tournament.
-  if(nodes.length>0){
+  if(nodes.length>0 || teams.length == 0){
     return;
   }
   //Get number of teams
   var teamNum = teams.length;
   var Depth = Math.floor(Math.log(teamNum));
-  generate_tree(NULL, Depth, nodes, teams);
+  generate_tree(null, Depth, nodes, teams);
   //leafNodes = list of teams in forest with tournament_id
   var leafNodes = socket.emit('get_bracket_nodes',{
       tournament_ID
     }).bracket_nodes;
   //RemainingTeams = list of teams not in tournament and not in forest.
-  var RemainingTeams;
+  var RemainingTeams = [];
   var allTeams; //all teams present in leafNodes
   for(let c in leafNodes){
-    if(leafNodes[c].player_id !=NULL && allTeams.indexOf(leafNodes[c].player_id)<0/*leafNode[c].player not in allTeams*/){
+    if(leafNodes[c].player_id !=null && allTeams.indexOf(leafNodes[c].player_id)<0/*leafNode[c].player not in allTeams*/){
       allTeams+=leafNodes[c].player_id;
     }
   }
@@ -117,9 +134,9 @@ function GenerateTournament()
   for(let team in remainingTeams){
     //Retrieve random leafNode and edit the player to be Null
     var randNode = leafNodes[Math.floor(Math.random() * leafNodes.length)];
-    socket.emit('update_bracket_node',{ //update row to have NULL player_id
+    socket.emit('update_bracket_node',{ //update row to have null player_id
       node_id: data.id,
-      player_id: NULL
+      player_id: null
     });
     //Save a new node with previous leafNode node as parent and leafNode player as player.
     socket.emit('add_bracket_node',{ //Adds row to table
@@ -142,15 +159,18 @@ function GenerateTournament()
   nodes = socket.emit('get_bracket_nodes',{
     tournament_ID
   }).bracket_nodes;
-  ($Tournament_bracket).append(Display_Brackets(nodes,NULL)); //Use jQuery to append html element with id == Tournament_bracket with the generated tree.
+  ($Tournament_bracket).append(Display_Brackets(nodes,null)); //Use jQuery to append html element with id == Tournament_bracket with the generated tree.
   return;
 }
 function generate_tree(parent, Depth, nodes, teams)
 {
+  if (teams.length == 0){
+	return;
+  }
   var allTeams; //all teams present in nodes
   var notIncluded; //all teams not present in nodes
   for(let c in nodes){
-    if(nodes[c].player_id !=NULL && allTeams.indexOf(nodes[c].player_id)<0/*cams[c].player not in allTeams*/){
+    if(nodes[c].player_id !=null && allTeams.indexOf(nodes[c].player_id)<0/*cams[c].player not in allTeams*/){
       allTeams+=nodes[c].player;
     }
   }
@@ -176,11 +196,11 @@ function generate_tree(parent, Depth, nodes, teams)
     return;
   }
   //Save new node to forest table with id == node_id and parent==parent
-  //data = {parent_id: parent,data.player_id:NULL};
+  //data = {parent_id: parent,data.player_id:null};
   node_id = socket.emit('add_bracket_node',{ //Adds row to table
         tournament_id : tournament_ID,
         parent_id: parent,
-        player_id: NULL
+        player_id: null
       }).last_node_id;
   nodes = socket.emit('get_bracket_nodes',{
       tournament_ID
@@ -192,9 +212,13 @@ function generate_tree(parent, Depth, nodes, teams)
 function Display_Brackets(nodes,id)
 {
   //children = list of nodes with id as parent
+  if(nodes.length == 0 ){
+	return;
+  }
+  console.log(nodes);
   var children = nodes.filter(function(element){ return element.parent_id == id; });
   var thisNode = (nodes.filter(function(element){ return element.id == id; })[0]);
-  var player = (thisNode.player_id == NULL? "": thisNode.player_id);
+  var player = (thisNode.player_id == null? "": thisNode.player_id);
   var NewHTML = "<div>"+player+"</div>";
   if (children.length>0){
     NewHTML+="<ul>";

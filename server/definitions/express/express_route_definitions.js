@@ -694,7 +694,7 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 							res.render(
 								'private/tournaments',  //This is handlebars filename
 							 	{
-							 		tournament_data: results.rows
+							 		tournament_data: req.query['id']//results.rows
 								}
 							);
 						}
