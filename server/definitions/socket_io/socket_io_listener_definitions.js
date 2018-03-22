@@ -723,6 +723,29 @@ module.exports = function(config,pg_conn){
 				);
 			});
 		},
+		
+		//////////////////////////////////////////////////////////////////////
+		// This listener retrieves participants of a particular tournament
+		//////////////////////////////////////////////////////////////////////
+
+		(socket) => {
+			socket.on('get_participants',function(tournament_id){
+				pg_conn.client.query(
+					"SELECT user_id FROM tournament_attendees where tournament_id = $1",
+					[
+						tournament_id
+					],
+					function(err,results){
+						if(err){
+							console.log(err)
+							socket.emit('notification',{error:'Could not get participants'});
+							return;
+						}
+						socket.emit('participants',results.rows);
+					}
+				);
+			});
+		},
 
 		/********************************************************************************/
 
