@@ -6,14 +6,14 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>4BAR - Community Creation</title>
+    <title>4BAR - Event Calendar</title>
 
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
 
     <link href="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" rel="stylesheet"/>
 
     <link rel="stylesheet" href="/css/public.css">
-    <link rel="stylesheet" href="/css/cc_wizard.css">
+    <link rel="stylesheet" href="/css/calendar.css">
 
     <link rel="stylesheet" href="/css/jquery.tagsinput.css">
 
@@ -58,54 +58,59 @@
       </div>
     </nav>
 
+
     <div class="page-body">
-      <div class="container">
-        <div class="row">
-          <div class="col-md-6" style="margin:auto">
-            <form action="/cc_submit" method="post" role="form" encType="multipart/form-data">
-              <fieldset><legend class="text-center">Community Creation Wizard</legend>
-
-                <div class="form-group">
-
-                  <label for="phonenumber"><span class="req">* </span> Name: </label>
-                          <input required type="text" name="c_name" id="c_name" class="form-control" autocomplete="off" /> 
-                  </div>
-
-                  <div class="form-group">   
-                      <label for="firstname"><span class="req"> </span> Description: </label>
-                      <textarea class="form-control" type="text" name="c_description" rows="5" id="c_description"  autocomplete="off"  /> </textarea> 
-                  </div>
-
-                  <div class="form-group">
-                      <label for="lastname"><span class="req"> </span> Icon: </label> 
-                      <input type="file" class="form-control-file" name="c_icon" id="c_icon" aria-describedby="fileHelp">
-                  </div>
-
-                  <div class="form-group">
-                      <label for="email"><span class="req"> </span> Wallpaper: </label> 
-                      <input type="file" class="form-control-file" name="c_wallpaper" id="c_wallpaper" aria-describedby="fileHelp">
-                  </div>
-
-                  <div class="form-group">
-                    <input name="tags" id="c_tags"/>
-                  </div>
-
-                  <hr>
-
-                  <div class="form-group">
-                      <input class="btn btn-primary" type="submit" name="submit_reg" value="Submit">
-                  </div>
-                
-                  <div id="success_container" style="margin-top:20px;"></div>
-                  <div id="error_container" style="margin-top:20px;"></div>
-                
-                </div>
-              </fieldset>
-            </form>
+      <div id="event-calendar">
+      <iframe src="https://calendar.google.com/calendar/embed?src=77a46i8tkfb2u5aj93k21n363o%40group.calendar.google.com&ctz=America%2FChicago" style="border: 0" width="800" height="600" frameborder="0" scrolling="no"></iframe>
+    </div>
+    <div class="buttons">
+      <button  type="button" id="event-button" class="btn btn-info btn-lg" data-toggle="modal" data-target="#myModal">Create An Event</button>
+      <div class="modal-window">
+        <div id="myModal" class="modal fade" role="dialog">
+          <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title">Create Event</h4>
+      </div>
+        <div class="modal-body">
+          <p>Create an Event</p>
+        <form>
+          <div class="form-group">
+            <label for="Event Name">Event Name</label>
+            <input type="text" class="form-control" id="event-name">
           </div>
-        </div>
+          <div class="form-group">
+            <label for="Game">Game</label>
+            <input type="text" class="form-control" id="event-game">
+          </div>
+          <div class="form-group">
+            <label for="Date">Date</label>
+            <input type="date" class="form-control" id="event-date">
+          </div>
+          <div class="form-group">
+            <label for="Time Start">Time Start</label>
+            <input type="text" class="form-control" id="event-time">
+          </div>
+          <div class="form-group">
+            <label for="Address">Address</label>
+            <input type="text" class="form-control" id="event-address">
+          </div>
+          <div class="form-group">
+            <label for="City">City</label>
+            <input type="text" class="form-control" id="event-city">
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        <input type="submit" value="Create Event!" id="submit-event" name="submit-event" class="btn btn-default">
       </div>
     </div>
+  </div>
+</div>
+</div>
+
 
     <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
     
@@ -124,11 +129,9 @@
       );
     </script>
 
-    <script src="/js/jquery.tagsinput.js"></script>
+     <script src="/js/jquery.tagsinput.js"></script>
     <script type="text/javascript">
       $('#c_tags').tagsInput();
     </script>
-
-  </body>
-
+</body>
 </html>
