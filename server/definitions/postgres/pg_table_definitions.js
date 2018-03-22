@@ -140,7 +140,7 @@ module.exports = function(config){
 		tournaments_widget:
 			"CREATE TABLE IF NOT EXISTS tournaments_widget(\
 				id SERIAL PRIMARY KEY,\
-				tournament_ids NUMERIC[] NOT NULL\
+				community_id NUMERIC NOT NULL\
 			)"
 		,
 

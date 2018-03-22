@@ -190,11 +190,6 @@ module.exports = function(pg_client){
 							GROUP BY tournaments.id) as t INNER JOIN communities ON communities.id = t.community_id WHERE t.id = tournament_tags.tournament_id \
 						GROUP BY t.name,t.start_date,t.location,t.description,t.id,t.community_id,communities.name \
 						",
-
-						// "SELECT tournaments.name,tournaments.id,tournaments.community_id,tournament_tags.tag FROM tournaments INNER JOIN tournament_tags ON tournaments.id = tournament_tags.tournament_id \
-						// WHERE \
-						// (to_tsvector(tournaments.name) @@ plainto_tsquery($1) OR LENGTH($1) = 0) "+conjunction+" \
-						// (to_tsvector(tournaments.location) @@ plainto_tsquery($2) OR LENGTH($2) = 0) ",
 						[
 							(typeof input == 'string' || input instanceof String) ? input || '' : input.name || '',
 							(typeof input == 'string' || input instanceof String) ? input || '' : input.location || '',

@@ -72,9 +72,41 @@ const WidgetUIDefinitions = {
   },
 
   tournaments: function(data,widget_container){
-    let widget = document.createElement('table');
-    widget.href = data.c_url+'/tournament?id='+data.t_id;
-    widget.innerHTML = data.name;
+    let widget = document.createElement('div');
+
+    let table_title = document.createElement('h3');
+    table_title.innerHTML = 'Tournaments';
+    widget.appendChild(table_title);
+    widget.appendChild(document.createElement('hr'));
+
+    let table = document.createElement('table');
+    table.style.borderSpacing = '10px';
+    table.style.width = '100%';
+    table.style.textAlign = 'left';
+
+    for(let t in data.tournaments){
+      if(data.tournaments.hasOwnProperty(t)){
+        let tr_name = document.createElement('tr');
+
+        let tournament_link = document.createElement('a');
+        tournament_link.href = '/tournaments?id='+data.tournaments[t].id;
+        tournament_link.innerHTML = '<h3>'+data.tournaments[t].name+'</h3>';
+        tr_name.appendChild(tournament_link);
+
+        table.appendChild(tr_name);
+
+        let tr_description = document.createElement('tr');
+        tr_description.innerHTML = data.tournaments[t].description.length > 1 ? data.tournaments[t].description : 'No description available';
+
+
+        table.appendChild(tr_description);
+
+      }
+    }
+
+    widget.appendChild(table);
+
+    widget_container.classList.add('col-sm-4')
     return widget;
   }
 }

@@ -691,10 +691,28 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 								res.render('public/error',{error:'No tournament with id of '+req.query['id']});
 								return;
 							}
-							res.render(
-								'private/tournaments',  //This is handlebars filename
-							 	{
-							 		tournament_data: results.rows
+							pg_conn.client.query(
+								"SELECT 1 FROM tournament_attendees WHERE tournament_attendees.user_id = $1 AND tournament_attendees.tournament_id = $2",
+								[
+									req.session.user_id,
+									req.query['id']
+								],
+								function(err,is_member){
+									if(err){
+										console.log(err);
+										res.render('public/error',{error:'Could not get tournament membership information'});
+										return;
+									}									
+									res.render(
+										'private/tournaments',  //This is handlebars filename
+									 	{
+											username: req.session.username,
+											user_id: req.session.user_id,
+											tournament_id: results.rows[0].id,
+									 		tournament_data: results.rows,
+									 		is_member: (is_member && is_member.rowCount)
+										}
+									);
 								}
 							);
 						}
