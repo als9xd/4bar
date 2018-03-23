@@ -8,14 +8,14 @@
 
     <title>4BAR - Tournament Creation</title>
 
-<link href="//maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
 
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
 
     <link href="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" rel="stylesheet"/>
 
     <link rel="stylesheet" href="/css/public.css">
-    <link rel="stylesheet" href="/css/tc_wizard.css">
+    <link rel="stylesheet" href="/css/tc_edit.css">
 
     <link rel="stylesheet" href="/css/jquery.tagsinput.css">
 
@@ -23,16 +23,17 @@
     <script type="text/javascript">let socket = io();</script>
 
     <script type="text/javascript">
-      let submit_tournament = function(data){
-        socket.emit('tc_submit',{
-          community_id : Number('{{{c_id}}}'),
+      let edit_tournament = function(data){
+        socket.emit('tc_edit',{
+          community_id : Number('{{{tournament_data.community_id}}}'),
           name : document.getElementById('t_name').value,
           description: document.getElementById('t_description').value,
           location: document.getElementById('t_location').value,
           attendee_limit: document.getElementById('t_attendee_limit').value,
           tags: document.getElementById('t_tags').value,
           signup_deadline: document.getElementById('t_signup_deadline').value,
-          start_date: document.getElementById('t_start_date').value
+          start_date: document.getElementById('t_start_date').value,
+          tournament_id : Number('{{{tournament_data.id}}}')
         });
       }
 
@@ -62,6 +63,12 @@
         </form>
 
         <ul class="navbar-nav ml-auto">
+          <li class="nav-item dropdown active">
+            <a class="nav-link dropdown-toggle" href="#" id="dropdown01" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Tournament</a>
+            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdown01">
+              <a class="dropdown-item" href="/tournaments?id={{tournament_data.id}}">Homepage</a>
+            </div>
+          </li>
           <li class="nav-item">
             <a class="nav-link" href="/home">Home <span class="sr-only">(current)</span></a>
           </li>
@@ -91,44 +98,107 @@
 
                   <div class="form-group">
                     <label for="t_name"><span class="req">* </span> Name: </label>
-                    <input required type="text" id="t_name" class="form-control" autocomplete="off" /> 
+                    <input required type="text" id="t_name" class="form-control" autocomplete="off" value="{{tournament_data.name}}"/> 
                   </div>
 
                   <div class="form-group">   
-                    <label for="t_description"><span class="req"> </span> Description: </label>
-                    <textarea class="form-control" type="text"  rows="5" id="t_description"  autocomplete="off"  /> </textarea> 
+                    <label for="t_description">Description: </label>
+                    <textarea class="form-control" type="text"  rows="5" id="t_description"  autocomplete="off"/>{{tournament_data.description}}</textarea> 
                   </div>
 
                   <div class="form-group">
-                    <label for="t_location"><span class="req">* </span> Location: </label>
-                    <input required class="controls" type="text" id="t_location" class="form-control" autocomplete="off" /> 
+                    <label for="t_location">Location: </label>
+                    <input required class="form-control" type="text" id="t_location" class="form-control" autocomplete="off" value="{{tournament_data.location}}"/> 
                   </div>
 
                   <div id="map"></div>
 
                   <div class="form-group">
-                    <label for="t_attendee_limit"><span class="req">* </span> Attendee Limit: </label>
-                    <input required type="text" id="t_attendee_limit" class="form-control" autocomplete="off" /> 
+                    <label for="t_attendee_limit">Attendee Limit: </label>
+                    <input required type="text" id="t_attendee_limit" class="form-control" autocomplete="off" value="{{tournament_data.attendee_limit}}"/> 
                   </div>
 
                   <div class="form-group">
-                    <input name="tags" id="t_tags"/>
+                    <input name="tags" id="t_tags" value="{{#each tournament_data.tags}}{{tag}},{{/each}}"/>
                   </div>
 
                   <div class="form-group">
-                    <label for="t_signup_deadline"><span class="req">* </span> Signup Deadline: </label>
-                    <input type="text" class="form-control datetimepicker-input" id="t_signup_deadline" data-toggle="datetimepicker" data-target="#t_signup_deadline"/>
+                    <label for="t_signup_deadline">Signup Deadline: </label>
+                    <input type="text" class="form-control datetimepicker-input" id="t_signup_deadline" data-toggle="datetimepicker" data-target="#t_signup_deadline" value="{{tournament_data.signup_deadline}}"/>
                   </div>
 
                   <div class="form-group">
-                    <label for="t_start_date"><span class="req">* </span> Start Date: </label>
-                    <input type="text" class="form-control datetimepicker-input" id="t_start_date" data-toggle="datetimepicker" data-target="#t_start_date"/>
+                    <label for="t_start_date">Start Date: </label>
+                    <input type="text" class="form-control datetimepicker-input" id="t_start_date" data-toggle="datetimepicker" data-target="#t_start_date" value="{{tournament_data.start_date}}"/>
+                  </div>
+
+                  <div class="form-group">
+                    <div id="t_admins">
+                    <table class="table table-striped">
+                      <thead class="thead-inverse">
+                        <tr>
+                          <th scope="col"></th>
+                          <th scope="col">Tournament Admins</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {{#each tournament_data.admins}}
+                          <tr>
+                            <td><button type=button>Remove</button></td>
+                            <td><a class="profile-link" href="/profile?id={{id}}">{{username}}</a></td>
+                          </tr>                       
+                        {{/each}}
+                      </tbody>
+                    </table>
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <div id="t_admins">
+                    <table class="table table-striped">
+                      <thead class="thead-inverse">
+                        <tr>
+                          <th scope="col"></th>
+                          <th scope="col">Tournament Moderators</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {{#each tournament_data.mods}}
+                          <tr>
+                            <td><button type=button>Remove</button></td>
+                            <td><a class="profile-link" href="/profile?id={{id}}">{{username}}</a></td>
+                          </tr>                       
+                        {{/each}}
+                      </tbody>
+                    </table>
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <div id="t_admins">
+                    <table class="table table-striped">
+                      <thead class="thead-inverse">
+                        <tr>
+                          <th scope="col"></th>
+                          <th scope="col">Tournament Members</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {{#each tournament_data.members}}
+                          <tr>
+                            <td><button type=button>Remove</button></td>
+                            <td><a class="profile-link" href="/profile?id={{id}}">{{username}}</a></td>
+                          </tr>                       
+                        {{/each}}
+                      </tbody>
+                    </table>
+                    </div>
                   </div>
 
                   <hr>
 
                   <div class="form-group">
-                      <input class="btn btn-primary" type="button" value="Submit" onclick="submit_tournament()">
+                      <input class="btn btn-primary" type="button" value="Submit" onclick="edit_tournament()">
                   </div>
                 
                 </div>

@@ -82,6 +82,11 @@ const config = {
 				min_numbers: 1,
 				min_specials: 1
 			}
+		},
+		privileges: {
+			admin: 1,
+			mod: 1,
+			member: 1
 		}
 	},
 
@@ -157,6 +162,11 @@ const config = {
 				min_numbers: 1,
 				min_specials: 1
 			}
+		},
+		privileges: {
+			admin: 1,
+			mod: 1,
+			member: 1
 		}
 	}
 };

@@ -176,6 +176,7 @@ module.exports = function(config){
 			"CREATE TABLE IF NOT EXISTS tournament_attendees( \
 				tournament_id NUMERIC NOT NULL, \
 				user_id NUMERIC NOT NULL,\
+				privilege_level NUMERIC NOT NULL,\
 				UNIQUE (tournament_id,user_id) \
 			)"
 		,

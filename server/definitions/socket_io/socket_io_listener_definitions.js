@@ -449,67 +449,6 @@ module.exports = function(config,pg_conn){
 
 		/********************************************************************************/
 
-		(socket) => {
-
-			socket.on('toggle_tournament_membership',function(tournament_id){
-				pg_conn.client.query(
-					"SELECT 1 FROM tournament_attendees \
-						WHERE tournament_attendees.user_id = $1 AND tournament_attendees.tournament_id = $2 \
-					",
-					[
-						socket.handshake.session.user_id,
-						Number(tournament_id)
-					],function(err,is_member){
-						if(err){
-							console.log(err);
-							socket.emit('notification',{error:'Could not search tournament members'});
-							return;
-						}
-						if(is_member && is_member.rowCount){
-							pg_conn.client.query(
-								"DELETE FROM tournament_attendees \
-									WHERE tournament_attendees.user_id = $1 AND tournament_attendees.tournament_id = $2",
-								[
-									socket.handshake.session.user_id,
-									Number(tournament_id)
-								]
-								,function(err){
-									if(err){
-										console.log(err);
-										socket.emit('notification',{error:'Could not remove you from the tournament'});
-										return;
-									}
-									socket.emit('notification',{success:'Successfully left tournament'});							
-								}
-							);
-						}else if(is_member && is_member.rowCount === 0){
-							pg_conn.client.query(
-								"INSERT INTO tournament_attendees (user_id,tournament_id) \
-									VALUES ($1,$2) \
-								",
-								[
-									socket.handshake.session.user_id,
-									Number(tournament_id)
-								],
-								function(err){
-									if(err){
-										console.log(err);
-										socket.emit('notification',{error:'Could not join you to the tournament'});
-										return;
-									}
-									socket.emit('notification',{success:'Successfully joined tournament'});							
-								}
-							);
-						}
-					}
-				);
-			});
-
-		},
-
-
-		/********************************************************************************/
-
 
 		//////////////////////////////////////////////////////////////////////
 		// This listener allows user to toggle whether they are a member of 
@@ -574,7 +513,84 @@ module.exports = function(config,pg_conn){
 
 		},
 
+
 		/********************************************************************************/
+
+		//////////////////////////////////////////////////////////////////////
+		// This listener allows user to toggle whether they are a member of 
+		// a community
+		//////////////////////////////////////////////////////////////////////
+		
+		(socket) => {
+
+			socket.on('toggle_tournament_membership',function(tournament_id){
+				if(isNaN(tournament_id)){
+					socket.emit('notification',{error:"Tournament id must be a number"});
+					return;
+				}
+				pg_conn.client.query(
+					"SELECT 1 FROM tournament_attendees \
+						WHERE tournament_attendees.user_id = $1 AND tournament_attendees.tournament_id = $2 \
+					",
+					[
+						socket.handshake.session.user_id,
+						Number(tournament_id)
+					],function(err,is_member){
+						if(err){
+							console.log(err);
+							socket.emit('notification',{error:'Could not search tournament members'});
+							return;
+						}
+						if(is_member && is_member.rowCount){
+							pg_conn.client.query(
+								"DELETE FROM tournament_attendees \
+									WHERE tournament_attendees.user_id = $1 AND tournament_attendees.tournament_id = $2",
+								[
+									socket.handshake.session.user_id,
+									Number(tournament_id)
+								]
+								,function(err){
+									if(err){
+										console.log(err);
+										socket.emit('notification',{error:'Could not remove you from the tournament'});
+										return;
+									}
+									socket.emit('notification',{success:'Successfully left tournament'});							
+								}
+							);
+						}else if(is_member && is_member.rowCount === 0){
+
+							// Join tournament as member
+							pg_conn.client.query(
+								"INSERT INTO tournament_attendees (user_id,tournament_id,privilege_level) \
+									VALUES ($1,$2,$3) \
+								",
+								[
+									socket.handshake.session.user_id,
+									Number(tournament_id),
+									config.privileges['member']
+								],
+								function(err){
+									if(err){
+										console.log(err);
+										socket.emit('notification',{error:'Could not join you to the tournament'});
+										return;
+									}
+									socket.emit('notification',{success:'Successfully joined tournament'});							
+								}
+							);
+						}
+					}
+				);
+			});
+
+		},
+
+		/********************************************************************************/
+
+		//////////////////////////////////////////////////////////////////////
+		// This listener allows user to create a tournament
+		//////////////////////////////////////////////////////////////////////		
 
 		(socket) => {
 
@@ -659,7 +675,27 @@ module.exports = function(config,pg_conn){
 												socket.emit('notification',{error:'Could not add tournament tags'});
 												return;
 											}
-											socket.emit('notification',{success:'Successfully created tournament'});
+
+											// Join tournament as admin 
+											pg_conn.client.query(
+												"INSERT INTO tournament_attendees (user_id,tournament_id,privilege_level) \
+													VALUES ($1,$2,$3) \
+												",
+
+												[
+													socket.handshake.session.user_id,
+													tournament_id.rows[0].id,
+													config.privileges['admin']
+												],
+												function(err,results){
+													if(err){
+														console.log(err);
+														socket.emit('notification',{error:'Could not join tournament'});
+														return;
+													}
+													socket.emit('notification',{success:'Successfully created and joined tournament'});
+												}
+											);
 										}
 									);
 								}
@@ -676,31 +712,194 @@ module.exports = function(config,pg_conn){
 
 		/********************************************************************************/
 
+
+		//////////////////////////////////////////////////////////////////////
+		// This listener allows user to edit a tournament
+		//////////////////////////////////////////////////////////////////////		
+
+		(socket) => {
+
+			socket.on('tc_edit',function(data){
+
+				if(typeof data.tournament_id === 'undefined'){
+					socket.emit('notification',{error:'Community id is required'});
+					return;
+				}
+				if(isNaN(data.tournament_id)){
+					socket.emti('notification',{error:'Tournament id must be a number'});
+					return;
+				}
+
+				data.tournament_id = Number(data.tournament_id);
+
+				pg_conn.client.query(
+					"SELECT privilege_level FROM tournament_attendees WHERE user_id = $1 AND tournament_id = $2 LIMIT 1",
+					[
+						socket.handshake.session.user_id,
+						data.tournament_id
+					],
+					function(err,privilege_level){
+						if(err){
+							console.log(err);
+							socket.emit('notification',{error:'Could not get privilege level for tournament'});
+							return;
+						}
+
+						if(typeof privilege_level !== 'undefined' && privilege_level.rows.length === 0){
+							socket.emit('notification',{error: 'You are have not joined this tournament'});
+							return;
+						}
+						
+						if(isNaN(privilege_level.rows[0].privilege_level)){
+							socket.emit('notification',{error:'Invalid privilege level loaded from database'});
+							return;
+						}
+
+						if(Number(privilege_level.rows[0].privilege_level) > 1){
+							socket.emit('notification',{error: "You don't have the necessary privilege to modify this tournament"});
+							return;
+						}
+
+						if(typeof data.community_id === 'undefined'){
+							socket.emit('notification',{error:'Community id is required'});
+							return;
+						}
+
+						if(isNaN(data.community_id)){
+							socket.emit('notification',{error:'Community id must be an number'});
+							return;
+						}
+
+						data.community_id = Number(data.community_id);
+
+						if(typeof data.name === 'undefined' || data.name.length === 0){
+							socket.emit('notification',{error: 'Tournament name is required'});
+							return;
+						}
+
+						data.name = String(data.name);
+
+						if(data.name.length > config.pg.varchar_limits.tournaments.name){
+							socket.emit('notification',{error: 'Tournament name to long'});
+							return;
+						}
+
+						pg_conn.client.query(
+							"SELECT id FROM tournaments where name = $1 AND community_id = $2 LIMIT 1",
+							[
+								data.name,
+								data.community_id
+							],
+							function(err,t_name_exists){
+								if(err){
+									console.log(err);
+									socket.emit('notification',{error: 'Could not check if tournament name already exists'});
+									return;
+								}else if((typeof t_name_exists !== 'undefined' && t_name_exists.rows.length === 0) || data.tournament_id === t_name_exists.rows[0].id){
+
+									if(isNaN(data.attendee_limit)){
+										socket.emit('notification',{error: 'Attendee limit must be a number'});
+										return;
+									}
+									let attendee_limit = Number(data.attendee_limit);
+
+									pg_conn.client.query(
+										"UPDATE tournaments SET name = $1, description = $2, location = $3, attendee_limit = $4, signup_deadline = $5, start_date = $6 WHERE id = $7",
+										[
+											data.name,
+											data.description,
+											data.location,
+											attendee_limit,
+											data.signup_deadline,
+											data.start_date,										
+											data.tournament_id
+										],
+										function(err){
+											if(err){
+												console.log(err);
+												socket.emit('notification',{error:'Could not create tournament'});
+												return;
+											}
+
+											pg_conn.client.query(
+												"DELETE FROM tournament_tags WHERE tournament_id = $1",
+												[
+													data.tournament_id
+												],
+												function(err){
+													if(err){
+														console.log(err);
+														socket.emit('notification',{error:'Could not delete tournament tags'});
+														return;
+													}
+
+													let tags_split = data.tags.split(',');
+
+													let tournament_ids_arr = Array(tags_split.length).fill(data.tournament_id);
+
+													pg_conn.client.query(
+														"INSERT INTO tournament_tags (tournament_id,tag) SELECT * FROM UNNEST ($1::integer[], $2::text[])",
+														[
+															tournament_ids_arr,
+															tags_split
+														],
+														function(err){
+															if(err){
+																console.log(err);
+																socket.emit('notification',{error:'Could not add tournament tags'});
+																return;
+															}
+
+															socket.emit('notification',{success:'Successfully modified tournament'});
+
+														}
+													);
+
+												}
+											);
+
+										}
+
+									);
+								}else{
+									socket.emit('notification',{error: 'This community already has a tournament with this name. Please choose another.'})
+								}			
+							}
+						);
+
+					}
+				);
+			});
+
+		},
+
+		/********************************************************************************/
+
 		//////////////////////////////////////////////////////////////////////
 		// This listener adds a node to a brachet tree for a tournament
 		//////////////////////////////////////////////////////////////////////
 
 		(socket) => {
 			socket.on('add_bracket_node',function(node_data){
-				pg_conn.client.query(
-					"INSERT INTO tournament_brackets (tournament_id,parent_id,player_id) \
-						VALUES ($1,$2,$3) \
-					RETURNING id \
-					",
-					[
-						node_data.tournament_id,
-						node_data.parent_id,
-						node_data.player_id
-					],
-					function(err,results){
-						if(err){
-							console.log(err)
-							socket.emit('notification',{error:'Could not add bracket node'});
-							return;
-						}
-						socket.emit('last_node_id',results.rows[0].id);
-					}
-				);
+				// pg_conn.client.query(
+				// 	"INSERT INTO tournament_brackets (tournament_id,parent_id,player_id) \
+				// 		VALUES ($1,$2,$3) \
+				// 	RETURNING id \
+				// 	",
+				// 	[
+				// 		node_data.tournament_id,
+				// 		node_data.parent_id,
+				// 		node_data.player_id
+				// 	],
+				// 	function(err,results){
+				// 		if(err){
+				// 			console.log(err)
+				// 			socket.emit('notification',{error:'Could not add bracket node'});
+				// 			return;
+				// 		}
+				// 		socket.emit('last_node_id',results.rows[0].id);
+				// 	}
+				// );
 			});
 		},
 
@@ -712,20 +911,20 @@ module.exports = function(config,pg_conn){
 
 		(socket) => {
 			socket.on('get_brackets',function(tournament_id){
-				pg_conn.client.query(
-					"SELECT * FROM tournament_brackets where tournament_id = $1",
-					[
-						tournament_id
-					],
-					function(err,results){
-						if(err){
-							console.log(err)
-							socket.emit('notification',{error:'Could not get bracket nodes'});
-							return;
-						}
-						socket.emit('bracket_nodes',results.rows);
-					}
-				);
+				// pg_conn.client.query(
+				// 	"SELECT * FROM tournament_brackets where tournament_id = $1",
+				// 	[
+				// 		tournament_id
+				// 	],
+				// 	function(err,results){
+				// 		if(err){
+				// 			console.log(err)
+				// 			socket.emit('notification',{error:'Could not get bracket nodes'});
+				// 			return;
+				// 		}
+				// 		socket.emit('bracket_nodes',results.rows);
+				// 	}
+				// );
 			});
 		},
 		
@@ -735,20 +934,20 @@ module.exports = function(config,pg_conn){
 
 		(socket) => {
 			socket.on('get_participants',function(tournament_id){
-				pg_conn.client.query(
-					"SELECT user_id FROM tournament_attendees where tournament_id = $1",
-					[
-						tournament_id
-					],
-					function(err,results){
-						if(err){
-							console.log(err)
-							socket.emit('notification',{error:'Could not get participants'});
-							return;
-						}
-						socket.emit('participants',results.rows);
-					}
-				);
+				// pg_conn.client.query(
+				// 	"SELECT user_id FROM tournament_attendees where tournament_id = $1",
+				// 	[
+				// 		tournament_id
+				// 	],
+				// 	function(err,results){
+				// 		if(err){
+				// 			console.log(err)
+				// 			socket.emit('notification',{error:'Could not get participants'});
+				// 			return;
+				// 		}
+				// 		socket.emit('participants',results.rows);
+				// 	}
+				// );
 			});
 		},
 
@@ -760,23 +959,23 @@ module.exports = function(config,pg_conn){
 
 		(socket) => {
 			socket.on('update_bracket_node',function(node_data){
-				pg_conn.client.query(
-					"UPDATE tournament_brackets \
-						SET player_id = $1 \
-						WHERE id = $2 \
-					",
-					[
-						node_data.player_id,
-						node_data.node_id
-					],function(err,results){
-						if(err){
-							console.log(err);
-							socket.emit('notification',{error:'Bracket node could not be updated'});
-							return;
-						}
-						socket.emit('notification',{success:'Successfully updated bracket node'});
-					}
-				);
+				// pg_conn.client.query(
+				// 	"UPDATE tournament_brackets \
+				// 		SET player_id = $1 \
+				// 		WHERE id = $2 \
+				// 	",
+				// 	[
+				// 		node_data.player_id,
+				// 		node_data.node_id
+				// 	],function(err,results){
+				// 		if(err){
+				// 			console.log(err);
+				// 			socket.emit('notification',{error:'Bracket node could not be updated'});
+				// 			return;
+				// 		}
+				// 		socket.emit('notification',{success:'Successfully updated bracket node'});
+				// 	}
+				// );
 			});
 		}
 
