@@ -581,7 +581,12 @@ module.exports = function(config,pg_conn){
 			socket.on('tc_submit',function(data){
 
 				if(typeof data.community_id === 'undefined'){
-					socket.emit('notification',{error:'No community id supplied'});
+					socket.emit('notification',{error:'Community id is required'});
+					return;
+				}
+
+				if(isNaN(data.community_id)){
+					socket.emit('notification',{error:'Community id must be an number'});
 					return;
 				}
 
