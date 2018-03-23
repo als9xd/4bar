@@ -84,8 +84,8 @@
                 <th scope="row">Communities</th>
                 <td>
                   <ul>
-                    {{#each c_names}}
-                        <li>{{ this }}</li>
+                    {{#each community_data}}
+                        <li><a href="{{url}}">{{name}}</a></li>
                     {{/each}}
                   </ul>
                 </td>

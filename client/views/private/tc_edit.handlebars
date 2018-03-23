@@ -132,6 +132,7 @@
                     <input type="text" class="form-control datetimepicker-input" id="t_start_date" data-toggle="datetimepicker" data-target="#t_start_date" value="{{tournament_data.start_date}}"/>
                   </div>
 
+
                   <div class="form-group">
                     <div id="t_admins">
                     <table class="table table-striped">
@@ -142,7 +143,7 @@
                         </tr>
                       </thead>
                       <tbody>
-                        {{#each tournament_data.admins}}
+                        {{#each tournament_data.attendees.admin}}
                           <tr>
                             <td><button type=button>Remove</button></td>
                             <td><a class="profile-link" href="/profile?id={{id}}">{{username}}</a></td>
@@ -163,7 +164,7 @@
                         </tr>
                       </thead>
                       <tbody>
-                        {{#each tournament_data.mods}}
+                        {{#each tournament_data.attendees.mod}}
                           <tr>
                             <td><button type=button>Remove</button></td>
                             <td><a class="profile-link" href="/profile?id={{id}}">{{username}}</a></td>
@@ -184,7 +185,7 @@
                         </tr>
                       </thead>
                       <tbody>
-                        {{#each tournament_data.members}}
+                        {{#each tournament_data.attendees.member}}
                           <tr>
                             <td><button type=button>Remove</button></td>
                             <td><a class="profile-link" href="/profile?id={{id}}">{{username}}</a></td>

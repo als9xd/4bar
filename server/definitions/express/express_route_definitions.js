@@ -299,31 +299,37 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 
 			app.get('/profile', middleware['check_authorization'], function(req, res){
 
+				let profile_id = req.query['id'];
+
+				if(profile_id === 'undefined'){
+					profile_id = req.session.user_id;
+				}
+
+				if(isNaN(profile_id)){
+					res.render('public/error',{error:'Profile id must be a number'});
+					return;
+				}
+
+				profile_id = Number(profile_id);
 
 				pg_conn.client.query(
-					"SELECT communities.name FROM community_members \
+					"SELECT communities.name,communities.url FROM community_members \
 					INNER JOIN communities ON communities.id = community_members.community_id \
 					INNER JOIN users ON community_members.user_id = users.id AND users.id = $1",
 					[
-						req.query['id'] || req.session.user_id
+						profile_id
 					],
-					function(err,community_names){
+					function(err,community_data){
 						if(err){
 							console.log(err)
 							res.render('public/error',{error:'Could not get community membership information'});
 							return;
 						}
 
-						// Convert the community names rows object to an array so it is iterable by handlebars on the front end.
-						let c_names_arr = [];
-						for(let i in community_names.rows){
-							c_names_arr.push(community_names.rows[i].name);
-						}
-
 						pg_conn.client.query(
 							"SELECT avatar,username,name as full_name,email FROM users WHERE id = $1 LIMIT 1",
 							[
-								req.query['id'] || req.session.user_id
+								profile_id
 							],
 							function(err,profile){
 								if(err){
@@ -336,8 +342,8 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 									username: req.session.username,
 									user_id: req.session.user_id,
 									profile_data: profile.rows[0],
-									c_names: c_names_arr,
-									modify_priveleges: typeof req.query['id'] === 'undefined' ||(Number(req.query['id']) === req.session.user_id)
+									community_data: community_data.rows,
+									modify_privileges: profile_id === req.session.user_id
 								});
 
 							}
@@ -687,10 +693,18 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 				'/tournaments', // This is the base url ('4bar.org/tournaments')
 				middleware['check_authorization'],
 				function(req,res){
-					if(typeof req.query['id'] === 'undefined'){
+
+					if(req.query['id'] === 'undefined'){
 						res.render('public/error',{error:'No tournament id supplied'});
 						return;
 					}
+
+					if(isNaN(req.query['id'])){
+						res.render('public/error',{error:'Tournament id must be a number'});
+						return;
+					}
+
+					req.query['id'] = Number(req.query['id']);
 
 					pg_conn.client.query(
 						"SELECT * FROM tournaments where id = $1 LIMIT 1",
@@ -707,12 +721,12 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 								return;
 							}
 							pg_conn.client.query(
-								"SELECT 1 FROM tournament_attendees WHERE tournament_attendees.user_id = $1 AND tournament_attendees.tournament_id = $2 LIMIT 1",
+								"SELECT privilege_level FROM tournament_attendees WHERE tournament_attendees.user_id = $1 AND tournament_attendees.tournament_id = $2 LIMIT 1",
 								[
 									req.session.user_id,
 									req.query['id']
 								],
-								function(err,is_member){
+								function(err,attendee){
 									if(err){
 										console.log(err);
 										res.render('public/error',{error:'Could not get tournament membership information'});
@@ -724,7 +738,10 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 											username: req.session.username,
 											user_id: req.session.user_id,
 									 		tournament_data: results.rows[0],
-									 		is_member: (is_member && is_member.rowCount)
+									 		// This just determines whether the 'Edit' tournament link is shown and not whether they can access that page
+									 		t_edit_privileges: (typeof attendee !== 'undefined' && attendee.rowCount !== 0 
+									 								&& attendee.rows[0].privilege_level <= config.privileges['mod']),
+									 		t_join_privileges: (typeof attendee !== 'undefined' && attendee.rowCount !== 0)
 										}
 									);
 								}
@@ -747,88 +764,69 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 					'/tc_edit', // This is the base url ('4bar.org/tournaments')
 					middleware['check_authorization'],
 					function(req,res){
+
 						if(typeof req.query['id'] === 'undefined'){
 							res.render('public/error',{error:'No tournament id supplied'});
 							return;
 						}
 
+						if(isNaN(req.query['id'])){
+							res.render('public/error',{error:'Tournament id must be a number'});
+							return;
+						}
+
+						req.query['id'] = Number(req.query['id']);
+
 						pg_conn.client.query(
-							"SELECT * FROM tournaments where id = $1 LIMIT 1",
+							"SELECT privilege_level FROM tournament_attendees WHERE tournament_id = $1 AND user_id = $2 LIMIT 1",
 							[
-						  		req.query['id'] // This is whatever '4bar.org/tournaments?id=' is set to
+								req.query['id'],
+								req.session.user_id
 							],
-							function(err,tournament_data){
+							function(err,privilege_level){
 								if(err){
 									console.log(err);
+									res.render('public/error',{error:'Could not determine privilege level'});
 									return;
 								}
-								if(typeof tournament_data.rows === 'undefined' || tournament_data.rows.length === 0){
-									res.render('public/error',{error:'No tournament with id of '+req.query['id']});
-									return;
-								}
-								pg_conn.client.query(
-									"SELECT 1 FROM tournament_attendees WHERE tournament_attendees.user_id = $1 AND tournament_attendees.tournament_id = $2 LIMIT 1",
-									[
-										req.session.user_id,
-										req.query['id']
-									],
-									function(err,is_member){
-										if(err){
-											console.log(err);
-											res.render('public/error',{error:'Could not get tournament membership information'});
-											return;
-										}
-										pg_conn.client.query(
-											"SELECT tag FROM tournament_tags WHERE tournament_id = $1",
-											[
-												req.query['id']
-											],
-											function(err,tags){
-												if(err){
-													console.log(err);
-													socket.emit('notifcation',{error: 'Could not get tournament tags'});
-													return;
-												}
+								if(typeof privilege_level !== 'undefined' && privilege_level.rowCount !== 0 && privilege_level.rows[0].privilege_level <= config.privileges['mod']){
 
-												tournament_data.rows[0].tags = tags.rows;
+									pg_conn.client.query(
+										"SELECT * FROM tournaments where id = $1 LIMIT 1",
+										[
+									  		req.query['id'] // This is whatever '4bar.org/tournaments?id=' is set to
+										],
+										function(err,t_data){
+											if(err){
+												console.log(err);
+												return;
+											}
+											if(typeof t_data.rows === 'undefined' || t_data.rowCount === 0){
+												res.render('public/error',{error:'No tournament with id of '+req.query['id']});
+												return;
+											}
 
-												// Get tournament admins
-												pg_conn.client.query(
-													"SELECT users.username,users.id FROM users \
-														INNER JOIN tournament_attendees ON users.id = tournament_attendees.user_id \
-														WHERE tournament_attendees.tournament_id = $1 AND tournament_attendees.privilege_level = $2 \
-													",
-													[
-														req.query['id'],
-														config.privileges['admin']
-													],
-													function(err,t_admin){
-														if(err){
-															console.log(err);
-															socket.emit('notification',{error: 'Could not get tournament admins'});
-															return;
-														}
+											let tournament_data = t_data.rows[0];
 
-														tournament_data.rows[0].admins = t_admin.rows;
+											pg_conn.client.query(
+												"SELECT tag FROM tournament_tags WHERE tournament_id = $1",
+												[
+													req.query['id']
+												],
+												function(err,t_tag_data){
+													if(err){
+														console.log(err);
+														res.render('public/error',{error: 'Could not get tournament tags'});
+														return;
+													}
 
-														pg_conn.client.query(
-															"SELECT users.username,users.id FROM users \
-																INNER JOIN tournament_attendees ON users.id = tournament_attendees.user_id \
-																WHERE tournament_attendees.tournament_id = $1 AND tournament_attendees.privilege_level = $2 \
-															",
-															[
-																req.query['id'],
-																config.privileges['mods']															
-															],
-															function(err,t_mods){
-																if(err){
-																	console.log(err);
-																	socket.emit('notification',{error: 'Could not get tournament mods'});
-																	return;
-																}
+													tournament_data.tags = t_tag_data.rows;
 
-																tournament_data.rows[0].mods = t_mods.rows;
+													let attendees_promises = []
 
+													for(let level in config.privileges){
+														if(config.privileges.hasOwnProperty(level)){
+															attendees_promises.push(new Promise(function(resolve,reject){
 																pg_conn.client.query(
 																	"SELECT users.username,users.id FROM users \
 																		INNER JOIN tournament_attendees ON users.id = tournament_attendees.user_id \
@@ -836,40 +834,54 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 																	",
 																	[
 																		req.query['id'],
-																		config.privileges['members']															
+																		config.privileges[level]
 																	],
-																	function(err,t_members){
+																	function(err,results){
 																		if(err){
 																			console.log(err);
-																			socket.emit('notification',{error: 'Could not get tournament mods'});
+																			reject("Could not get tournament "+level+"s");
 																			return;
 																		}
-
-																		tournament_data.rows[0].members = t_members.rows;
-
-																		res.render(
-																				'private/tc_edit',  //This is handlebars filename
-																			 	{
-																					username: req.session.username,
-																					user_id: req.session.user_id,
-																			 		tournament_data: tournament_data.rows[0],
-																			 		is_member: (is_member && is_member.rowCount)
-																				}
-																		);																		
-
-																	}													
-																);																
-
-															}													
-														);
-
+																		let levels = {};
+																		levels[level] = results.rows;
+																		resolve(levels);
+																	}
+																)
+															}));
+														}
 													}
 
-												);
-											}
-										);						
-									}
-								);
+													Promise.all(attendees_promises).then(results => {
+														tournament_data.attendees = {};
+														for(let i = 0; i < results.length;i++){
+															for(let level in results[i]){
+																if(results[i].hasOwnProperty(level)){
+																	tournament_data.attendees[level] = results[i][level];
+																}
+															}
+														}
+														res.render(
+															'private/tc_edit',  //This is handlebars filename
+														 	{
+																username: req.session.username,
+																user_id: req.session.user_id,
+														 		tournament_data: tournament_data,
+															}
+														);															
+													}).catch(reason => {
+														res.render('public/error',{error:reason});
+													});
+												}
+											);
+										}
+									);
+
+								}else{
+									console.log(err);
+									res.render('public/error',{error:'Insufficient privileges to view page'});
+									return;
+								}
+
 							}
 						);
 					}

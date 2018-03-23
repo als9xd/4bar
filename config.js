@@ -85,8 +85,8 @@ const config = {
 		},
 		privileges: {
 			admin: 1,
-			mod: 1,
-			member: 1
+			mod: 2,
+			member: 3
 		}
 	},
 
@@ -165,8 +165,8 @@ const config = {
 		},
 		privileges: {
 			admin: 1,
-			mod: 1,
-			member: 1
+			mod: 2,
+			member: 3
 		}
 	}
 };
