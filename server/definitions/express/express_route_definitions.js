@@ -336,6 +336,34 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 		/********************************************************************************/
 
 		//////////////////////////////////////////////////////////////////////
+		// This route renders the home page along with all the communities
+		// that user is a member of
+		//////////////////////////////////////////////////////////////////////
+
+		() => {
+			app.get('/my_tournaments',middleware['check_authorization'],middleware['membership_information'],function(req,res){
+				res.render(
+					'private/my_tournaments',
+					{
+						/* Navbar,Sidebar data */
+						user_data: {
+							username: req.session.username,
+							id: req.session.user_id,
+							email: req.session.email,
+							avatar: req.session.avatar,
+							communities: req.membership_information.communities,
+							tournaments: req.membership_information.tournaments
+						}
+						/* Navbar,Sidebar data */
+
+					}
+				);
+			});
+		},
+
+		/********************************************************************************/
+
+		//////////////////////////////////////////////////////////////////////
 		// This route renders a users profile information based on the
 		// requested user_id if supplied or else the session data's user_id
 		//////////////////////////////////////////////////////////////////////
@@ -357,7 +385,7 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 				}
 
 				pg_conn.client.query(
-					"SELECT communities.name,communities.url FROM community_members \
+					"SELECT communities.name,communities.id FROM community_members \
 					INNER JOIN communities ON communities.id = community_members.community_id \
 					INNER JOIN users ON community_members.user_id = users.id AND users.id = $1",
 					[
@@ -408,6 +436,7 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 											/* Navbar,Sidebar data */
 
 											profile_data: {
+												id: profile.rows[0].id,
 												username: profile.rows[0].username,
 												name: profile.rows[0].name,
 												email: profile.rows[0].email,
@@ -512,249 +541,6 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 		//
 		//////////////////////////////////////////////////////////////////////
 
-		() => {
-			app.post('/cc_submit',middleware['check_authorization'],function(req,res){
-
-				// This unique name is used for a number of things including:
-				//   - url path
-				//   - icon filename
-				//   - wallaper filename
-				//
-				//  How this unique is generated is all white spaces are replaced with underscores and then all non alphanumeric characters are removed. Then that string is converted to lowercase.
-				let unique_name = req.body.c_name.replace(/\s/g,'_').replace(/[^a-zA-Z0-9 ]/g,'').toLowerCase();
-				if(!unique_name.length){
-					res.redirect('/cc_wizard?error=Invalid Name');
-					return;
-				}
-
-				pg_conn.client.query(
-					"SELECT 1 FROM communities where unique_name = $1 LIMIT 1",
-					[
-						unique_name
-					],
-					function(err,community_exists){
-						if(err){
-							console.log(err);
-							res.render('public/error',{error:'Could not check if community already exists'});
-							return;
-						}else if(community_exists && community_exists.rows.length === 0){
-
-							let icon_url;
-							let wallpaper_url;
-
-							// Upload files
-							if(req.files){
-								if(req.files.c_icon){
-									icon_url = '/community/icons/'+unique_name+'.'+req.files.c_icon.name.split('.').pop();
-									req.files.c_icon.mv(config.root_dir+'/client/media'+icon_url,function(err){
-										if(err){
-											console.log(err);
-											res.render('public/error',{error:'Could not upload icon'});
-											return;
-										}
-										// The communities have to be emitted once the icon has finished being upload because usually the community will finish being inserted into the database and then emmited before the icon finishes uploading.
-										// This results in the community being displayed on /home without an icon
-										pg_conn.client.query(
-											"SELECT name,description,icon,wallpaper,last_activity,url FROM communities",
-											function(err,community_info){
-												if(err){
-													console.log(err)
-													res.render('public/error',{error:'Could not get community information'});
-													return;
-												}else{
-													io.sockets.emit('communities',community_info.rows);
-												}
-											}
-										);
-									});
-								}
-								if(req.files.c_wallpaper){
-									wallpaper_url = '/community/wallpapers/'+unique_name+'.'+req.files.c_wallpaper.name.split('.').pop();
-									req.files.c_wallpaper.mv(config.root_dir+'/client/media'+wallpaper_url,function(err){
-										if(err){
-											console.log(err);
-											res.render('public/error',{error:'Could not upload wallpaper'});
-											return;
-										}
-									});
-								}
-							}
-
-							let d = new Date;
-							let date = (d.getMonth()+1)+'/'+d.getDate()+'/'+d.getFullYear();
-
-							// This is a custom function I wrote that makes it easier to check whether the lengths of input strings are within the assigned VARCHAR limits
-							let __invalid_lengths = function(table_name,lengths_obj){
-								let inv_lens = [];
-								for(let i in lengths_obj){
-									if(lengths_obj[i][0].length > config.pg.varchar_limits[table_name][lengths_obj[i][1]]){
-										inv_lens.push({table_name: lengths_obj[i][1],limit: config.pg.varchar_limits[table_name][lengths_obj[i][1]]})
-									}
-
-								}
-								return inv_lens;
-							}
-
-							let invalid_lengths = __invalid_lengths(
-								'communities', // Table name
-								[
-									[
-										req.body.c_name, // Input string #1
-										'name' // Check input string #1's length against the VARCHAR limits for column 'name'
-									],
-									[
-										unique_name,
-										'unique_name'
-									],
-									[
-										date,
-										'last_activity'
-									]
-								]
-							);
-							if(invalid_lengths.length){
-								let invalid_length_errors = [];
-								for(var i in invalid_lengths){
-									let table_name = invalid_lengths[i].table_name;
-									invalid_length_errors.push(table_name.charAt(0).toUpperCase()+table_name.slice(1) + ' must be less than ' + invalid_lengths[i].limit + ' characters');
-								}
-								res.redirect('/cc_wizard?error='+invalid_length_errors.join(','));
-								return;
-							}
-
-							let community_url = '/b/'+unique_name;
-
-							pg_conn.client.query(
-								"INSERT INTO communities (name,unique_name,url,description,icon,wallpaper,layout,last_activity,num_members) \
-								VALUES ($1,$2,$3,$4,$5,$6,$7,$8,0) \
-								RETURNING id",
-								[
-									req.body.c_name,
-									unique_name,
-									community_url,
-									req.body.c_description,
-									icon_url,
-									wallpaper_url,
-									req.body.c_layout,
-									date,
-								],
-								function(err,community_id){
-
-									if(err){
-										console.log(err);
-										res.render('public/error',{error:'Could not insert into communities'});
-										return;
-									}
-
-									let tags_split = req.body.tags.split(',');
-
-									let invalid_tag_lengths = []
-									for(let i = 0; i < tags_split.length;i++){
-										if(tags_split[i].length >  config.pg.varchar_limits.community_tags.tag){
-											invalid_tag_lengths.push('Tag "'+tags_split[i]+'" must be less than ' + config.pg.varchar_limits.community_tags.tag + ' characters');
-										}
-									}
-									if(invalid_tag_lengths.length){
-										res.redirect('/cc_wizard?error='+invalid_tag_lengths.join(','));
-										return;
-									}
-
-									// This creates an array that is the same length as the split tags. Each element is filled with the community id.
-									let community_ids_arr = Array(tags_split.length).fill(community_id.rows[0].id);
-
-									pg_conn.client.query(
-										"INSERT INTO community_tags (community_id,tag) SELECT * FROM UNNEST ($1::integer[], $2::text[])",
-										[
-											community_ids_arr,
-											tags_split
-										],
-										function(err){
-											if(err){
-												console.log(err);
-												res.render('public/error',{error:'Could not insert tags for community'});
-												return;
-											}
-
-									        // This builds a new route for the community page
-											app.get(community_url, middleware['check_authorization'], function(com_req, com_res){
-												pg_conn.client.query(
-													'SELECT 1 FROM community_members WHERE community_members.user_id = $1 AND community_members.community_id = $2',
-													[
-														com_req.session.user_id,
-														community_id.rows[0].id
-													],
-													function(err,is_member){
-														if(err){
-															console.log(err);
-															res.render('public/error',{error:'Could not get community membership information'});
-															return;
-														}
-														com_res.render(
-															'private/cc_template',
-															{
-																username: com_req.session.username,
-																user_id: req.session.user_id,
-																c_name: req.body.c_name,
-																c_wallpaper: wallpaper_url,
-																c_id: community_id.rows[0].id,
-																c_url: community_url,
-																is_member: (is_member && is_member.rowCount)
-															}
-														);
-													}
-												);
-											});
-
-											// Build that communities layout customization route
-											app.get(community_url+'/layout', middleware['check_authorization'], function(com_req, com_res){
-											  com_res.render(
-											  	'private/cc_layout',
-											  	{
-											  		username: com_req.session.username,
-													user_id: req.session.user_id,
-											  		c_name: req.body.c_name,
-											  		c_wallpaper: wallpaper_url,
-											  		c_id: community_id.rows[0].id,
-											  		c_url: community_url
-											  	});
-											});
-
-											// Build that communities tournament creation wizard route
-											app.get(community_url+'/tc_wizard', middleware['check_authorization'], function(com_req, com_res){
-												com_res.render('private/tc_wizard',{
-													username: com_req.session.username,
-													user_id: com_req.session.user_id,
-											  		c_name: req.body.c_name,
-											  		c_id: community_id.rows[0].id,
-											  		c_url: community_url
-												});
-											});
-
-											pg_conn.client.query(
-												"SELECT name,description,icon,wallpaper,last_activity,url FROM communities",
-												function(err,community_info){
-													if(err){
-														console.log(err)
-														res.render('public/error',{error:'Could not load communities'});
-														return;
-													}
-													io.sockets.emit('communities',community_info.rows);
-												}
-											);
-											res.redirect(community_url);
-										}
-									);
-								}
-							);
-						}else{
-							res.redirect('/cc_wizard?error=Community already exists');
-							return;
-						}
-					}
-				);
-
-			});
-		},
 
 
 		/********************************************************************************/
@@ -820,6 +606,106 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 									 		t_join_privileges: (typeof attendee !== 'undefined' && attendee.rowCount !== 0)
 										}
 									);
+								}
+							);
+						}
+					);
+				}
+			);
+		},
+
+		/********************************************************************************/
+
+		//////////////////////////////////////////////////////////////////////
+		// This route displays a tournaments information 
+		//////////////////////////////////////////////////////////////////////
+
+		() => {
+
+			app.get(
+				'/communities', // This is the base url ('4bar.org/tournaments')
+				middleware['check_authorization'],
+				middleware['membership_information'],
+				function(req,res){
+
+					if(req.query['id'] === 'undefined'){
+						res.render('public/error',{error:'No community id supplied'});
+						return;
+					}
+
+					if(isNaN(req.query['id'])){
+						res.render('public/error',{error:'Community id must be a number'});
+						return;
+					}
+
+					req.query['id'] = Number(req.query['id']);
+
+					pg_conn.client.query(
+						"SELECT * FROM communities where id = $1 LIMIT 1",
+						[
+					  		req.query['id'] // This is whatever '4bar.org/tournaments?id=' is set to
+						],
+						function(err,community){
+							if(err){
+								console.log(err);
+								return;
+							}
+							if(typeof community.rows === 'undefined' || community.rows.length === 0){
+								res.render('public/error',{error:'No community with id of '+req.query['id']});
+								return;
+							}
+
+							pg_conn.client.query(
+								"SELECT tag FROM community_tags WHERE community_id = $1",
+								[
+									req.query['id']
+								],function(err,community_tags){
+									if(err){
+										console.log(err);
+										socket.emit('notification',{error:'Could not get community tags'});
+										return;
+									}
+
+									community.rows[0].tags = community_tags.rows;
+
+									pg_conn.client.query(
+										"SELECT privilege_level FROM community_members WHERE community_members.user_id = $1 AND community_members.community_id = $2 LIMIT 1",
+										[
+											req.session.user_id,
+											req.query['id']
+										],
+										function(err,member){
+											if(err){
+												console.log(err);
+												res.render('public/error',{error:'Could not get community membership information'});
+												return;
+											}			
+
+											res.render(
+												'private/communities',  //This is handlebars filename
+											 	{
+													/* Navbar,Sidebar data */
+													user_data: {
+														username: req.session.username,
+														id: req.session.user_id,
+														email: req.session.email,
+														avatar: req.session.avatar,
+														communities: req.membership_information.communities,
+														tournaments: req.membership_information.tournaments
+													},
+													/* Navbar,Sidebar data */
+
+													community_data: community.rows[0],
+
+											 		// This just determines whether the 'Edit' community link is shown and not whether they can access that page
+											 		c_edit_privileges: (typeof member !== 'undefined' && member.rowCount !== 0 
+											 								&& member.rows[0].privilege_level === config.privileges['admin']),
+											 		c_is_member: !(typeof member === 'undefined' || member.rowCount === 0)
+												}
+											);
+										}
+									);
+
 								}
 							);
 						}

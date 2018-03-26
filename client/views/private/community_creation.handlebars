@@ -53,7 +53,7 @@
               </div>
             </li>
             <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="#" id="profile-dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><img src="{{#if user_data.avatar includeZero=true}}{{{user_data.avatar}}}{{else}}/site/no-avatar.jpg{{/if}}"></a>
+              <a class="nav-link dropdown-toggle" href="#" id="profile-dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><img src="{{#if user_data.avatar includeZero=true}}/avatars/{{{user_data.avatar}}}{{else}}/site/no-avatar.jpg{{/if}}"></a>
               <div id="profile-dropdown-menu" class="dropdown-menu dropdown-menu-right" aria-labelledby="profile-dropdown">
                 <a class="dropdown-menu-head dropdown-item" href="/profile?id={{user_data.id}}">
                   <h5 class="dropdown-item">{{user_data.username}}</h5> 
@@ -91,7 +91,7 @@
               </li>
               {{#each user_data.communities}}
               <li>
-                  <a href="{{url}}"><img src="{{#if icon includeZero=true}}{{icon}}{{else}}/site/no-icon.jpg{{/if}}">{{name}}</a>
+                  <a href="/communities?id={{id}}"><img src="/icons/{{#if icon includeZero=true}}{{icon}}{{else}}/site/no-icon.jpg{{/if}}">{{name}}</a>
               </li>
               {{/each}}
               <li>
@@ -117,40 +117,29 @@
             <hr/>
             <div class="row">
                 <div class="col-md-7" style="margin:auto">
-                  <form action="/submit_community" method="post" role="form" encType="multipart/form-data">
-
-                      <div class="form-group">
-
-                        <label for="phonenumber"><span class="req">* </span> Name: </label>
-                                <input required type="text" name="c_name" id="c_name" class="form-control" autocomplete="off" /> 
-                        </div>
-
-                        <div class="form-group">   
-                            <label for="firstname"><span class="req"> </span> Description: </label>
-                            <textarea class="form-control" type="text" name="c_description" rows="5" id="c_description"  autocomplete="off"  /> </textarea> 
-                        </div>
-
-                        <div class="form-group">
-                            <label for="lastname"><span class="req"> </span> Icon: </label> 
-                            <input type="file" class="form-control-file" name="c_icon" id="c_icon" aria-describedby="fileHelp">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="email"><span class="req"> </span> Wallpaper: </label> 
-                            <input type="file" class="form-control-file" name="c_wallpaper" id="c_wallpaper" aria-describedby="fileHelp">
-                        </div>
-
-                        <div class="form-group">
-                          <input name="tags" id="c_tags"/>
-                        </div>
-
-                        <hr>
-
-                        <div class="form-group">
-                            <input class="btn btn-primary" type="submit" name="submit_reg" value="Submit">
-                        </div>
-                      
-                      </div>
+                  <form>
+                  </form>
+                    <div class="form-group">
+                      <label for="community-name"><span class="req">* </span>Name: </label>
+                        <input required type="text" id="community-name" class="form-control" autocomplete="off" /> 
+                    </div>
+                    <div class="form-group">
+                      <label for="community-description">Description: </label>
+                      <textarea class="form-control" rows="5" id="community-description"></textarea>
+                    </div>
+                    <div class="form-group">
+                      <label for="community-icon-file">Icon: </label>
+                        <input type="file" id="community-icon-file" /> 
+                    </div>
+                    <div class="form-group">
+                      <label for="community-wallpaper-file">Wallpaper: </label>
+                        <input type="file" id="community-wallpaper-file" /> 
+                    </div>
+                    <div class="form-group">
+                      <label for="community-tags">Tags: </label>
+                      <input name="tags" id="community-tags"/>
+                    </div>
+                    <button class="btn btn-primary" id='community-submit-btn'>Submit</button>
                   </form>
                 </div>
               </div>
@@ -168,14 +157,75 @@
     <!-- Load Booststrap -->
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script>
 
+    <!-- Upload files -->
+    <script src="/socket.io-file-client.js"></script>
+    <script type="text/javascript">
+      let uploader = new SocketIOFileClient(socket);  
+    </script>
+
     <!-- Load notification handler. Used to display notifications sent from the server through socket.io -->
     <script src="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
     <script src="/js/NotificationHandler.js"></script>
     <script type="text/javascript">
+      let expected_success_msgs = [
+        'community_creation'
+      ];
+
+      let received_success_msgs = {
+
+      };
+
+      let check_if_finished = function(){
+        for(let i = 0; i < expected_success_msgs.length;i++){
+          if(typeof received_success_msgs[expected_success_msgs[i]] === 'undefined'){
+            return false;
+          }
+        }
+        return true;
+      }
+
+      let new_community_id = null;
+
       let ntf_hndlr = NotificationHandler(
         toastr,
-        socket
+        socket,
+        {
+          on_success: (notification) => {
+            received_success_msgs[notification.name] = true;
+            if(notification.name === 'community_creation'){
+              new_community_id = notification.community_id;
+
+              if(document.getElementById('community-icon-file').files.length != 0){
+                expected_success_msgs.push('icon_upload');
+                uploader.upload(document.getElementById('community-icon-file'), {
+                  uploadTo: 'icons',
+                  data: {
+                    type: 'icon',
+                    community_id: new_community_id
+                  }
+                });
+              }
+
+              if(document.getElementById('community-wallpaper-file').files.length != 0){
+                expected_success_msgs.push('wallpaper_upload');
+                uploader.upload(document.getElementById('community-wallpaper-file'), {
+                  uploadTo: 'wallpapers',
+                  data: {
+                    type: 'wallpaper',
+                    community_id: new_community_id
+                  }
+                }); 
+              }
+            }
+            if(check_if_finished() && new_community_id !== null){
+              window.location.replace('/communities?id='+new_community_id);
+            }
+          }
+        }
       );
+      uploader.on('error', function(err) {
+        ntf_hndlr.build_notification({error:String(err)});
+      });
     </script>
 
     <script src="/js/DropdownNotificationsHandler.js"></script>
@@ -198,7 +248,22 @@
     <!-- Enable tags input -->    
     <script src="/js/jquery.tagsinput.js"></script>
     <script type="text/javascript">
-      $('#c_tags').tagsInput();
+      $('#community-tags').tagsInput();
+    </script>
+
+    <script type="text/javascript">
+      $(document).ready(function(){
+        $('#community-submit-btn').click(
+          () => {
+            socket.emit('community_submit',{
+              name: $('#community-name').val(),
+              description: $('#community-description').val(),
+              tags: $('#community-tags').val()
+            });
+           
+          }
+        );
+      });
     </script>
 
   </body>

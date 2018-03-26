@@ -125,7 +125,7 @@ if(argv['clean'] === true){
 	let dirs = [
 		path.join(config[env].root_dir,'/client/media/icons'),
 		path.join(config[env].root_dir,'/client/media/wallpapers'),
-		path.join(config[env].root_dir,'/client/media/avatar')
+		path.join(config[env].root_dir,'/client/media/avatars')
 	];
 
 	let dir_promises = [];

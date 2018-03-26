@@ -7,7 +7,7 @@ let DropdownNotificationsHandler = function(socket) {
 			notification_el.href = notifications[i].url;
 
 			let notification_avatar = document.createElement('img');
-			notification_avatar.src = notifications[i].avatar === null ? '/site/no-avatar.jpg': '/avatar/'+notifications[i].avatar;
+			notification_avatar.src = notifications[i].avatar === null ? '/site/no-avatar.jpg': '/avatars/'+notifications[i].avatar;
 			notification_avatar.classList.add('d-inline-block');
 			notification_el.appendChild(notification_avatar)
 

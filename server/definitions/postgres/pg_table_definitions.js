@@ -72,13 +72,11 @@ module.exports = function(config){
 			"CREATE TABLE IF NOT EXISTS communities(\
 				id SERIAL PRIMARY KEY,\
 				name VARCHAR("+config.pg.varchar_limits.communities.name+") UNIQUE NOT NULL,\
-				unique_name VARCHAR("+config.pg.varchar_limits.communities.unique_name+") UNIQUE NOT NULL,\
-				url TEXT UNIQUE NOT NULL,\
 				description TEXT,\
 				icon TEXT,\
 				wallpaper TEXT,\
 				layout TEXT,\
-				last_activity VARCHAR("+config.pg.varchar_limits.communities.last_activity+"),\
+				last_activity TEXT,\
 				num_members NUMERIC NOT NULL\
 			)"
 		,

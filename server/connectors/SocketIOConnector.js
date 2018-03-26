@@ -103,12 +103,12 @@ module.exports = class SocketIOConnector{
 
 		    var uploader = new self.SocketIOFile(socket, {
 		        uploadDir: {			// multiple directories,
-		        	avatar: self.config.root_dir+'/client/media/avatar',
+		        	avatar: self.config.root_dir+'/client/media/avatars',
 		        	icons: self.config.root_dir+'/client/media/icons',
 		        	wallpapers: self.config.root_dir+'/client/media/wallpapers'
 		        },
 		        // uploadDir: config.root_dir+'/client/media/uploads',							// simple directory
-		        accepts: ['image/x-icon', 'image/png'],		// chrome and some of browsers checking mp3 as 'audio/mp3', not 'audio/mpeg'
+		        accepts: ['image/x-icon', 'image/png', 'image/jpeg'],		// chrome and some of browsers checking mp3 as 'audio/mp3', not 'audio/mpeg'
 		        maxFileSize: 4194304, 						// 4 MB. default is undefined(no limit)
 		        chunkSize: 10240,							// default is 10240(1KB)
 		        transmissionDelay: 0,						// delay of each transmission, higher value saves more cpu resources, lower upload speed. default is 0(no delay)
@@ -142,9 +142,116 @@ module.exports = class SocketIOConnector{
 
 							socket.handshake.session.save();
 
-							socket.emit('notification',{success: "Successfully uploaded file",url: fileInfo.name});
+							socket.emit('notification',{success: "Successfully uploaded avatar",url: fileInfo.name,name:'avatar_submit'});
 						}
 					);
+					break;
+
+		    		case 'wallpaper': 
+		    		pg_conn.client.query(
+		    			"SELECT privilege_level FROM community_members WHERE user_id = $1 AND community_id = $2 LIMIT 1",
+		    			[
+		    				socket.handshake.session.user_id,
+		    				fileInfo.data.community_id
+		    			],
+		    			function(err,privilege_level){
+		    				if(err){
+		    					console.log(err);
+		    					socket.emit('notification',{error:'Could not get privilege level for community wallpaper upload'});
+		    					return;
+		    				}
+
+		    				if(typeof privilege_level === 'undefined' || privilege_level.rowCount === 0){
+		    					socket.emit('notification',{error:'You must be a member of the community to submit a wallpaper change'});
+		    					return;
+		    				}
+
+		    				if(privilege_level.rows[0].privilege_level > self.config.privileges['admin']){
+		    					socket.emit('notification',{error:'Insufficient privleges. You must be an admin to submit a wallpaper.'});
+		    					return;
+		    				}
+
+							pg_conn.client.query(
+								"UPDATE communities \
+								SET wallpaper = $1 \
+								WHERE id = $2 \
+								RETURNING wallpaper"
+								,
+								[
+									fileInfo.name,
+									fileInfo.data.community_id
+								],
+								function(err,wallpaper){
+									if(err){
+										console.log(err);
+										socket.emit('notification',{error: "Could not save wallpaper to community"});
+										return;
+									}
+
+									if(typeof wallpaper === 'undefined' || wallpaper.rowCount === 0){
+										socket.emit('notification',{error:"No community found with an id of '"+fileInfo.data.community_id+"'"});
+										return;
+									}
+
+									socket.emit('notification',{success: "Successfully uploaded wallpaper",name: "wallpaper_upload"});
+								}
+							);
+
+		    			}
+		    		);
+					break;
+
+		    		case 'icon': 
+		    		pg_conn.client.query(
+		    			"SELECT privilege_level FROM community_members WHERE user_id = $1 AND community_id = $2 LIMIT 1",
+		    			[
+		    				socket.handshake.session.user_id,
+		    				fileInfo.data.community_id
+		    			],
+		    			function(err,privilege_level){
+		    				if(err){
+		    					console.log(err);
+		    					socket.emit('notification',{error:'Could not get privilege level for community icon upload'});
+		    					return;
+		    				}
+
+		    				if(typeof privilege_level === 'undefined' || privilege_level.rowCount === 0){
+		    					socket.emit('notification',{error:'You must be a member of the community to submit a icon change'});
+		    					return;
+		    				}
+
+		    				if(privilege_level.rows[0].privilege_level > self.config.privileges['admin']){
+		    					socket.emit('notification',{error:'Insufficient privleges. You must be an admin to submit a icon.'});
+		    					return;
+		    				}
+		    				
+							pg_conn.client.query(
+								"UPDATE communities \
+								SET icon = $1 \
+								WHERE id = $2 \
+								RETURNING icon"
+								,
+								[
+									fileInfo.name,
+									fileInfo.data.community_id
+								],
+								function(err,icon){
+									if(err){
+										console.log(err);
+										socket.emit('notification',{error: "Could not save icon to community"});
+										return;
+									}
+
+									if(typeof icon === 'undefined' || icon.rowCount === 0){
+										socket.emit('notification',{error:"No community found with an id of '"+fileInfo.data.community_id+"'"});
+										return;
+									}
+
+									socket.emit('notification',{success: "Successfully uploaded icon",name:"icon_upload"});
+								}
+							);
+		    			}
+		    		);
 					break;
 
 					default:
@@ -152,6 +259,7 @@ module.exports = class SocketIOConnector{
 		    	}
 
 		    });
+
 		    uploader.on('error', (err) => {
 		        console.log(err);
 		        socket.emit('notification',{error: 'Could not upload file'});

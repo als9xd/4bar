@@ -51,7 +51,7 @@
               </div>
             </li>
             <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="#" id="profile-dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><img src="{{#if user_data.avatar includeZero=true}}/avatar/{{{user_data.avatar}}}{{else}}/site/no-avatar.jpg{{/if}}">
+              <a class="nav-link dropdown-toggle" href="#" id="profile-dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><img src="{{#if user_data.avatar includeZero=true}}/avatars/{{{user_data.avatar}}}{{else}}/site/no-avatar.jpg{{/if}}"></a>
               </a>
               <div id="profile-dropdown-menu" class="dropdown-menu dropdown-menu-right" aria-labelledby="profile-dropdown">
                 <a class="dropdown-menu-head dropdown-item" href="/profile?id={{user_data.id}}">
@@ -90,7 +90,7 @@
               </li>
               {{#each user_data.communities}}
               <li>
-                  <a href="{{url}}"><img src="{{#if icon includeZero=true}}{{icon}}{{else}}/site/no-icon.jpg{{/if}}">{{name}}</a>
+                  <a href="/communities?id={{id}}"><img src="{{#if icon includeZero=true}}/icons/{{icon}}{{else}}/site/no-icon.jpg{{/if}}">{{name}}</a>
               </li>
               {{/each}}
               <li>
@@ -112,7 +112,6 @@
       <div id="page-content-wrapper">
           
           <div class="container-fluid">
-              <button onclick="socket.emit('dropdown_notifications_submit',{type:'friend_request',recipient_user_id:1});">test</button>
               <h1>Simple Sidebar</h1>
               <hr/>
               <p>This template has a responsive menu toggling system. The menu will appear collapsed on smaller screens, and will appear non-collapsed on larger screens. When togghis template has a responsive menu toggling system. The menu will appear collapsed on smaller screens, and will appear non-collapsed on larger screens. When toggled using the button below, the menu will appear/disappear. On small screens, the page content will be pushed off chis template has a responsive menu toggling system. The menu will appear collapsed on smaller screens, and will appear non-collapsed on larger screens. When toggled using the button below, the menu will aphe page content will be pushed off chis template has a responsive menu toggling system. The menu will appear collapsed on smaller screens, and will appear non-collapsed on larger screens. When toggled using the button below, the menu will appear/disappear. On small screens, the page content will be pushed off cled using the button below, the menu will appear/disappear. On small screens, the page content will be pushed off canvas.</p>

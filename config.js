@@ -39,9 +39,7 @@ const config = {
 					name: 200
 				},
 				communities: {
-					name: 30,
-					unique_name: 255,
-					last_activity: 10
+					name: 30
 				},
 				community_tags: {
 					tag: 20
@@ -119,9 +117,7 @@ const config = {
 					name: 200
 				},
 				communities: {
-					name: 30,
-					unique_name: 255,
-					last_activity: 10
+					name: 30
 				},
 				community_tags: {
 					tag: 20

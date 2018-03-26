@@ -7,7 +7,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>4BAR - Search</title>
+    <title>4BAR - My Tournaments</title>
 
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
 
@@ -15,8 +15,6 @@
 
     <link rel="stylesheet" href="/css/public.css">
     <link rel="stylesheet" href="/css/sidebar.css">
-
-    <link rel="stylesheet" href="/css/search.css">
 
     <script src="/socket.io/socket.io.js"></script>
     <script type="text/javascript">let socket = io();</script>
@@ -110,76 +108,20 @@
       <!-- /Sidebar -->
 
       <!-- Page Content -->
-      <div id="page-content-wrapper">
-          
-          <div class="container-fluid">
-              <div class="d-flex">
-                <h1 class="ml-auto">Search Results</h1>
-                <button id="filter-btn" class="ml-auto"><img id="filter-img" src="/site/filter.png"></button>
-              </div>
-              <hr/>
-              <div class="row">
-                <div class="col-sm">
-                  <h5>Communities</h5>
-                  <table class="table table-striped table-hover">
-                    <thead>
-                      <tr>
-                        <td scope="col"></td>
-                        <td scope="col">Name</td>
-                        <td scope="col">Tags</td>
-                        <td scope="col">Members</td>
-                        <td scope="col">Description</td>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {{#each results.communities}}
-                      <tr class="clickable-row" data-href="/communities?id={{id}}" style="cursor: pointer;">
-                        <td><img src="{{#if icon includeZero=true}}/icons/{{{icon}}}{{else}}/site/no-icon.jpg{{/if}}" style="height: 30px;width: 30px"</td>
-                        <td><h6>{{name}}</h6></td>
-                        <td>{{tags}}</td>
-                        <td>{{num_members}}</td>
-                        <td>{{description}}</td>
-                      </tr>
-                      {{/each}}
-                    </tbody>
-                  </table>
-                </div>
-                <div class="col-sm">
-                  <h5>Tournaments</h5>
-                  <table class="table table-striped table-hover">
-                    <tbody>
-                      {{#each results.tournaments}}
-                      <tr  class="clickable-row" data-href="/tournaments?id={{id}}" style="cursor: pointer;">
-                        <td><h7>{{name}}</h7></td>
-                      </tr>
-                      {{/each}}
-                    </tbody>
-                  </table>
-                </div>
-                <div class="col-sm">
-                  <h5>Users</h5>
-                  <table class="table table-striped table-hover">
-                    <tbody>
-                    <thead>
-                      <tr>
-                        <td scope="col"></td>
-                        <td scope="col">Username</td>
-                        <td scope="col">Name</td>
-                      </tr>
-                    </thead>
-                      {{#each results.users}}
-                      <tr class="clickable-row" data-href="/profile?id={{id}}" style="cursor: pointer;">
-                        <td><img src="{{#if avatar includeZero=true}}/avatars/{{{avatar}}}{{else}}/site/no-avatar.jpg{{/if}}" style="height: 30px;width: 30px"</td>
-                        <td><h6>{{username}}</h6></td>
-                        <td>{{name}}</td>
-                      </tr>
-                      {{/each}}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          </div>
+      <div id="page-content-wrapper">  
+        <div class="container-fluid">
+          <h1>Tournaments</h1>
+          <hr/>
+          <table class="table table-striped table-hover">
+            <tbody>
+              {{#each user_data.tournaments}}
+              <tr>
+                <td><h7>{{name}}</h7></td>
+              </tr>
+              {{/each}}
+            </tbody>
+          </table>
+        </div>
       </div>
       <!-- /Page Content -->
     </div>
@@ -209,16 +151,13 @@
         socket
       );
     </script>
-
     <!-- Menu Toggle Script -->
     <script src="/js/Sidebar.js"></script>
 
-    <!-- Make rows clickable -->
+    <!-- Enable Tooltips -->    
     <script type="text/javascript">
-      $(document).ready(function($) {
-          $(".clickable-row").click(function() {
-              window.location = $(this).data("href");
-          });
+      $(document).ready(function(){
+        $('[data-toggle="tooltip"]').tooltip();
       });
     </script>
 

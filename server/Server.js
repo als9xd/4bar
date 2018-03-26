@@ -117,110 +117,38 @@ module.exports = class Server{
 			self.socket_io_conn
 		);
 
+
 		//////////////////////////////////////////////////////////////////////
-		// Build all community routes from database
+		// Attach the express session to socket.io
+		//////////////////////////////////////////////////////////////////////		
+
+		self.socket_io_conn.attach_session(self.express_conn.session);
+
 		//////////////////////////////////////////////////////////////////////
-		
-		self.pg_conn.client.query(
-			"SELECT name,url,wallpaper,id FROM communities",
-			function(err,community_info){
-				if(err){
-					console.log(err);
-					return;
-				}
-				if(typeof community_info.rows !== 'undefined'){
-					for(let i in community_info.rows){
-						self.express_conn.app.get(community_info.rows[i].url, self.express_conn.middleware['check_authorization'], function(req, res){
-							self.pg_conn.client.query(
-								"SELECT 1 FROM community_members WHERE user_id = $1 AND community_id = $2",
-								[
-									req.session.user_id,
-									community_info.rows[i].id
-								],
-								function (err,is_member) {
-									if(err){
-										console.log(err);
-										res.render('public/error',{error:'Could not get community membership information'});
-										return
-									}
-									res.render(
-										'private/cc_template',
-										{
-											username: req.session.username,
-											user_id: req.session.user_id,
-											c_name: community_info.rows[i].name,
-											c_wallpaper: community_info.rows[i].wallpaper,
-											c_id: community_info.rows[i].id,
-											c_url: community_info.rows[i].url,
-											is_member: (is_member && is_member.rowCount)
-										}
-									);						
-								}
-							);
-						});
+		// Build the socket.io lisenteners
+		//////////////////////////////////////////////////////////////////////				
 
-						self.express_conn.app.get(community_info.rows[i].url+'/layout', self.express_conn.middleware['check_authorization'], function(req, res){
-							res.render('private/cc_layout',
-								{
-									username: req.session.username,
-									user_id: req.session.user_id,
-									c_name: community_info.rows[i].name,
-									c_wallpaper: community_info.rows[i].wallpaper,
-									c_id: community_info.rows[i].id,
-									c_url: community_info.rows[i].url
-								}
-							);
-						});	
-
-						// Build that communities tournament creation wizard route
-						self.express_conn.app.get(community_info.rows[i].url+'/tc_wizard', self.express_conn.middleware['check_authorization'], function(req, res){
-							res.render('private/tc_wizard',{
-								username: req.session.username,
-								user_id: req.session.user_id,
-								c_name: community_info.rows[i].name,
-								c_id: community_info.rows[i].id,
-								c_url: community_info.rows[i].url
-							});
-						});
-
-					}
-				}
-
-				//////////////////////////////////////////////////////////////////////
-				// Attach the express session to socket.io
-				//////////////////////////////////////////////////////////////////////		
-
-				self.socket_io_conn.attach_session(self.express_conn.session);
-
-				//////////////////////////////////////////////////////////////////////
-				// Build the socket.io lisenteners
-				//////////////////////////////////////////////////////////////////////				
-
-				self.socket_io_conn.build_listeners(
-					self.config.root_dir+'/server/definitions/socket_io/socket_io_listener_definitions',
-					self.pg_conn
-				);
-
-				//////////////////////////////////////////////////////////////////////
-				// Start the http server
-				//////////////////////////////////////////////////////////////////////
-
-
-				self.http_server.listen(self.config.server.http.port,function(){
-					console.log('listening on *:'+self.config.server.http.port);
-				});
-
-				//////////////////////////////////////////////////////////////////////
-				// Start the https server
-				//////////////////////////////////////////////////////////////////////
-
-				self.https_server.listen(self.config.server.https.port,function(){
-					console.log('listening on *:'+self.config.server.https.port);
-				});
-
-			}
-
+		self.socket_io_conn.build_listeners(
+			self.config.root_dir+'/server/definitions/socket_io/socket_io_listener_definitions',
+			self.pg_conn
 		);
+
+		//////////////////////////////////////////////////////////////////////
+		// Start the http server
+		//////////////////////////////////////////////////////////////////////
+
+
+		self.http_server.listen(self.config.server.http.port,function(){
+			console.log('listening on *:'+self.config.server.http.port);
+		});
+
+		//////////////////////////////////////////////////////////////////////
+		// Start the https server
+		//////////////////////////////////////////////////////////////////////
+
+		self.https_server.listen(self.config.server.https.port,function(){
+			console.log('listening on *:'+self.config.server.https.port);
+		});
 
 	}
 }

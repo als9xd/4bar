@@ -70,7 +70,7 @@ module.exports = function(config,pg_conn,ss,uuidv1){
 				socket.join('dropdown_notifications:'+socket.handshake.session.user_id);
 
 				pg_conn.client.query(
-					"SELECT * FROM dropdown_notifications WHERE recipient_user_id = $1",
+					"SELECT dropdown_notifications.*,users.avatar FROM dropdown_notifications INNER JOIN users ON users.id = dropdown_notifications.sender_user_id WHERE dropdown_notifications.recipient_user_id = $1",
 					[
 						socket.handshake.session.user_id
 					],
@@ -80,23 +80,7 @@ module.exports = function(config,pg_conn,ss,uuidv1){
 							socket.emit('notification',{error: 'Could not get dropdown notifications'});
 							return;
 						}
-						pg_conn.client.query(
-							"SELECT avatar FROM users WHERE id = $1 LIMIT 1",
-							[
-								socket.handshake.session.user_id
-							],
-							function(err,avatar){
-								if(err){
-									console.log(err);
-									socket.emit('notification',{error:'Could not get avatar'});
-									return;
-								}
-								for(let i = 0; i < results.rows.length;i++){
-									results.rows[i].avatar = avatar.rows[0].avatar;
-								}
-								socket.emit('dropdown_notifications_res',results.rows);
-							}
-						);
+						socket.emit('dropdown_notifications_res',results.rows);
 					}
 
 				);
@@ -115,6 +99,7 @@ module.exports = function(config,pg_conn,ss,uuidv1){
 			socket.on('dropdown_notifications_submit',function(data){
 
 				if(typeof socket.handshake.session.user_id === 'undefined'){
+					socket.emit('notification',{error:'User id is required'});
 					return;
 				}
 
@@ -133,7 +118,9 @@ module.exports = function(config,pg_conn,ss,uuidv1){
 				let dropdown_notification_definitions = {
 					friend_request: {
 						url: '/friend_request?id='+socket.handshake.session.user_id,
-						notification: 'Friend Request From: '+socket.handshake.session.username
+						notification: 'Friend Request From: '+socket.handshake.session.username,
+						success: 'Successfully sent friend request',
+						error: 'Could not send friend request'
 					}
 				}
 
@@ -158,12 +145,12 @@ module.exports = function(config,pg_conn,ss,uuidv1){
 					function(err,dropdown_notification){
 						if(err){
 							console.log(err);
-							socket.emit('notification',{error: 'Could not create notification'});
+							socket.emit('notification',{error: dropdown_notification_definitions[data.type].error});
 							return;
 						}
 
 						pg_conn.client.query(
-							"SELECT avatar FROM users WHERE id = $1 LIMIT 1",
+							"SELECT avatar FROM users INNER JOIN dropdown_notifications ON dropdown_notifications.sender_user_id = users.id WHERE users.id = $1 LIMIT 1",
 							[
 								socket.handshake.session.user_id
 							],
@@ -178,7 +165,7 @@ module.exports = function(config,pg_conn,ss,uuidv1){
 
 								io.sockets.in('dropdown_notifications:'+data.recipient_user_id).emit('dropdown_notifications_res',dropdown_notification.rows);
 								
-								socket.emit('notification',{success: 'Successfully sent notification'});
+								socket.emit('notification',{success: dropdown_notification_definitions[data.type].success});
 							}
 						);
 					}
@@ -423,6 +410,147 @@ module.exports = function(config,pg_conn,ss,uuidv1){
 			});
 
 		},
+
+		/********************************************************************************/
+
+		(socket) => {
+			socket.on('community_submit',function(data){
+
+				if(typeof data.name === 'undefined' || data.name.length === 0){
+					socket.emit('notification',{error:'Community name is required'});
+					return;
+				}
+
+				pg_conn.client.query(
+					"SELECT 1 FROM communities where name = $1 LIMIT 1",
+					[
+						data.name
+					],
+					function(err,community_exists){
+						if(err){
+							console.log(err);
+							socket.emit('notification',{error:'Could not check if community name already exists'});
+							return;
+						}else if(typeof community_exists !== 'undefined' && community_exists.rows.length === 0){
+
+							let date = new Date;
+
+							// This is a custom function I wrote that makes it easier to check whether the lengths of input strings are within the assigned VARCHAR limits
+							let __invalid_lengths = function(table_name,lengths_obj){
+								let inv_lens = [];
+								for(let i in lengths_obj){
+									if(lengths_obj[i][0].length > config.pg.varchar_limits[table_name][lengths_obj[i][1]]){
+										inv_lens.push({table_name: lengths_obj[i][1],limit: config.pg.varchar_limits[table_name][lengths_obj[i][1]]})
+									}
+
+								}
+								return inv_lens;
+							}
+
+							let invalid_lengths = __invalid_lengths(
+								'communities', // Table name
+								[
+									[
+										data.name, // Input string #1
+										'name' // Check input string #1's length against the VARCHAR limits for column 'name'
+									],
+									[
+										date,
+										'last_activity'
+									]
+								]
+							);
+							if(invalid_lengths.length){
+								let invalid_length_errors = [];
+								for(var i in invalid_lengths){
+									let table_name = invalid_lengths[i].table_name;
+									invalid_length_errors.push(table_name.charAt(0).toUpperCase()+table_name.slice(1) + ' must be less than ' + invalid_lengths[i].limit + ' characters');
+								}
+								socket.emit('notification',{error:invalid_length_errors});
+								return;
+							}
+
+							pg_conn.client.query(
+								"INSERT INTO communities (name,description,last_activity,num_members) \
+								VALUES ($1,$2,$3,$4) \
+								RETURNING id",
+								[
+									data.name,
+									data.description,
+									date,
+									0
+								],
+								function(err,community_id){
+
+									if(err){
+										console.log(err);
+										socket.emit('notification',{error: 'Could not insert into communities'});
+										return;
+									}
+
+									let tags_split = data.tags.split(',');
+
+									let invalid_tag_lengths = []
+									for(let i = 0; i < tags_split.length;i++){
+										if(tags_split[i].length >  config.pg.varchar_limits.community_tags.tag){
+											invalid_tag_lengths.push('Tag "'+tags_split[i]+'" must be less than ' + config.pg.varchar_limits.community_tags.tag + ' characters');
+										}
+									}
+									if(invalid_tag_lengths.length){
+										socket.emit('notification',{error: invalid_tag_lengths});
+										return;
+									}
+
+									// This creates an array that is the same length as the split tags. Each element is filled with the community id.
+									let community_ids_arr = Array(tags_split.length).fill(community_id.rows[0].id);
+
+									pg_conn.client.query(
+										"INSERT INTO community_tags (community_id,tag) SELECT * FROM UNNEST ($1::integer[], $2::text[])",
+										[
+											community_ids_arr,
+											tags_split
+										],
+										function(err){
+											if(err){
+												console.log(err);
+												socket.emit('notification',{error: 'Could not insert tags for community'});
+												return;
+											}
+
+											pg_conn.client.query(
+												"INSERT INTO community_members (user_id,community_id,privilege_level) \
+													VALUES ($1,$2,$3) \
+												",
+												[
+													socket.handshake.session.user_id,
+													community_id.rows[0].id,
+													config.privileges['admin']
+												],
+												function(err){
+													if(err){
+														console.log(err);
+														socket.emit('notification',{error:'Could not join community'});
+														return;
+													}
+
+													// 'name' is used to differentiate between file upload success messages so that we can upload files after the community has been successfully submitted
+													socket.emit('notification',{success: 'Successfully created and joined community',name: 'community_creation',community_id: community_id.rows[0].id});
+												}
+											);
+										}
+									);
+								}
+							);
+						}else{
+							socket.emit('notification',{error: 'Community name already taken'});
+							return;
+						}
+					}
+				);
+			});
+
+		},
+
 
 		/********************************************************************************/
 
