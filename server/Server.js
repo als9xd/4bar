@@ -38,7 +38,7 @@ module.exports = class Server{
 
 		const ExpressConnector = require(config.root_dir+'/server/connectors/ExpressConnector');
 
-		this.express_conn = new ExpressConnector(config);
+		this.express_conn = new ExpressConnector(config,this.pg_conn);
 
 		//////////////////////////////////////////////////////////////////////
 		// Setup ssl key and certification

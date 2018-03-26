@@ -30,7 +30,7 @@
 'use strict';
 
 module.exports = class ExpressConnector{
-	constructor(config){
+	constructor(config,pg_conn){
 
 		//////////////////////////////////////////////////////////////////////
 		// Store config inside class so that it can be accessed from member 
@@ -75,7 +75,7 @@ module.exports = class ExpressConnector{
 		//
 		//////////////////////////////////////////////////////////////////////
 
-		this.middleware = require(config.root_dir+'/server/definitions/express/express_middleware_definitions')();
+		this.middleware = require(config.root_dir+'/server/definitions/express/express_middleware_definitions')(pg_conn);
 
 		//////////////////////////////////////////////////////////////////////
 		// This middleware is used to parse forms (same as body-parser)

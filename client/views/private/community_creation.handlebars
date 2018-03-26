@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>4BAR - Community Creation</title>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
+
+    <link href="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" rel="stylesheet"/>
+
+    <link rel="stylesheet" href="/css/public.css">
+    <link rel="stylesheet" href="/css/sidebar.css">
+
+    <link rel="stylesheet" href="/css/jquery.tagsinput.css">
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script type="text/javascript">let socket = io();</script>
+    
+ </head>
+
+  <body>
+
+    <div id="wrapper" data-toggle-on='false'>
+
+      <!-- Navbar -->
+      <nav id="navbar-wrapper" class="navbar navbar-toggleable-sm navbar-inverse bg-inverse fixed-top navbar-expand-sm">
+        <div class="navbar-brand">
+          <button class="sidebar-toggler" type="button" aria-expanded="false" aria-label="Toggle navigation" id="menu-toggle">
+            <span class="sidebar-toggler-icon"></span>
+          </button>
+          <a class="navbar-brand" href="/home">4bar.org</a>
+        </div>
+        <div class="collapse navbar-collapse">
+          <form class="form-inline my-2 my-md-0" action="/search" method="GET">
+            <input name="query" class="form-control mr-sm-2">
+            <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+          </form> 
+          <ul class="navbar-nav ml-auto">
+            <li class="nav-item">
+              <a class="nav-link" href="/community_creation" id="community-creation-icon" data-toggle="tooltip" data-placement="bottom" title="Community Creation"><img src="/site/community-creation.png"></a>
+            </li>
+            <li class="nav-item dropdown">
+              <a class="nav-link" href="#" id="notification-dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><img src="/site/notification.png"></a>
+              <div id="notification-dropdown-menu" class="dropdown-menu dropdown-menu-right" aria-labelledby="notification-dropdown">
+                <div class="dropdown-menu-head">
+                  <h5 class="dropdown-item">Notifications<img src="site/settings.png" class="float-right"></h5> 
+                </div>
+              </div>
+            </li>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="profile-dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><img src="{{#if user_data.avatar includeZero=true}}{{{user_data.avatar}}}{{else}}/site/no-avatar.jpg{{/if}}"></a>
+              <div id="profile-dropdown-menu" class="dropdown-menu dropdown-menu-right" aria-labelledby="profile-dropdown">
+                <a class="dropdown-menu-head dropdown-item" href="/profile?id={{user_data.id}}">
+                  <h5 class="dropdown-item">{{user_data.username}}</h5> 
+                  <h6 class="dropdown-item">{{user_data.email}}</h6> 
+                </a>
+                <a class="dropdown-item" href="\profile?id={{user_data.id}}">My Profile</a>
+                <a class="dropdown-item" href="\logout">Logout</a>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </nav>
+      <!-- /Navbar -->
+
+      <!-- Sidebar -->
+      <div id="sidebar-wrapper">
+          <ul class="sidebar-nav">
+              <li>
+                  <a class="active" href="/home">Home</a>
+              </li>
+              <li>
+                  <a href="/marketplace">Marketplace</a>
+              </li>
+              <li>
+                <a href="/calendar">Calendar</a>
+              </li>
+              <li>
+                <a href="/geolocation">Nearby Events</a>
+              </li>
+              <li>
+                <hr>
+              </li>
+              <li>
+                <a class="sidebar-title" href="/my_communities"><h5>Communities</h5></a>
+              </li>
+              {{#each user_data.communities}}
+              <li>
+                  <a href="{{url}}"><img src="{{#if icon includeZero=true}}{{icon}}{{else}}/site/no-icon.jpg{{/if}}">{{name}}</a>
+              </li>
+              {{/each}}
+              <li>
+                <hr>
+              </li>
+              <li>
+                <a class="sidebar-title" href="/search?query_field=tournaments"><h5>Tournaments</h5></a>
+              </li>
+              {{#each user_data.tournaments}}
+              <li>
+                  <a href="/tournaments?id={{id}}">{{name}}</a>
+              </li>
+              {{/each}}
+          </ul>
+      </div>
+      <!-- /Sidebar -->
+
+      <!-- Page Content -->
+      <div id="page-content-wrapper">
+          
+        <div class="container-fluid">
+            <h1>Community Creation Wizard</h1>
+            <hr/>
+            <div class="row">
+                <div class="col-md-7" style="margin:auto">
+                  <form action="/submit_community" method="post" role="form" encType="multipart/form-data">
+
+                      <div class="form-group">
+
+                        <label for="phonenumber"><span class="req">* </span> Name: </label>
+                                <input required type="text" name="c_name" id="c_name" class="form-control" autocomplete="off" /> 
+                        </div>
+
+                        <div class="form-group">   
+                            <label for="firstname"><span class="req"> </span> Description: </label>
+                            <textarea class="form-control" type="text" name="c_description" rows="5" id="c_description"  autocomplete="off"  /> </textarea> 
+                        </div>
+
+                        <div class="form-group">
+                            <label for="lastname"><span class="req"> </span> Icon: </label> 
+                            <input type="file" class="form-control-file" name="c_icon" id="c_icon" aria-describedby="fileHelp">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="email"><span class="req"> </span> Wallpaper: </label> 
+                            <input type="file" class="form-control-file" name="c_wallpaper" id="c_wallpaper" aria-describedby="fileHelp">
+                        </div>
+
+                        <div class="form-group">
+                          <input name="tags" id="c_tags"/>
+                        </div>
+
+                        <hr>
+
+                        <div class="form-group">
+                            <input class="btn btn-primary" type="submit" name="submit_reg" value="Submit">
+                        </div>
+                      
+                      </div>
+                  </form>
+                </div>
+              </div>
+          </div>
+      </div>
+      <!-- /Page Content -->
+    </div>
+    <!-- /Main Wrapper -->
+
+    <!-- Load jquery -->
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb" crossorigin="anonymous"></script>
+
+    <!-- Load Booststrap -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script>
+
+    <!-- Load notification handler. Used to display notifications sent from the server through socket.io -->
+    <script src="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
+    <script src="/js/NotificationHandler.js"></script>
+    <script type="text/javascript">
+      let ntf_hndlr = NotificationHandler(
+        toastr,
+        socket
+      );
+    </script>
+
+    <script src="/js/DropdownNotificationsHandler.js"></script>
+    <script type="text/javascript">
+      let dd_ntf_hndler = DropdownNotificationsHandler(
+        socket
+      );
+    </script>
+
+    <!-- Menu Toggle Script -->
+    <script src="/js/Sidebar.js"></script>
+
+    <!-- Enable Tooltips -->    
+    <script type="text/javascript">
+      $(document).ready(function(){
+        $('[data-toggle="tooltip"]').tooltip();
+      });
+    </script>
+
+    <!-- Enable tags input -->    
+    <script src="/js/jquery.tagsinput.js"></script>
+    <script type="text/javascript">
+      $('#c_tags').tagsInput();
+    </script>
+
+  </body>
+
+</html>

@@ -190,7 +190,7 @@ module.exports = function(config){
 				parent_id NUMERIC,\
 				player_id NUMERIC\
 			)"
-    ,
+    	,
     
 		/********************************************************************************/
 
@@ -204,9 +204,22 @@ module.exports = function(config){
 				city VARCHAR("+config.pg.varchar_limits.events.city+") NOT NULL, \
 				state VARCHAR("+config.pg.varchar_limits.events.state+") NOT NULL \
 				)"
-		    
+		,    
 		
 		/********************************************************************************/
 
+		dropdown_notifications:
+			"CREATE TABLE IF NOT EXISTS dropdown_notifications( \
+				id SERIAL PRIMARY KEY, \
+				recipient_user_id NUMERIC NOT NULL, \
+				sender_user_id NUMERIC NOT NULL, \
+				url TEXT, \
+				notification TEXT, \
+				date TEXT, \
+				read BOOLEAN \
+				)"
+		    
+		
+		/********************************************************************************/
 	}
 };

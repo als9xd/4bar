@@ -22,7 +22,11 @@
 //////////////////////////////////////////////////////////////////////
 const crypto = require('crypto');
 
-module.exports = function(config,pg_conn){	
+const path = require('path');
+
+const fs = require('fs');
+
+module.exports = function(config,pg_conn,ss,uuidv1){	
 	
 	let widget_definitions = pg_conn.widget_definitions;
 
@@ -46,6 +50,141 @@ module.exports = function(config,pg_conn){
 		},
 
 		*/
+
+		/********************************************************************************/
+
+
+		//////////////////////////////////////////////////////////////////////
+		// This listener will retrieve a list of notifications to be dispayed
+		// in a user's dropdown notification menu in the navbar
+		//////////////////////////////////////////////////////////////////////
+
+		(socket) => {
+			socket.on('dropdown_notifications_req',function(){
+
+				if(typeof socket.handshake.session.user_id === 'undefined'){
+					return;
+				}
+
+				// This allows other users to send a notification to another user by their user_id
+				socket.join('dropdown_notifications:'+socket.handshake.session.user_id);
+
+				pg_conn.client.query(
+					"SELECT * FROM dropdown_notifications WHERE recipient_user_id = $1",
+					[
+						socket.handshake.session.user_id
+					],
+					function(err,results){
+						if(err){
+							console.log(err);
+							socket.emit('notification',{error: 'Could not get dropdown notifications'});
+							return;
+						}
+						pg_conn.client.query(
+							"SELECT avatar FROM users WHERE id = $1 LIMIT 1",
+							[
+								socket.handshake.session.user_id
+							],
+							function(err,avatar){
+								if(err){
+									console.log(err);
+									socket.emit('notification',{error:'Could not get avatar'});
+									return;
+								}
+								for(let i = 0; i < results.rows.length;i++){
+									results.rows[i].avatar = avatar.rows[0].avatar;
+								}
+								socket.emit('dropdown_notifications_res',results.rows);
+							}
+						);
+					}
+
+				);
+			});
+		},
+
+		/********************************************************************************/
+
+		//////////////////////////////////////////////////////////////////////
+		// This listener will allow a user to submit a predefined dropdown
+		// notification
+		//////////////////////////////////////////////////////////////////////
+
+		(socket,io) => {
+
+			socket.on('dropdown_notifications_submit',function(data){
+
+				if(typeof socket.handshake.session.user_id === 'undefined'){
+					return;
+				}
+
+				if(isNaN(data.recipient_user_id)){
+					socket.emit('notification',{error: 'User id for dropdown notification must be an integer'});
+					return;
+				}
+				
+				data.recipient_user_id = Number(data.recipient_user_id);
+
+				if(typeof data.type !== 'string'){
+					socket.emit('notification',{error: 'Dropdown notification type must be an string'});
+					return;
+				}
+
+				let dropdown_notification_definitions = {
+					friend_request: {
+						url: '/friend_request?id='+socket.handshake.session.user_id,
+						notification: 'Friend Request From: '+socket.handshake.session.username
+					}
+				}
+
+				if(typeof dropdown_notification_definitions[data.type] === 'undefined'){
+					socket.emit('notification',{error: "Unknown dropdown notification type: '"+data.type+"'"});
+					return;
+				}
+
+				pg_conn.client.query(
+					"INSERT INTO dropdown_notifications (recipient_user_id,sender_user_id,url,notification,date,read) \
+						VALUES($1,$2,$3,$4,$5,$6) \
+						RETURNING dropdown_notifications.* \
+					",
+					[
+						data.recipient_user_id,
+						socket.handshake.session.user_id,
+						dropdown_notification_definitions[data.type].url,
+						dropdown_notification_definitions[data.type].notification,
+						new Date,
+						false
+					],
+					function(err,dropdown_notification){
+						if(err){
+							console.log(err);
+							socket.emit('notification',{error: 'Could not create notification'});
+							return;
+						}
+
+						pg_conn.client.query(
+							"SELECT avatar FROM users WHERE id = $1 LIMIT 1",
+							[
+								socket.handshake.session.user_id
+							],
+							function(err,avatar){
+								if(err){
+									console.log(err);
+									socket.emit('notification',{error: 'Could not get avatar'});
+									return;
+								}
+
+								dropdown_notification.rows[0].avatar = avatar.rows[0].avatar;
+
+								io.sockets.in('dropdown_notifications:'+data.recipient_user_id).emit('dropdown_notifications_res',dropdown_notification.rows);
+								
+								socket.emit('notification',{success: 'Successfully sent notification'});
+							}
+						);
+					}
+				)
+			});
+		},
 
 		/********************************************************************************/
 
@@ -97,6 +236,8 @@ module.exports = function(config,pg_conn){
 										socket.handshake.session.username = user_info.rows[0].username;
 										socket.handshake.session.full_name = user_info.rows[0].name;
 										socket.handshake.session.email = user_info.rows[0].email;
+										socket.handshake.session.avatar = user_info.rows[0].avatar;
+
 										socket.handshake.session.save();
 
 										socket.emit('notification',{success: 'Successfully Logged in!'});	
@@ -611,7 +752,7 @@ module.exports = function(config,pg_conn){
 				pg_conn.client.query(
 					"SELECT 1 FROM community_members WHERE user_id = $1 AND community_id = $2 LIMIT 1",
 					[
-						req.session.user_id,
+						socket.handshake.session.user_id,
 						data.community_id
 					],
 					function(err,is_member){

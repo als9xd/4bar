@@ -115,6 +115,12 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 
 		/********************************************************************************/
 
+		()  => {
+			app.get('/socket.io-file-client.js', (req, res, next) => {
+    			return res.sendFile(config.root_dir + '/node_modules/socket.io-file-client/socket.io-file-client.js');
+			});
+		},
+
 		//////////////////////////////////////////////////////////////////////
 		// This route sets the default url ('4bar.org/') to redirect to home
 		//
@@ -161,50 +167,21 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 		//////////////////////////////////////////////////////////////////////
 
 		() => {
-			app.get('/home',middleware['check_authorization'],function(req,res){
-				pg_conn.client.query(
-					"SELECT name,description,icon,last_activity,url FROM communities",
-					function(err,community_info){
-						if(err){
-							console.log(err);
-							res.render('public/error',{error:'Could not get community'});
-							return;
+			app.get('/home',middleware['check_authorization'],middleware['membership_information'],function(req,res){
+				res.render(
+					'private/home',
+					{
+						/* Navbar,Sidebar data */
+						user_data: {
+							username: req.session.username,
+							id: req.session.user_id,
+							email: req.session.email,
+							avatar: req.session.avatar,
+							communities: req.membership_information.communities,
+							tournaments: req.membership_information.tournaments
 						}
-						pg_conn.client.query(
-							"SELECT 1 FROM community_members \
-							INNER JOIN communities ON communities.id = community_members.community_id \
-							INNER JOIN users ON community_members.user_id = users.id AND users.username = $1 \
-							LIMIT 1",
-							[
-								req.session.username
-							],
-							function(err,is_member){
-								if(err){
-									console.log(err)
-									res.render('public/error',{error:'Could not get community'});
-									return;
-								}
-								pg_conn.client.query(
-									"SELECT * FROM tournaments",
-									function(err, tournaments){
-										if(err){
-											console.log(err);
-											res.render('public/error',{error:'Could not get tournament locations'});
-											return;
-										}
+						/* Navbar,Sidebar data */
 
-										res.render(
-											'private/home',
-											{
-												username: req.session.username,
-												user_id: req.session.user_id,
-												is_member: is_member.rowCount,
-												tournaments: tournaments.rows
-											}
-										);
-								});
-							}
-						);
 					}
 				);
 			});
@@ -219,7 +196,7 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 
 		() => {
 
-			app.get('/search',middleware['check_authorization'],function(req,res){
+			app.get('/search',middleware['check_authorization'],middleware['membership_information'],function(req,res){
 
 				let search_filter_promises = [];
 
@@ -276,9 +253,19 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 					}
 
 				 	res.render('private/search',{
-				 		results: results,
-				 		username: req.session.username,
-						user_id: req.session.user_id
+
+						/* Navbar,Sidebar data */
+						user_data: {
+							username: req.session.username,
+							id: req.session.user_id,
+							email: req.session.email,
+							avatar: req.session.avatar,
+							communities: req.membership_information.communities,
+							tournaments: req.membership_information.tournaments
+						},
+						/* Navbar,Sidebar data */
+
+				 		results: results
 				 	});
 
 				}).catch( err =>{
@@ -286,6 +273,64 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 				});
 			});
 
+		},
+
+
+		/********************************************************************************/
+
+		//////////////////////////////////////////////////////////////////////
+		// This route renders the home page along with all the communities
+		// that user is a member of
+		//////////////////////////////////////////////////////////////////////
+
+		() => {
+			app.get('/community_creation',middleware['check_authorization'],middleware['membership_information'],function(req,res){
+				res.render(
+					'private/community_creation',
+					{
+						/* Navbar,Sidebar data */
+						user_data: {
+							username: req.session.username,
+							id: req.session.user_id,
+							email: req.session.email,
+							avatar: req.session.avatar,
+							communities: req.membership_information.communities,
+							tournaments: req.membership_information.tournaments
+						}
+						/* Navbar,Sidebar data */
+
+					}
+				);
+			});
+		},
+
+
+		/********************************************************************************/
+
+		//////////////////////////////////////////////////////////////////////
+		// This route renders the home page along with all the communities
+		// that user is a member of
+		//////////////////////////////////////////////////////////////////////
+
+		() => {
+			app.get('/my_communities',middleware['check_authorization'],middleware['membership_information'],function(req,res){
+				res.render(
+					'private/my_communities',
+					{
+						/* Navbar,Sidebar data */
+						user_data: {
+							username: req.session.username,
+							id: req.session.user_id,
+							email: req.session.email,
+							avatar: req.session.avatar,
+							communities: req.membership_information.communities,
+							tournaments: req.membership_information.tournaments
+						}
+						/* Navbar,Sidebar data */
+
+					}
+				);
+			});
 		},
 
 		/********************************************************************************/
@@ -297,20 +342,19 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 
 		() => {
 
-			app.get('/profile', middleware['check_authorization'], function(req, res){
+			app.get('/profile', middleware['check_authorization'],middleware['membership_information'],function(req, res){
 
-				let profile_id = req.query['id'];
-
-				if(profile_id === 'undefined'){
-					profile_id = req.session.user_id;
-				}
-
-				if(isNaN(profile_id)){
+				if(typeof req.query['id'] !== 'undefined' && isNaN(req.query['id'])){
 					res.render('public/error',{error:'Profile id must be a number'});
 					return;
 				}
 
-				profile_id = Number(profile_id);
+				let profile_id;
+				if(typeof req.query['id'] === 'undefined'){
+					profile_id = Number(req.session.user_id);
+				}else{
+					profile_id = Number(req.query['id']);
+				}
 
 				pg_conn.client.query(
 					"SELECT communities.name,communities.url FROM community_members \
@@ -319,7 +363,7 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 					[
 						profile_id
 					],
-					function(err,community_data){
+					function(err,communities){
 						if(err){
 							console.log(err)
 							res.render('public/error',{error:'Could not get community membership information'});
@@ -327,27 +371,56 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 						}
 
 						pg_conn.client.query(
-							"SELECT avatar,username,name as full_name,email FROM users WHERE id = $1 LIMIT 1",
+							"SELECT tournaments.name,tournaments.id FROM tournaments \
+							INNER JOIN tournament_attendees ON tournament_attendees.tournament_id = tournaments.id \
+							WHERE tournament_attendees.user_id = $1",
 							[
 								profile_id
 							],
-							function(err,profile){
+							function(err,tournaments){
 								if(err){
 									console.log(err);
-									res.render('public/error',{error:'Could not get user avatar'});
+									res.render('public/error',{error:'Could not get tournament membership information'});
 									return;
 								}
+								pg_conn.client.query(
+									"SELECT id,username,name,email,avatar FROM users WHERE id = $1 LIMIT 1",
+									[
+										profile_id
+									],
+									function(err,profile){
+										if(err){
+											console.log(err);
+											res.render('public/error',{error:'Could not get user avatar'});
+											return;
+										}
 
-								res.render('private/profile',{
-									username: req.session.username,
-									user_id: req.session.user_id,
-									profile_data: profile.rows[0],
-									community_data: community_data.rows,
-									modify_privileges: profile_id === req.session.user_id
-								});
+										res.render('private/profile',{
+											/* Navbar,Sidebar data */
+											user_data: {
+												username: req.session.username,
+												id: req.session.user_id,
+												email: req.session.email,
+												avatar: req.session.avatar,
+												communities: req.membership_information.communities,
+												tournaments: req.membership_information.tournaments
+											},
+											/* Navbar,Sidebar data */
 
+											profile_data: {
+												username: profile.rows[0].username,
+												name: profile.rows[0].name,
+												email: profile.rows[0].email,
+												avatar: profile.rows[0].avatar,
+												communities: communities.rows,
+												tournaments: tournaments.rows
+											},
+
+											modify_view: profile_id === req.session.user_id
+										});
+									}
+								);
 							}
-
 						);
 					}
 				);
@@ -390,6 +463,9 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 										res.render('public/error',{error:'Could not save avatar url to profile'});
 										return;
 									}
+
+									req.session.avatar = avatar_url;
+
 									res.redirect('/profile?message=Successfully Uploaded Avatar');
 									return;
 								}
