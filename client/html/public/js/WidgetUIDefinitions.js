@@ -57,17 +57,20 @@ const WidgetUIDefinitions = {
     widget.href = data.url;
     widget_container.style.width = '0';
 
-    $.load_script("https://platform.twitter.com/widgets.js",function(){
+    let script = document.createElement('script');
+    script.src = "https://platform.twitter.com/widgets.js";
+
+    script.onload = function(){
         twttr.events.bind(
           'loaded',
           function (event) {
             event.widgets.forEach(function (widget) {
-                $(widget_container).width($(widget_container).children().eq(0).width()+20);
+                widget_container.style.width($(widget_container).children().eq(0).width()+20);
             });
           }
         );
 
-    });
+    };
     return widget;
   },
 

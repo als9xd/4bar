@@ -1,7 +1,16 @@
 let DropdownNotificationsHandler = function(socket) {
 	socket.emit('dropdown_notifications_req');
 	let dropdown_menu = document.getElementById('notification-dropdown-menu');
+	let dropdown_count = document.createElement('span');
+	dropdown_count.id = "notifications-count";
+	dropdown_count.innerHTML = 0;
+	dropdown_count.style.display = 'none';
+	document.getElementById('notification-dropdown').appendChild(dropdown_count);
 	socket.on('dropdown_notifications_res',function(notifications){
+		dropdown_count.innerHTML = Number(dropdown_count.innerHTML)+notifications.length;
+		if(dropdown_count.innerHTML > 0){
+			dropdown_count.style.display = 'block';
+		}
 		for(let i = 0; i < notifications.length;i++){
 			let notification_el = document.createElement('a');
 			notification_el.href = notifications[i].url;

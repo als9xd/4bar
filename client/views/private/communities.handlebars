@@ -43,7 +43,7 @@
           <ul class="navbar-nav ml-auto">
             <li class="nav-item" style="margin-top: auto;margin-bottom: auto;margin-right:10px">
               {{#if c_edit_privileges}}
-                <button class="btn btn-outline-primary my-2 my-sm-0" data-is-member="true" >Edit Community</button>
+                <a href="/edit_community?id={{community_data.id}}" id="edit-community"><button class="btn btn-outline-primary my-2 my-sm-0">Edit Community</button></a>
               {{/if}}
             </li>
             <li class="nav-item" style="margin-top: auto;margin-bottom: auto;">
@@ -122,18 +122,18 @@
       <!-- /Sidebar -->
 
       <!-- Page Content -->
-      <div id="page-content-wrapper" style="background-image: url('/wallpapers/{{community_data.wallpaper}}');height: calc(100vh - 65px);background-size: cover;background-image: no-repeat;background-image: center center;">
+      <div id="page-content-wrapper" style="height: calc(100vh - 65px);background-size: cover;background-image: no-repeat;background-image: center center;">
           
         <div class="container-fluid">
-            <div style="background-color:#292b2c;color:white;padding:10px;border-radius:3px;">
+            <div style="box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);background-color:#292b2c;color:white;padding:10px;border-radius:3px;">
               <h1>{{community_data.name}}</h1>
               <div>
-                <h7 style="display: block;">Tags: {{#each community_data.tags}}{{tag}}, {{/each}}</h7>
+                <h7 style="display: block;">Tags: {{#each community_data.tags}}{{tag}}{{#unless @last}},{{/unless}}{{/each}}</h7>
                 <h7 style="display: block;">Members: {{community_data.num_members}}</h7>
               </div>
             </div>
             
-            <div class="row">
+            <div id="wle">
             </div>
           </div>
       </div>
@@ -148,12 +148,6 @@
 
     <!-- Load Booststrap -->
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script>
-
-    <!-- Upload files -->
-    <script src="/socket.io-file-client.js"></script>
-    <script type="text/javascript">
-      let uploader = new SocketIOFileClient(socket);   
-    </script>
 
     <!-- Load notification handler. Used to display notifications sent from the server through socket.io -->
     <script src="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
@@ -185,6 +179,7 @@
     <!-- Toggle community membership -->    
     <script>
       let toggle_membership_btn = document.getElementById('toggle-membership-btn');
+      let edit_button = document.getElementById('edit-community');
       function toggle_membership(){
         socket.emit('toggle_community_membership',{{{community_data.id}}});
         if(toggle_membership_btn.getAttribute('data-is-member') == 'false'){
@@ -194,9 +189,32 @@
         else if(toggle_membership_btn.getAttribute('data-is-member') == 'true'){
           toggle_membership_btn.innerHTML = 'Join Community';
           toggle_membership_btn.setAttribute('data-is-member','false');
+          edit_button.style.display = "none";
         }
       }
 
+    </script>
+
+    <script src='/js/WidgetUIDefinitions.js'></script>
+    <script src='/js/WidgetLayoutEngine.js'></script>
+    <script> 
+      let wle = WidgetLayoutEngine(
+        WidgetUIDefinitions,
+        document.getElementById('wle'),
+        document.getElementById('page-content-wrapper'),
+        {
+          background: '{{{community_data.wallpaper}}}',
+          defaultBackgroundImage: 'https://www.transparenttextures.com/patterns/3px-tile.png'
+        }
+      );
+    </script>
+
+    <script>
+      socket.emit('widgets_req','{{community_data.id}}');
+
+      socket.on('widgets_res',function (widget_data) {
+        wle.build_widget(widget_data);
+      });
     </script>
 
   </body>

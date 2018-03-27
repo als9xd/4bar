@@ -551,34 +551,206 @@ module.exports = function(config,pg_conn,ss,uuidv1){
 
 		},
 
-
 		/********************************************************************************/
 
-		//////////////////////////////////////////////////////////////////////
-		// This listener gets all the communities that a user is a member of 
-		//////////////////////////////////////////////////////////////////////
-
 		(socket) => {
+			socket.on('edit_community',function(data){
 
-			socket.on('communities_req',function(){
+				if(typeof data.community_id === 'undefined'){
+					socket.emit('notification',{error:'Community id is required'});
+					return;
+				}
+
+				data.community_id = Number(data.community_id);
+
+				if(isNaN(data.community_id)){
+					socket.emit('notification',{error: 'Community id must be a number'});
+				}
+
 				pg_conn.client.query(
-					"SELECT name,description,icon,wallpaper,last_activity,url \
-						FROM communities INNER JOIN community_members on communities.id = community_members.community_id \
-						WHERE community_members.user_id = $1 \
-					",
+					"SELECT 1 FROM communities WHERE id = $1 LIMIT 1",
 					[
-						socket.handshake.session.user_id
+						data.community_id
 					],
-					function(err,community_info){
+					function(err,community_exists){
 						if(err){
-							console.log(err)
-							socket.emit('notification',{error:'Could not get communities'});
+							console.log(err);
+							socket.emit('notification',{error:"Couldn't check if community exists"});
 							return;
 						}
-						socket.emit('communities_res',community_info.rows);
+
+						if(typeof community_exists === 'undefined' || community_exists.rowCount === 0){
+							socket.emit('error',{error:"Community with id of "+data.community_id+" doesn't exist"});
+							return;
+						}
+
+						pg_conn.client.query(
+							"SELECT privilege_level FROM community_members WHERE user_id = $1 AND community_id = $2",
+							[
+								socket.handshake.session.user_id,
+								data.community_id
+							],
+							function(err,privilege_level){
+								if(err){
+									console.log(err);
+									socket.emit('notification',{error:'Could not get privilege information from community'});
+									return;
+								}
+
+								if(typeof privilege_level === 'undefined' || privilege_level.rowCount === 0){
+									socket.emit('notification',{error:'You must be a member to edit a community'});
+									return;
+								}
+
+								if(privilege_level.rows[0].privilege_level > config.privileges['admin']){
+									socket.emit('notification',{error:'Insufficient privleges to edit community'});
+									return;
+								}
+
+								if(typeof data.name === 'undefined' || data.name.length === 0){
+									socket.emit('notification',{error:'Community name is required'});
+									return;
+								}
+
+								pg_conn.client.query(
+									"SELECT id FROM communities where name = $1 LIMIT 1",
+									[
+										data.name
+									],
+									function(err,community_exists){
+										if(err){
+											console.log(err);
+											socket.emit('notification',{error:'Could not check if community name already exists'});
+											return;
+										}
+
+
+										if(typeof community_exists !== 'undefined' && 
+												community_exists.rowCount === 1 && Number(community_exists.rows[0].id) !== data.community_id
+											){
+											socket.emit('notification',{error: 'Community name already taken'});
+											return;
+
+										}
+
+
+										let date = new Date;
+
+										// This is a custom function I wrote that makes it easier to check whether the lengths of input strings are within the assigned VARCHAR limits
+										let __invalid_lengths = function(table_name,lengths_obj){
+											let inv_lens = [];
+											for(let i in lengths_obj){
+												if(lengths_obj[i][0].length > config.pg.varchar_limits[table_name][lengths_obj[i][1]]){
+													inv_lens.push({table_name: lengths_obj[i][1],limit: config.pg.varchar_limits[table_name][lengths_obj[i][1]]})
+												}
+
+											}
+											return inv_lens;
+										}
+
+										let invalid_lengths = __invalid_lengths(
+											'communities', // Table name
+											[
+												[
+													data.name, // Input string #1
+													'name' // Check input string #1's length against the VARCHAR limits for column 'name'
+												],
+												[
+													date,
+													'last_activity'
+												]
+											]
+										);
+										if(invalid_lengths.length){
+											let invalid_length_errors = [];
+											for(var i in invalid_lengths){
+												let table_name = invalid_lengths[i].table_name;
+												invalid_length_errors.push(table_name.charAt(0).toUpperCase()+table_name.slice(1) + ' must be less than ' + invalid_lengths[i].limit + ' characters');
+											}
+											socket.emit('notification',{error:invalid_length_errors});
+											return;
+										}
+
+										pg_conn.client.query(
+											"UPDATE communities SET \
+												name = $1, \
+												description = $2, \
+												last_activity = $3 \
+											WHERE id = $4 \
+											",
+											[
+												data.name,
+												data.description,
+												date,
+												data.community_id
+											],
+											function(err,community_id){
+
+												if(err){
+													console.log(err);
+													socket.emit('notification',{error: 'Could not update community'});
+													return;
+												}
+
+												pg_conn.client.query(
+													"DELETE FROM community_tags WHERE community_id = $1",
+													[
+														data.community_id
+													],
+													function(err){
+														if(err){
+															console.log(err);
+															socket.emit('notification',{error: 'Could not remove old community tags'});
+															return;
+														}
+
+														let tags_split = data.tags.split(',');
+
+														let invalid_tag_lengths = []
+														for(let i = 0; i < tags_split.length;i++){
+															if(tags_split[i].length >  config.pg.varchar_limits.community_tags.tag){
+																invalid_tag_lengths.push('Tag "'+tags_split[i]+'" must be less than ' + config.pg.varchar_limits.community_tags.tag + ' characters');
+															}
+														}
+														if(invalid_tag_lengths.length){
+															socket.emit('notification',{error: invalid_tag_lengths});
+															return;
+														}
+
+														// This creates an array that is the same length as the split tags. Each element is filled with the community id.
+														let community_ids_arr = Array(tags_split.length).fill(data.community_id);
+
+														pg_conn.client.query(
+															"INSERT INTO community_tags (community_id,tag) SELECT * FROM UNNEST ($1::integer[], $2::text[])",
+															[
+																community_ids_arr,
+																tags_split
+															],
+															function(err){
+																if(err){
+																	console.log(err);
+																	socket.emit('notification',{error: 'Could not insert tags for community'});
+																	return;
+																}
+
+																socket.emit('notification',{success: 'Successfully edited the community',name: 'edit_community'});
+
+															}
+														);
+													}
+												);
+											}
+										);
+														
+									}
+								);
+
+							}
+
+						);
 					}
 				);
-			});	
+			});
 
 		},
 
@@ -760,11 +932,12 @@ module.exports = function(config,pg_conn,ss,uuidv1){
 						}else if(is_member && is_member.rowCount === 0){
 							pg_conn.client.query(
 								"INSERT INTO community_members (user_id,community_id,privilege_level) \
-									VALUES ($1,$2,1) \
+									VALUES ($1,$2,$3) \
 								",
 								[
 									socket.handshake.session.user_id,
-									Number(community_id)
+									Number(community_id),
+									config.privileges['member']
 								],
 								function(err){
 									if(err){
@@ -863,7 +1036,7 @@ module.exports = function(config,pg_conn,ss,uuidv1){
 
 		(socket) => {
 
-			socket.on('tc_submit',function(data){
+			socket.on('tournament_submt',function(data){
 
 				if(typeof data.community_id === 'undefined'){
 					socket.emit('notification',{error:'Community id is required'});

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" style="height: 100vh">
   <head>
 
     <meta charset="utf-8">
@@ -7,7 +7,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>4BAR - Community Creation</title>
+    <title>4BAR - Edit Community</title>
 
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
 
@@ -20,10 +20,28 @@
 
     <script src="/socket.io/socket.io.js"></script>
     <script type="text/javascript">let socket = io();</script>
+
+    <link rel="stylesheet" href="/css/dragula.css">
+
+    <script type="text/javascript">
+      socket.emit('available_widgets_req','{{community_data.id}}');
+    </script></s>
+
+    <script type="text/javascript">    
+      function widget_submit(type,input){
+        socket.emit('widget_submit_req',
+          {
+            community_id: "{{{community_data.id}}}",
+            type:type,
+            data: input
+          }
+        );
+      } 
+    </script>    
     
  </head>
 
-  <body>
+  <body style="height: 100vh">
 
     <div id="wrapper" data-toggle-on='false'>
 
@@ -110,40 +128,78 @@
       <!-- /Sidebar -->
 
       <!-- Page Content -->
-      <div id="page-content-wrapper">
+      <div id="page-content-wrapper" style="height: calc(100vh - 65px);">
           
         <div class="container-fluid">
-            <h1>Community Creation Wizard</h1>
-            <hr/>
-            <div class="row">
-                <div class="col-md-7" style="margin:auto">
-                  <form>
-                  </form>
-                    <div class="form-group">
-                      <label for="community-name"><span class="req">* </span>Name: </label>
-                        <input required type="text" id="community-name" class="form-control" autocomplete="off" /> 
-                    </div>
-                    <div class="form-group">
-                      <label for="community-description">Description: </label>
-                      <textarea class="form-control" rows="5" id="community-description"></textarea>
-                    </div>
-                    <div class="form-group">
-                      <label for="community-icon-file">Icon: </label>
-                        <input type="file" id="community-icon-file" /> 
-                    </div>
-                    <div class="form-group">
-                      <label for="community-wallpaper-file">Wallpaper: </label>
-                        <input type="file" id="community-wallpaper-file" /> 
-                    </div>
-                    <div class="form-group">
-                      <label for="community-tags">Tags: </label>
-                      <input name="tags" id="community-tags"/>
-                    </div>
-                    <button class="btn btn-primary" id='community-submit-btn'>Submit</button>
-                  </form>
-                </div>
+          <h1>Edit Community Information</h1>
+          <hr>
+          <div class="row">
+              <div class="col-md-7" style="margin:auto">
+                <form>
+                </form>
+                  <div class="form-group">
+                    <label for="community-name"><span class="req">* </span>Name: </label>
+                      <input required type="text" id="community-name" class="form-control" autocomplete="off" value="{{community_data.name}}"/> 
+                  </div>
+                  <div class="form-group">
+                    <label for="community-description">Description: </label>
+                    <textarea class="form-control" rows="5" id="community-description">{{community_data.description}}</textarea>
+                  </div>
+                  <div class="form-group">
+                    <label for="community-icon-file">Icon: </label>
+                      <input type="file" id="community-icon-file" value="{{community_data.icon}}" /> 
+                  </div>
+                  <div class="form-group">
+                    <label for="community-wallpaper-file">Wallpaper: </label>
+                      <input type="file" id="community-wallpaper-file" value="{{community_data.icon}}" /> 
+                  </div>
+                  <div class="form-group">
+                    <label for="community-tags">Tags: </label>
+                    <input name="tags" id="community-tags" value="{{#each community_data.tags}}{{tag}}{{#unless @last}},{{/unless}}{{/each}}"/>
+                  </div>
+                  <button class="btn btn-primary" id='community-submit-btn'>Submit</button>
+                </form>
               </div>
+            </div>
+        </div>
+        <h1>Widget Creation</h1>
+        <hr>
+        <div class="row" style="height: calc(100vh - 65px);">
+          <div class="col-md-6" style="margin:auto" style="height: calc(100vh - 65px);">
+            <fieldset>
+                <legend class="text-center">Youtube</legend>
+                <div class="form-group">
+                  <label for="youtube_url"><span class="req">* </span> Url: </label>
+                  <input required type="text" name="youtube_url" id="youtube_url" class="form-control" autocomplete="off" /> 
+                </div>
+
+                <div class="form-group">
+                    <button class="btn btn-primary" onclick="socket.emit('widget_submit_req',{community_id:{{{c_id}}},type:'youtube',data:{url:document.getElementById('youtube_url').value}});">Create</button>
+                </div>
+
+                <legend class="text-center">Twitter</legend>
+                <div class="form-group">
+                  <label for="twitter_screen_name"><span class="req">* </span> Account Name: </label>
+                  <input required type="text" name="twitter_screen_name" id="twitter_screen_name" class="form-control" autocomplete="off" /> 
+                </div>
+
+                <div class="form-group">
+                    <button class="btn btn-primary" onclick="widget_submit('twitter',{screen_name:document.getElementById('twitter_screen_name').value});">Create</button>
+                </div>
+
+                <legend class="text-center">Community Tournaments List</legend>
+
+                <div class="form-group">
+                    <button class="btn btn-primary" onclick="widget_submit('tournaments');">Create</button>
+                </div>
+
+                <hr>
+            </fieldset>
           </div>
+
+          <div id="wle">
+          </div>
+        </div>
       </div>
       <!-- /Page Content -->
     </div>
@@ -167,59 +223,41 @@
     <script src="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
     <script src="/js/NotificationHandler.js"></script>
     <script type="text/javascript">
-      let expected_success_msgs = [
-        'community_creation'
-      ];
-
-      let received_success_msgs = {
-
-      };
-
-      let check_if_finished = function(){
-        for(let i = 0; i < expected_success_msgs.length;i++){
-          if(typeof received_success_msgs[expected_success_msgs[i]] === 'undefined'){
-            return false;
-          }
-        }
-        return true;
-      }
-
-      let new_community_id = null;
 
       let ntf_hndlr = NotificationHandler(
         toastr,
         socket,
         {
           on_success: (notification) => {
-            received_success_msgs[notification.name] = true;
-            if(notification.name === 'community_creation'){
-              new_community_id = notification.community_id;
+            switch(notification.name){
 
+              case 'edit_community':
               if(document.getElementById('community-icon-file').files.length != 0){
-                expected_success_msgs.push('icon_upload');
                 uploader.upload(document.getElementById('community-icon-file'), {
                   uploadTo: 'icons',
                   data: {
                     type: 'icon',
-                    community_id: new_community_id
+                    community_id: '{{community_data.id}}'
                   }
                 });
               }
 
               if(document.getElementById('community-wallpaper-file').files.length != 0){
-                expected_success_msgs.push('wallpaper_upload');
                 uploader.upload(document.getElementById('community-wallpaper-file'), {
                   uploadTo: 'wallpapers',
                   data: {
                     type: 'wallpaper',
-                    community_id: new_community_id
+                    community_id: '{{community_data.id}}'
                   }
                 }); 
               }
+              break;
+
+              case 'widget_submit_res':
+              socket.emit('available_widgets_req','{{community_data.id}}');
+              break;
             }
-            if(check_if_finished() && new_community_id !== null){
-              window.location.replace('/communities?id='+new_community_id);
-            }
+
           }
         }
       );
@@ -255,7 +293,8 @@
       $(document).ready(function(){
         $('#community-submit-btn').click(
           () => {
-            socket.emit('community_submit',{
+            socket.emit('edit_community',{
+              community_id: "{{community_data.id}}",
               name: $('#community-name').val(),
               description: $('#community-description').val(),
               tags: $('#community-tags').val()
@@ -264,6 +303,50 @@
           }
         );
       });
+    </script>
+
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/dragula/3.7.2/dragula.min.js'></script>
+
+    <script src='/js/WidgetLayoutEngine.js'></script>
+    <script type="text/javascript" src="/js/WidgetUIDefinitions.js"></script>
+    <script type="text/javascript">
+
+
+      window.addEventListener('load',function(){
+        let wle = WidgetLayoutEngine(
+          WidgetUIDefinitions,
+          document.getElementById('wle'),
+          null,
+          {
+            template: true,
+            background: '{{{community_data.wallpaper}}}',
+            defaultBackgroundImage: 'https://www.transparenttextures.com/patterns/3px-tile.png',
+            save_callback: function () {
+             socket.emit(
+                'layout_submit_req',
+                { 
+                  community_id : '{{community_data.id}}',
+                  layout : wle.summarize_template() 
+                }
+              );
+            }
+          }
+        );
+
+        socket.on('available_widgets_res',
+          function(widget){
+            wle.add_available_widget(
+              {
+                type:widget.type,
+                id:widget.id,
+                data: widget.data           
+              }
+            );
+          }
+        );        
+      })
+
+  
     </script>
 
   </body>
