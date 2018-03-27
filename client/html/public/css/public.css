@@ -15,6 +15,7 @@ body {
   padding-top: 65px; 
 }
 
+
 #notifications-count {
   background-color: #fa3e3e;
   border-radius: 2px;
@@ -103,6 +104,11 @@ body {
   height: 30px;  
 }
 
+#tournament-creation-icon img{
+  width: 30px;
+  height: 30px;  
+}
+
 #profile-dropdown img{
   width: 30px;
   height: 30px;
@@ -131,8 +137,9 @@ body {
 }
 
 .btn-primary {
-   background-color: #575a5b;
-   border:1px solid black;
+  background-color: #575a5b;
+  border:0;
+  font-family: Raleway;
 }
 
 .btn-primary:hover{

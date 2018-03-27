@@ -10,6 +10,7 @@
     <title>4BAR - Communities</title>
 
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
+    <link href="https://fonts.googleapis.com/css?family=Raleway:400,700" rel="stylesheet">
 
     <link href="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" rel="stylesheet"/>
 
@@ -53,6 +54,11 @@
                 <button class="btn btn-outline-primary my-2 my-sm-0" id='toggle-membership-btn' data-is-member="false"  onclick="toggle_membership();">Join Community</button>
               {{/if}}
             </li>
+            {{#if c_edit_privileges}}
+            <li class="nav-item">
+              <a class="nav-link" href="/tournament_creation?id={{community_data.id}}" id="tournament-creation-icon" data-toggle="tooltip" data-placement="bottom" title="Tournament Creation"><img src="/site/trophy.png"></a>
+            </li>
+            {{/if}}
             <li class="nav-item">
               <a class="nav-link" href="/community_creation" id="community-creation-icon" data-toggle="tooltip" data-placement="bottom" title="Community Creation"><img src="/site/community-creation.png"></a>
             </li>
@@ -84,7 +90,7 @@
       <div id="sidebar-wrapper">
           <ul class="sidebar-nav">
               <li>
-                  <a class="active" href="/home">Home</a>
+                  <a href="/home">Home</a>
               </li>
               <li>
                   <a href="/marketplace">Marketplace</a>
@@ -110,7 +116,7 @@
                 <hr>
               </li>
               <li>
-                <a class="sidebar-title" href="/search?query_field=tournaments"><h5>Tournaments</h5></a>
+                <a class="sidebar-title" href="/my_tournaments"><h5>Tournaments</h5></a>
               </li>
               {{#each user_data.tournaments}}
               <li>
@@ -180,6 +186,7 @@
     <script>
       let toggle_membership_btn = document.getElementById('toggle-membership-btn');
       let edit_button = document.getElementById('edit-community');
+      let tournament_icon = document.getElementById('tournament-creation-icon');
       function toggle_membership(){
         socket.emit('toggle_community_membership',{{{community_data.id}}});
         if(toggle_membership_btn.getAttribute('data-is-member') == 'false'){
@@ -190,6 +197,7 @@
           toggle_membership_btn.innerHTML = 'Join Community';
           toggle_membership_btn.setAttribute('data-is-member','false');
           edit_button.style.display = "none";
+          tournament_icon.style.display = "none";
         }
       }
 

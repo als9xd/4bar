@@ -54,23 +54,18 @@ const WidgetUIDefinitions = {
   twitter: function(data,widget_container){
     let widget = document.createElement('a');
     widget.classList.add("twitter-follow-button");
+    widget.setAttribute('data-show-count',"false");
+    widget_container.style.width = "200px";
     widget.href = data.url;
-    widget_container.style.width = '0';
 
-    let script = document.createElement('script');
-    script.src = "https://platform.twitter.com/widgets.js";
+    let twitter_script = document.getElementById('twitter-script');
+    if(!twitter_script){
+      let script = document.createElement('script');
+      script.src = "https://platform.twitter.com/widgets.js";
+      script.charset = 'utf-8';
+      document.head.appendChild(script);
+    }
 
-    script.onload = function(){
-        twttr.events.bind(
-          'loaded',
-          function (event) {
-            event.widgets.forEach(function (widget) {
-                widget_container.style.width($(widget_container).children().eq(0).width()+20);
-            });
-          }
-        );
-
-    };
     return widget;
   },
 

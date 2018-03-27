@@ -205,7 +205,7 @@ module.exports = function(pg_conn){
 					callback(false,{error:'Please supply a twitter account name'});
 					return;
 				}
-				let url = "https://twitter.com/intent/tweet?screen_name="+data.screen_name+"&ref_src=twsrc%5Etfw";
+				let url = "https://twitter.com/"+data.screen_name+"?ref_src=twsrc%5Etfw";
 				pg_client.query(
 					"INSERT INTO twitter_widget (community_id,url) "+
 					"VALUES ($1,$2)",

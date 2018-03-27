@@ -95,8 +95,9 @@ module.exports = function(pg_conn){
 					req.membership_information.communities = communities.rows;
 
 					pg_conn.client.query(
-						"SELECT tournaments.* FROM tournaments \
+						"SELECT tournaments.*,communities.id as community_id,communities.name as community_name,communities.icon as community_icon FROM tournaments \
 						INNER JOIN tournament_attendees ON tournaments.id = tournament_attendees.tournament_id \
+						INNER JOIN communities ON tournaments.community_id = communities.id \
 						WHERE tournament_attendees.user_id = $1\
 						",
 						[
