@@ -14,10 +14,11 @@
 
     <link href="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" rel="stylesheet"/>
 
+    <link rel="stylesheet" href="/css/jquery.tagsinput.css">
+
     <link rel="stylesheet" href="/css/public.css">
     <link rel="stylesheet" href="/css/sidebar.css">
-
-    <link rel="stylesheet" href="/css/jquery.tagsinput.css">
+    <link rel="stylesheet" href="/css/friends_list.css">
 
     <script src="/socket.io/socket.io.js"></script>
     <script type="text/javascript">let socket = io();</script>
@@ -27,6 +28,15 @@
   <body>
 
     <div id="wrapper" data-toggle-on='false'>
+      
+      <!-- Friends List -->
+      <div class="btn-group dropup" id="friends">
+        <button type="button" id="friends-toggle" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <h5>Friends</h5>
+        </button>
+        <div class="dropdown-menu" id="friends-menu">
+        </div>
+      </div>
 
       <!-- Navbar -->
       <nav id="navbar-wrapper" class="navbar navbar-toggleable-sm navbar-inverse bg-inverse fixed-top navbar-expand-sm">
@@ -88,7 +98,7 @@
                 <hr>
               </li>
               <li>
-                <a class="sidebar-title" href="/my_communities"><h5>Communities</h5></a>
+                <a class="sidebar-title" href="/profile?active_field=communities"><h5>Communities</h5></a>
               </li>
               {{#each user_data.communities}}
               <li>
@@ -99,7 +109,7 @@
                 <hr>
               </li>
               <li>
-                <a class="sidebar-title" href="/my_tournaments"><h5>Tournaments</h5></a>
+                <a class="sidebar-title" href="/profile?active_field=tournaments"><h5>Tournaments</h5></a>
               </li>
               {{#each user_data.tournaments}}
               <li>
@@ -168,72 +178,94 @@
     <script src="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
     <script src="/js/NotificationHandler.js"></script>
     <script type="text/javascript">
-      let expected_success_msgs = [
-        'community_creation'
-      ];
-
-      let received_success_msgs = {
-
-      };
-
-      let check_if_finished = function(){
-        for(let i = 0; i < expected_success_msgs.length;i++){
-          if(typeof received_success_msgs[expected_success_msgs[i]] === 'undefined'){
-            return false;
-          }
-        }
-        return true;
-      }
-
-      let new_community_id = null;
-
       let ntf_hndlr = NotificationHandler(
         toastr,
-        socket,
-        {
-          on_success: (notification) => {
-            received_success_msgs[notification.name] = true;
-            if(notification.name === 'community_creation'){
-              new_community_id = notification.community_id;
-
-              if(document.getElementById('community-icon-file').files.length != 0){
-                expected_success_msgs.push('icon_upload');
-                uploader.upload(document.getElementById('community-icon-file'), {
-                  uploadTo: 'icons',
-                  data: {
-                    type: 'icon',
-                    community_id: new_community_id
-                  }
-                });
-              }
-
-              if(document.getElementById('community-wallpaper-file').files.length != 0){
-                expected_success_msgs.push('wallpaper_upload');
-                uploader.upload(document.getElementById('community-wallpaper-file'), {
-                  uploadTo: 'wallpapers',
-                  data: {
-                    type: 'wallpaper',
-                    community_id: new_community_id
-                  }
-                }); 
-              }
-            }
-            if(check_if_finished() && new_community_id !== null){
-              window.location.replace('/communities?id='+new_community_id);
-            }
-          }
-        }
+        socket
       );
       uploader.on('error', function(err) {
         ntf_hndlr.build_notification({error:String(err)});
       });
     </script>
 
+    <script>
+
+      let expected_status_msgs = {
+          'community_creation_status': true,
+          'wallpaper_upload_status' : document.getElementById('community-wallpaper-file').files.length > 0 ? true : false,
+          'icon_upload_status' : document.getElementById('community-icon-file').files.length > 0 ? true : false
+      };
+
+      let received_status_msgs = {};
+
+      let on_finished = function(callback){
+        for(let i in expected_status_msgs){
+          if(expected_status_msgs.hasOwnProperty(i) && expected_status_msgs[i] === true){
+            if(typeof received_status_msgs[i] === 'undefined'){
+              return;
+            }
+          }
+        }
+        callback();
+      }
+
+      let new_community_id = null;
+
+      for(let i in expected_status_msgs){
+        if(expected_status_msgs.hasOwnProperty(i)){
+          socket.on(i,function(status){
+            received_status_msgs[i] = status;
+            if(i === 'community_creation_status'){
+              new_community_id = status.new_community_id;
+
+              uploader.upload(document.getElementById('community-wallpaper-file'), {
+                uploadTo: 'wallpapers',
+                data: {
+                  type: 'wallpaper',
+                  community_id: new_community_id
+                }
+              }); 
+
+              uploader.upload(document.getElementById('community-icon-file'), {
+                uploadTo: 'icons',
+                data: {
+                  type: 'icon',
+                  community_id: new_community_id
+                }
+              });
+
+            }
+            on_finished(
+              function(){
+                let sleep = function(time) {
+                  return new Promise((resolve) => setTimeout(resolve, time));
+                }
+                sleep(500).then(
+                  ()=>{
+                    window.location.replace('/communities?id='+new_community_id);
+                  }
+                )
+                
+              }
+            );
+          });
+        }
+      }
+    </script>
+
+    <!-- Dropdown Notifications -->
+    <script src="/js/DropdownNotificationsDefinitions.js"></script>
     <script src="/js/DropdownNotificationsHandler.js"></script>
     <script type="text/javascript">
       let dd_ntf_hndler = DropdownNotificationsHandler(
-        socket
+        socket,
+        DropdownNotificationsDefinitions
       );
+    </script>
+
+    <!-- Friends List -->
+    <script type="text/javascript" src="/js/FriendsListHandler.js"></script>
+    <script type="text/javascript">
+      let fl_hndler = FriendsListHandler(socket);
     </script>
 
     <!-- Menu Toggle Script -->

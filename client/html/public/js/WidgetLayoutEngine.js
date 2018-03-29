@@ -114,6 +114,7 @@ let WidgetLayoutEngine = function(widget_ui_definitions,parent,background_parent
   let wle_layout_background = document.createElement('div');
   wle_layout_background.style = 'min-height: 100% !important;';
   wle_layout_background.style.height = '100%';
+  wle_layout_background.style.backgroundSize = 'cover';
 
   if(background_parent === null){
     background_parent = wle_layout_background;

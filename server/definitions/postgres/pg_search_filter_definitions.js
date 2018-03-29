@@ -122,16 +122,6 @@ module.exports = function(pg_client){
 
 		/********************************************************************************/
 
-		tournaments: function(input){
-			return new Promise(
-				function(resolve,reject){
-					resolve();
-				}
-			);
-		},
-
-		/********************************************************************************/
-
 		users: function(input,settings){
 			let conjunction = 'AND';
 			if(settings && settings.intersection === true){
@@ -179,7 +169,7 @@ module.exports = function(pg_client){
 			return new Promise(
 				function(resolve,reject){
 					pg_client.query(
-						"SELECT t.name,t.start_date,t.location,t.description,t.id,t.community_id,communities.name as community_name,array_agg(tournament_tags.tag) as tags \
+						"SELECT t.name,t.start_date,t.signup_deadline,t.location,t.description,t.id,t.community_id,communities.name as community_name,array_agg(tournament_tags.tag) as tags \
 						FROM tournament_tags,\
 							(SELECT tournaments.* FROM tournaments \
 							INNER JOIN tournament_tags on tournaments.id = tournament_tags.tournament_id \
@@ -188,7 +178,7 @@ module.exports = function(pg_client){
 							(to_tsvector(tournaments.location) @@ plainto_tsquery($2) OR LENGTH($2) = 0) "+conjunction+" \
 							(to_tsvector(tournament_tags.tag) @@ plainto_tsquery($3) OR LENGTH($3) = 0) \
 							GROUP BY tournaments.id) as t INNER JOIN communities ON communities.id = t.community_id WHERE t.id = tournament_tags.tournament_id \
-						GROUP BY t.name,t.start_date,t.location,t.description,t.id,t.community_id,communities.name \
+						GROUP BY t.name,t.start_date,t.signup_deadline,t.location,t.description,t.id,t.community_id,communities.name \
 						",
 						[
 							(typeof input == 'string' || input instanceof String) ? input || '' : input.name || '',

@@ -21,7 +21,10 @@
 
     <link rel="stylesheet" href="/css/public.css">
     <link rel="stylesheet" href="/css/sidebar.css">
+    <link rel="stylesheet" href="/css/friends_list.css">
+
     <link rel="stylesheet" href="/css/geolocation.css">
+
 
     <!-- Google maps -->
     <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC-WvQjzOOtExbBjLCwRflnSS2wL1gKN6w"
@@ -36,6 +39,15 @@
   <body>
 
     <div id="wrapper" data-toggle-on='false'>
+
+      <!-- Friends List -->
+      <div class="btn-group dropup" id="friends">
+        <button type="button" id="friends-toggle" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <h5>Friends</h5>
+        </button>
+        <div class="dropdown-menu" id="friends-menu">
+        </div>
+      </div>
 
       <!-- Navbar -->
       <nav id="navbar-wrapper" class="navbar navbar-toggleable-sm navbar-inverse bg-inverse fixed-top navbar-expand-sm">
@@ -98,7 +110,7 @@
                 <hr>
               </li>
               <li>
-                <a class="sidebar-title" href="/my_communities"><h5>Communities</h5></a>
+                <a class="sidebar-title" href="/profile?active_field=communities"><h5>Communities</h5></a>
               </li>
               {{#each user_data.communities}}
               <li>
@@ -109,7 +121,7 @@
                 <hr>
               </li>
               <li>
-                <a class="sidebar-title" href="/my_tournaments"><h5>Tournaments</h5></a>
+                <a class="sidebar-title" href="/profile?active_field=tournaments"><h5>Tournaments</h5></a>
               </li>
               {{#each user_data.tournaments}}
               <li>
@@ -151,11 +163,20 @@
       );
     </script>
 
+    <!-- Dropdown Notifications -->
+    <script src="/js/DropdownNotificationsDefinitions.js"></script>
     <script src="/js/DropdownNotificationsHandler.js"></script>
     <script type="text/javascript">
       let dd_ntf_hndler = DropdownNotificationsHandler(
-        socket
+        socket,
+        DropdownNotificationsDefinitions
       );
+    </script>
+
+    <!-- Friends List -->
+    <script type="text/javascript" src="/js/FriendsListHandler.js"></script>
+    <script type="text/javascript">
+      let fl_hndler = FriendsListHandler(socket);
     </script>
 
     <!-- Menu Toggle Script -->

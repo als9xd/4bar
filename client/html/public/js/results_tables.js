@@ -45,3 +45,27 @@ $(document).ready(function($) {
         }
     });
 });
+
+let __getUrlParametergetUrlParameter = function getUrlParameter(sParam) {
+    let sPageURL = decodeURIComponent(window.location.search.substring(1)),
+        sURLVariables = sPageURL.split('&'),
+        sParameterName,
+        i;
+
+    for (i = 0; i < sURLVariables.length; i++) {
+        sParameterName = sURLVariables[i].split('=');
+
+        if (sParameterName[0] === sParam) {
+            return sParameterName[1] === undefined ? true : sParameterName[1];
+        }
+    }
+};
+
+window.addEventListener('load',
+  function(){
+    let query_table = document.getElementById(__getUrlParametergetUrlParameter('active_field')+'-title');
+    if(query_table){
+      query_table.click();
+    }
+  }
+);

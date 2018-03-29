@@ -1,5 +1,5 @@
 let wrapper =  $("#wrapper");
-let friends_list= $('#friends-list')
+let friends_list= $('#friends')
 let menu_toggle = $("#menu-toggle");
 $(menu_toggle).click(function(e) {
     e.preventDefault();
@@ -15,8 +15,8 @@ $(menu_toggle).click(function(e) {
 let ignore_divs = [
   '#menu-toggle',
   '#sidebar-wrapper',
-  '#friends-list',
-  '#friends-dropdown-menu'
+  '#friends',
+  '#friends-menu'
 ]
 
 $('html').click(function(evt){    
@@ -32,9 +32,9 @@ $('html').click(function(evt){
       }
 });
 
-$('#friends-dropup').on('show.bs.dropdown', function() {
+$('#friends-menu').on('show.bs.dropdown', function() {
   $(this).find('.dropdown-menu').first().stop(true, true).slideDown();
 });
-$('#friends-dropup').on('hide.bs.dropdown', function() {
+$('#friends-menu').on('hide.bs.dropdown', function() {
   $(this).find('.dropdown-menu').first().stop(true, true).slideUp();
 });

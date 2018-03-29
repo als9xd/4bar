@@ -101,7 +101,11 @@ module.exports = class SocketIOConnector{
 		
 		self.io.on('connection',function(socket){
 
-		    var uploader = new self.SocketIOFile(socket, {
+			// This allows other users to send a notification to another user by their user_id
+			socket.join(socket.handshake.session.user_id);
+
+
+		    let uploader = new self.SocketIOFile(socket, {
 		        uploadDir: {			// multiple directories,
 		        	avatar: self.config.root_dir+'/client/media/avatars',
 		        	icons: self.config.root_dir+'/client/media/icons',
@@ -142,7 +146,8 @@ module.exports = class SocketIOConnector{
 
 							socket.handshake.session.save();
 
-							socket.emit('notification',{success: "Successfully uploaded avatar",url: fileInfo.name,name:'avatar_submit'});
+							socket.emit('notification',{success: "Successfully uploaded avatar"});
+							socket.emit('avatar_upload_status',{status:true,url:fileInfo.name});
 						}
 					);
 					break;
@@ -193,7 +198,8 @@ module.exports = class SocketIOConnector{
 										return;
 									}
 
-									socket.emit('notification',{success: "Successfully uploaded wallpaper",name: "wallpaper_upload"});
+									socket.emit('notification',{success: "Successfully uploaded wallpaper"});
+									socket.emit('wallpaper_upload_status',{status:true});
 								}
 							);
 
@@ -247,7 +253,8 @@ module.exports = class SocketIOConnector{
 										return;
 									}
 
-									socket.emit('notification',{success: "Successfully uploaded icon",name:"icon_upload"});
+									socket.emit('notification',{success: "Successfully uploaded icon"});
+									socket.emit('icon_upload_status',{status:true});
 								}
 							);
 		    			}

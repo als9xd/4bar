@@ -366,53 +366,7 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 				);
 			});
 		},
-
-		/********************************************************************************/
-
-		() => {
-			app.get('/my_communities',middleware['check_authorization'],middleware['membership_information'],function(req,res){
-				res.render(
-					'private/my_communities',
-					{
-						/* Navbar,Sidebar data */
-						user_data: {
-							username: req.session.username,
-							id: req.session.user_id,
-							email: req.session.email,
-							avatar: req.session.avatar,
-							communities: req.membership_information.communities,
-							tournaments: req.membership_information.tournaments
-						}
-						/* Navbar,Sidebar data */
-
-					}
-				);
-			});
-		},
-
-		/********************************************************************************/
-
-		() => {
-			app.get('/my_tournaments',middleware['check_authorization'],middleware['membership_information'],function(req,res){
-				res.render(
-					'private/my_tournaments',
-					{
-						/* Navbar,Sidebar data */
-						user_data: {
-							username: req.session.username,
-							id: req.session.user_id,
-							email: req.session.email,
-							avatar: req.session.avatar,
-							communities: req.membership_information.communities,
-							tournaments: req.membership_information.tournaments
-						}
-						/* Navbar,Sidebar data */
-
-					}
-				);
-			});
-		},
-
+		
 		/********************************************************************************/
 
 		//////////////////////////////////////////////////////////////////////
@@ -424,64 +378,74 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 
 			app.get('/profile', middleware['check_authorization'],middleware['membership_information'],function(req, res){
 
-				if(typeof req.query['id'] !== 'undefined' && isNaN(req.query['id'])){
+				if(typeof req.query['id'] === 'undefined'){
+					req.query['id'] = req.session.user_id;
+				}
+
+				let profile_id = Number(req.query['id']);
+
+				if(isNaN(req.query['id'])){
 					res.render('public/error',{error:'Profile id must be a number'});
 					return;
 				}
 
-				let profile_id;
-				if(typeof req.query['id'] === 'undefined'){
-					profile_id = Number(req.session.user_id);
-				}else{
-					profile_id = Number(req.query['id']);
-				}
-
 				pg_conn.client.query(
-					"SELECT c.*,array_agg(community_tags.tag) as tags FROM community_tags, \
-						(SELECT communities.id,communities.name,communities.description,communities.icon,communities.num_members FROM community_members \
-						INNER JOIN communities ON communities.id = community_members.community_id \
-						INNER JOIN users ON community_members.user_id = users.id \
-						WHERE users.id = $1 GROUP BY communities.id,communities.name,communities.description,communities.icon) as c GROUP BY c.id,c.name,c.description,c.icon,c.num_members",
+					"SELECT id,username,name,email,avatar FROM users WHERE id = $1 LIMIT 1",
 					[
 						profile_id
 					],
-					function(err,communities){
+					function(err,profile){
 						if(err){
-							console.log(err)
-							res.render('public/error',{error:'Could not get community membership information'});
+							console.log(err);
+							res.render('public/error',{error:'Could not get user avatar'});
+							return;
+						}
+						if(typeof profile_id === 'undefined' || profile.rowCount === 0){
+							res.render('public/error',{error:'No user with id of '+profile_id});
 							return;
 						}
 
 						pg_conn.client.query(
-							"SELECT t.*,array_agg(tournament_tags.tag) as tags FROM tournament_tags, \
-								(SELECT tournaments.id,tournaments.name,tournaments.description,tournaments.location,tournaments.start_date,tournaments.signup_deadline FROM tournaments \
-								INNER JOIN tournament_attendees ON tournament_attendees.tournament_id = tournaments.id \
-								WHERE tournament_attendees.user_id = $1 GROUP BY tournaments.id,tournaments.name,tournaments.description,tournaments.location,tournaments.start_date,tournaments.signup_deadline) as t \
-							GROUP BY t.id,t.name,t.description,t.location,t.start_date,t.signup_deadline",
+							"SELECT f_c.num_members,f_c.id,f_c.name,f_c.description,f_c.last_activity,f_c.icon,array_agg(community_tags.tag) as tags \
+							FROM community_tags,\
+								(SELECT communities.* FROM communities \
+								INNER JOIN community_tags on communities.id = community_tags.community_id \
+								INNER JOIN community_members ON community_members.community_id = communities.id \
+								WHERE community_members.user_id = $1 \
+								GROUP BY communities.id) as f_c WHERE f_c.id = community_tags.community_id \
+							GROUP BY f_c.num_members,f_c.id,f_c.name,f_c.description,f_c.last_activity,f_c.icon ",
 							[
 								profile_id
 							],
-							function(err,tournaments){
+							function(err,communities){
 								if(err){
-									console.log(err);
-									res.render('public/error',{error:'Could not get tournament membership information'});
+									console.log(err)
+									res.render('public/error',{error:'Could not get community membership information'});
 									return;
 								}
+
 								pg_conn.client.query(
-									"SELECT id,username,name,email,avatar FROM users WHERE id = $1 LIMIT 1",
+								"SELECT t.name,t.start_date,t.signup_deadline,t.location,t.description,t.id,t.community_id,communities.name as community_name,array_agg(tournament_tags.tag) as tags \
+								FROM tournament_tags,\
+									(SELECT tournaments.* FROM tournaments \
+									INNER JOIN tournament_tags on tournaments.id = tournament_tags.tournament_id \
+									INNER JOIN tournament_attendees ON tournament_attendees.tournament_id = tournaments.id \
+									WHERE tournament_attendees.user_id = $1 \
+									GROUP BY tournaments.id) as t INNER JOIN communities ON communities.id = t.community_id WHERE t.id = tournament_tags.tournament_id \
+								GROUP BY t.name,t.start_date,t.signup_deadline,t.location,t.description,t.id,t.community_id,communities.name",
 									[
 										profile_id
 									],
-									function(err,profile){
+									function(err,tournaments){
 										if(err){
 											console.log(err);
-											res.render('public/error',{error:'Could not get user avatar'});
+											res.render('public/error',{error:'Could not get tournament membership information'});
 											return;
 										}
-
+			
 										pg_conn.client.query(
-											"SELECT 1 FROM friend_requests WHERE rx_user_id = $1 AND tx_user_id = $2 "+
-											"AND EXISTS (SELECT 1 FROM friend_requests WHERE rx_user_id = $2 AND tx_user_id = $1 LIMIT 1) LIMIT 1",
+											"SELECT 1 FROM friend_requests WHERE tx_user_id = $1 AND rx_user_id = $2 "+
+											" LIMIT 1",
 											[
 												req.session.user_id,
 												profile_id
@@ -517,7 +481,7 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 
 													modify_view: profile_id === req.session.user_id,
 
-													is_friend: typeof is_friend !== 'undefined' && is_friend.rowCount
+													sent_friend_request: typeof is_friend !== 'undefined' && is_friend.rowCount
 												});
 											}
 										);
@@ -527,6 +491,7 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 						);
 					}
 				);
+
 			});
 
 		},

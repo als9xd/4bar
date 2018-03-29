@@ -1,31 +1,10 @@
-let dd_notification_definitions = {
-	friend_requests : function(data){
-		let notification_el = document.createElement('div');
+let DropdownNotificationsHandler = function(socket,dd_ntf_defs) {
 
-		let notification_avatar = document.createElement('img');
-		notification_avatar.src = data.avatar === null ? '/site/no-avatar.jpg': '/avatars/'+data.avatar;
-		notification_avatar.classList.add('d-inline-block');
-		notification_el.appendChild(notification_avatar)
+	let msMinute = 60*1000;
+	let msHour = 60*60*1000;
+	let msDay = 60*60*24*1000;
 
-		let notification_text = document.createElement('h6');
-		notification_text.style.marginLeft = "5px";
-		notification_text.innerHTML = 'Friend Request: '+data.username;
-		notification_text.classList.add('d-inline-block');
-		notification_el.appendChild(notification_text);		
 
-		let notification_btn = document.createElement('button');
-		notification_btn.style.marginLeft = "5px";
-		notification_btn.style.cursor = "pointer";
-		notification_btn.classList.add('btn','btn-success','btn-sm','d-inline-block');
-		notification_btn.innerHTML = 'Accept';
-		notification_btn.onclick = function(){socket.emit('friend_request_submit',{recipient_user_id:data.id})};
-		notification_el.appendChild(notification_btn);		
-
-		return notification_el;
-	}
-}
-
-let DropdownNotificationsHandler = function(socket) {
 	socket.emit('dropdown_notifications_req');
 	let dropdown_menu = document.getElementById('notification-dropdown-menu');
 	let dropdown_count = document.createElement('span');
@@ -33,19 +12,42 @@ let DropdownNotificationsHandler = function(socket) {
 	dropdown_count.innerHTML = 0;
 	dropdown_count.style.display = 'none';
 	document.getElementById('notification-dropdown').appendChild(dropdown_count);
+
+	this.inc_dropdown_counter = function(number){
+		if(typeof number !== 'undefined'){
+			dropdown_count.innerHTML = Number(dropdown_count.innerHTML)+number;
+		}else{
+			dropdown_count.innerHTML = Number(dropdown_count.innerHTML)+1;
+		}
+		if(dropdown_count.innerHTML > 0){
+			dropdown_count.style.display = 'block';
+		}else{
+			dropdown_count.style.display = 'none';
+		}
+	}
+
+	this.dec_dropdown_counter = function(number){
+		if(typeof number !== 'undefined'){
+			dropdown_count.innerHTML = Number(dropdown_count.innerHTML)-number;
+		}else{
+			dropdown_count.innerHTML = Number(dropdown_count.innerHTML)-1;
+		}
+		if(dropdown_count.innerHTML > 0){
+			dropdown_count.style.display = 'block';
+		}else{
+			dropdown_count.style.display = 'none';
+		}		
+	}
+
 	socket.on('dropdown_notifications_res',function(notifications){
 		let new_dropdown_count = 0;
 		for(let type in notifications){
 			if(notifications.hasOwnProperty(type)){
 				for(let i = 0; i < notifications[type].length;i++){
 					new_dropdown_count++;
-					let notification_el = dd_notification_definitions[type](notifications[type][i]);
+					let notification_el = dd_ntf_defs[type](notifications[type][i]);
 
 					let old_date = new Date(notifications[type][i].date);
-
-					let msMinute = 60*1000;
-					let msHour = 60*60*1000;
-		    		let msDay = 60*60*24*1000;
 
 					let notification_date = document.createElement('div');
 					let set_time =function(){
@@ -81,9 +83,8 @@ let DropdownNotificationsHandler = function(socket) {
 				}
 			}
 		}
-		dropdown_count.innerHTML = Number(dropdown_count.innerHTML)+new_dropdown_count;
-		if(dropdown_count.innerHTML > 0){
-			dropdown_count.style.display = 'block';
-		}			
+		inc_dropdown_counter(new_dropdown_count);	
 	});
+
+	return this;
 }

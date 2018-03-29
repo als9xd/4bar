@@ -26,38 +26,6 @@ const path = require('path');
 
 const fs = require('fs');
 
-let dropdown_notification_definitions = function(pg_conn,socket,data){
-	return {
-		
-		//Get all friend requests and the senders user information
-		friend_requests: new Promise(
-			function(resolve,reject){
-				pg_conn.client.query(
-					"SELECT users.id,users.username,users.avatar,notifications.date,notifications.read,notifications.id as notification_id FROM users "+
-					  "INNER JOIN friend_requests ON users.id = friend_requests.tx_user_id "+
-					  "INNER JOIN notifications ON friend_requests.notification_id = notifications.id "+
-					  "WHERE notifications.id IS NOT NULL AND "+
-					  "notifications.active = TRUE AND "+
-					  "friend_requests.rx_user_id = $1 AND "+
-					  "NOT EXISTS (SELECT 1 FROM friend_requests WHERE rx_user_id = friend_requests.tx_user_id AND tx_user_id = $1)",
-					[
-						socket.handshake.session.user_id
-					],
-					function(err,results){
-						if(err){
-							console.log(err);
-							socket.emit('notification',{error:'Could not get friend requests'})
-							reject();
-						}
-						resolve({type:'friend_requests',data:results.rows});
-					}
-				)
-			}
-		),
-
-	};
-}
-
 module.exports = function(config,pg_conn,ss,uuidv1){	
 	
 	let widget_definitions = pg_conn.widget_definitions;
@@ -138,6 +106,7 @@ module.exports = function(config,pg_conn,ss,uuidv1){
 										socket.handshake.session.save();
 
 										socket.emit('notification',{success: 'Successfully Logged in!'});	
+										socket.emit('login_status',{status:true});
 									}else{
 										socket.emit('notification',{error: 'Invalid username or password'});
 									}
@@ -305,6 +274,7 @@ module.exports = function(config,pg_conn,ss,uuidv1){
 												socket.handshake.session.save();
 
 												socket.emit('notification',{success:'Successfully registered!'});
+												socket.emit('register_status',{status:true});
 											}
 										);    			
 						    		}
@@ -329,9 +299,6 @@ module.exports = function(config,pg_conn,ss,uuidv1){
 					return;
 				}
 				
-				// This allows other users to send a notification to another user by their user_id
-				socket.join(socket.handshake.session.user_id);
-
 				pg_conn.client.query(
 					"SELECT users.id,users.username,users.avatar FROM users "+
 					  "INNER JOIN friend_requests ON users.id = friend_requests.rx_user_id "+
@@ -374,11 +341,9 @@ module.exports = function(config,pg_conn,ss,uuidv1){
 
 				let promises = [];
 
-				let dd_ntfs = dropdown_notification_definitions(pg_conn,socket)
-
-				for(let i in dd_ntfs){
-					if(dd_ntfs.hasOwnProperty(i)){
-						promises.push(dd_ntfs[i]);
+				for(let i in pg_conn.dropdown_notification_definitions){
+					if(pg_conn.dropdown_notification_definitions.hasOwnProperty(i)){
+						promises.push(pg_conn.dropdown_notification_definitions[i](socket));
 					}
 				}
 
@@ -420,10 +385,6 @@ module.exports = function(config,pg_conn,ss,uuidv1){
 					return;
 				}
 				
-
-				// This allows other users to send a notification to another user by their user_id
-				socket.join(socket.handshake.session.user_id);
-
 				pg_conn.client.query(
 					"SELECT 1 FROM friend_requests WHERE rx_user_id = $1 AND tx_user_id = $2 LIMIT 1",
 					[
@@ -504,12 +465,15 @@ module.exports = function(config,pg_conn,ss,uuidv1){
 																		id: socket.handshake.session.user_id,
 																		username: recipient_user_data.rows[0].username,
 																		avatar: recipient_user_data.rows[0].avatar,
-																		date: ntf_date
+																		date: ntf_date,
+																		// Display as a friend request 
+																		type: 'REQUEST'
 																	}
 																]
 															}	
 														);
 														socket.emit('notification',{success: 'Successfully sent friend request'});
+														socket.emit('friend_request_status',{status:true,type:'REQUEST'});
 													}else{
 														pg_conn.client.query(
 															"UPDATE notifications SET active = FALSE WHERE id = $1",
@@ -523,6 +487,21 @@ module.exports = function(config,pg_conn,ss,uuidv1){
 																	return;
 																}
 																socket.emit('notification',{success: 'Successfully accepted friend request'});
+																socket.emit('friend_request_status',{status:true,type:'ACCEPT'});
+																io.sockets.in(data.recipient_user_id).emit('dropdown_notifications_res',
+																	{
+																		friend_requests: 
+																		[
+																			{
+																				id: socket.handshake.session.user_id,
+																				username: recipient_user_data.rows[0].username,
+																				avatar: recipient_user_data.rows[0].avatar,
+																				date: ntf_date,
+																				type: 'ACCEPT'
+																			}
+																		]
+																	}	
+																);
 															}
 															
 														);
@@ -715,8 +694,15 @@ module.exports = function(config,pg_conn,ss,uuidv1){
 														return;
 													}
 
-													let tags_split = data.tags.split(',');
+													let unsanitize_tags_split = data.tags.split(',');
 
+													let tags_split = [];
+													for(let i = 0; i < unsanitize_tags_split.length;i++){
+														if(typeof unsanitize_tags_split[i] === 'string' && unsanitize_tags_split[i].length !== 0){
+															tags_split.push(unsanitize_tags_split[i]);
+														}
+													}
+													
 													let invalid_tag_lengths = []
 													for(let i = 0; i < tags_split.length;i++){
 														if(tags_split[i].length >  config.pg.varchar_limits.community_tags.tag){
@@ -761,7 +747,8 @@ module.exports = function(config,pg_conn,ss,uuidv1){
 																	}
 
 																	// 'name' is used to differentiate between file upload success messages so that we can upload files after the tournament has been successfully submitted
-																	socket.emit('notification',{success: 'Successfully created and joined tournament',name: 'tournament_creation',tournament_id: tournament_id.rows[0].id});
+																	socket.emit('notification',{success: 'Successfully created and joined tournament'});
+																	socket.emit('tournament_create_status',{status:true});
 																}
 															);
 														}
@@ -906,7 +893,8 @@ module.exports = function(config,pg_conn,ss,uuidv1){
 													}
 
 													// 'name' is used to differentiate between file upload success messages so that we can upload files after the community has been successfully submitted
-													socket.emit('notification',{success: 'Successfully created and joined community',name: 'community_creation',community_id: community_id.rows[0].id});
+													socket.emit('notification',{success: 'Successfully created and joined community'});
+													socket.emit('community_creation_status',{status: true,new_community_id: community_id.rows[0].id});
 												}
 											);
 										}
@@ -1105,8 +1093,8 @@ module.exports = function(config,pg_conn,ss,uuidv1){
 																	return;
 																}
 
-																socket.emit('notification',{success: 'Successfully edited the community',name: 'edit_community'});
-
+																socket.emit('notification',{success: 'Successfully edited the community'});
+																socket.emit('edit_community_status',{status:true});
 															}
 														);
 													}
@@ -1294,7 +1282,14 @@ module.exports = function(config,pg_conn,ss,uuidv1){
 															return;
 														}
 
-														let tags_split = data.tags.split(',');
+														let unsanitize_tags_split = data.tags.split(',');
+
+														let tags_split = [];
+														for(let i = 0; i < unsanitize_tags_split.length;i++){
+															if(typeof unsanitize_tags_split[i] === 'string' && unsanitize_tags_split[i].length !== 0){
+																tags_split.push(unsanitize_tags_split[i]);
+															}
+														}
 
 														let invalid_tag_lengths = []
 														for(let i = 0; i < tags_split.length;i++){
@@ -1324,6 +1319,7 @@ module.exports = function(config,pg_conn,ss,uuidv1){
 																}
 
 																socket.emit('notification',{success: 'Successfully updated tournament'});
+																socket.emit('edit_tournament_status',{status:true});
 															}
 														);
 
@@ -1417,6 +1413,7 @@ module.exports = function(config,pg_conn,ss,uuidv1){
 							return;
 						}
 						socket.emit('notification',{success:'Successfully saved layout'});
+						socket.emit('layout_submit_status',{status:true});
 					}
 				);
 			});
@@ -1479,6 +1476,9 @@ module.exports = function(config,pg_conn,ss,uuidv1){
 					widget_definitions[data.type].add(data.community_id,data.data,function(success,notification){
 						notification.name = "widget_submit_res";
 						socket.emit('notification',notification);
+						if(success){
+							socket.emit('widget_submit_status',{status:true});
+						}
 					});			
 				}else{
 					socket.emit('notification',{error:"Unknown widget type \'"+data.type+"\'"})
@@ -1526,6 +1526,7 @@ module.exports = function(config,pg_conn,ss,uuidv1){
 										return;
 									}
 									socket.emit('notification',{success:'Successfully left community'});							
+									socket.emit('toggle_community_status',{status:true});
 								}
 							);
 						}else if(is_member && is_member.rowCount === 0){
@@ -1545,6 +1546,7 @@ module.exports = function(config,pg_conn,ss,uuidv1){
 										return;
 									}
 									socket.emit('notification',{success:'Successfully joined community'});							
+									socket.emit('toggle_community_status',{status:true});
 								}
 							);
 						}
@@ -1618,6 +1620,7 @@ module.exports = function(config,pg_conn,ss,uuidv1){
 												return;
 											}
 											socket.emit('notification',{success:'Successfully left tournament'});							
+											socket.emit('toggle_tournament_status',{status:true});
 										}
 									);
 								}else if(is_member && is_member.rowCount === 0){
@@ -1639,6 +1642,7 @@ module.exports = function(config,pg_conn,ss,uuidv1){
 												return;
 											}
 											socket.emit('notification',{success:'Successfully joined tournament'});							
+											socket.emit('toggle_tournament_status',{status:true});
 										}
 									);
 								}

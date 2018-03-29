@@ -82,6 +82,8 @@ module.exports = class PgConnector{
 		this.sort_filter_definitions = require(config.root_dir+'/server/definitions/postgres/pg_sort_filter_definitions');
 
 		this.widget_definitions;
+
+		this.dropdown_notification_definitions = require(config.root_dir+'/server/definitions/postgres/pg_dropdown_notification_definitions')(this);
 	}
 
 	//////////////////////////////////////////////////////////////////////

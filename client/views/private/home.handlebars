@@ -16,20 +16,21 @@
 
     <link rel="stylesheet" href="/css/public.css">
     <link rel="stylesheet" href="/css/sidebar.css">
+    <link rel="stylesheet" href="/css/friends_list.css">
 
     <script src="/socket.io/socket.io.js"></script>
     <script type="text/javascript">let socket = io();</script>
     
- </head>
+  </head>
 
   <body>
 
     <!-- Friends List -->
-    <div class="btn-group dropup" style="bottom: 0;left:0;position:fixed;z-index: 1001;border:0;" id="friends-dropup">
-      <button style="color:white;border:0;cursor: pointer;" type="button" id="friends-list" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+    <div class="btn-group dropup" id="friends">
+      <button type="button" id="friends-toggle" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
         <h5>Friends</h5>
       </button>
-      <div class="dropdown-menu" id="friends-dropdown-menu">
+      <div class="dropdown-menu" id="friends-menu">
       </div>
     </div>
 
@@ -96,7 +97,7 @@
                 <hr>
               </li>
               <li>
-                <a class="sidebar-title" href="/my_communities"><h5>Communities</h5></a>
+                <a class="sidebar-title" href="/profile?active_field=communities"><h5>Communities</h5></a>
               </li>
               {{#each user_data.communities}}
               <li>
@@ -107,7 +108,7 @@
                 <hr>
               </li>
               <li>
-                <a class="sidebar-title" href="/my_tournaments"><h5>Tournaments</h5></a>
+                <a class="sidebar-title" href="/profile?active_field=tournaments"><h5>Tournaments</h5></a>
               </li>
               {{#each user_data.tournaments}}
               <li>
@@ -124,7 +125,6 @@
           <div class="container-fluid">
               <h1>Home</h1>
               <hr/>
-              <button onclick="document.getElementById('friends_list').classList.add('toggled');">test</button>
           </div>
       </div>
       <!-- /Page Content -->
@@ -149,16 +149,20 @@
       );
     </script>
 
+    <!-- Dropdown Notifications -->
+    <script src="/js/DropdownNotificationsDefinitions.js"></script>
     <script src="/js/DropdownNotificationsHandler.js"></script>
     <script type="text/javascript">
       let dd_ntf_hndler = DropdownNotificationsHandler(
-        socket
+        socket,
+        DropdownNotificationsDefinitions
       );
     </script>
 
-    <script type="text/javascript" src="/js/FriendsHandler.js"></script>
+    <!-- Friends List -->
+    <script type="text/javascript" src="/js/FriendsListHandler.js"></script>
     <script type="text/javascript">
-      let f_hndrl = FriendsHandler(socket);
+      let fl_hndler = FriendsListHandler(socket);
     </script>
 
     <!-- Menu Toggle Script -->

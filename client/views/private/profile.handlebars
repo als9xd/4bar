@@ -16,6 +16,7 @@
 
     <link rel="stylesheet" href="/css/public.css">
     <link rel="stylesheet" href="/css/sidebar.css">
+    <link rel="stylesheet" href="/css/friends_list.css">
     <link rel="stylesheet" href="/css/results_tables.css">
 
     <script src="/socket.io/socket.io.js"></script>
@@ -28,11 +29,11 @@
     <div id="wrapper" data-toggle-on='false'>
 
       <!-- Friends List -->
-      <div class="btn-group dropup" style="bottom: 0;left:0;position:fixed;z-index: 1001;border:0;" id="friends-dropup">
-        <button style="color:white;border:0;cursor: pointer;" type="button" id="friends-list" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+      <div class="btn-group dropup" id="friends">
+        <button type="button" id="friends-toggle" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
           <h5>Friends</h5>
         </button>
-        <div class="dropdown-menu" id="friends-dropdown-menu">
+        <div class="dropdown-menu" id="friends-menu">
         </div>
       </div>
 
@@ -52,8 +53,8 @@
           <ul class="navbar-nav ml-auto">
             <li class="nav-item" style="margin-top: auto;margin-bottom: auto;margin-right:10px">
               {{#unless modify_view}}
-              {{#unless is_friend}}
-              <button class="btn btn-outline-primary my-2 my-sm-0" onclick="socket.emit('friend_request_submit',{recipient_user_id:'{{profile_data.id}}'});">Send Friend Request</button>
+              {{#unless sent_friend_request}}
+              <button id="friend-request-btn" class="btn btn-outline-primary my-2 my-sm-0" onclick="socket.emit('friend_request_submit',{recipient_user_id:'{{profile_data.id}}'});">Send Friend Request</button>
               {{/unless}}
               {{/unless}}
             </li>
@@ -103,7 +104,7 @@
                 <hr>
               </li>
               <li>
-                <a class="sidebar-title" href="/my_communities"><h5>Communities</h5></a>
+                <a class="sidebar-title" href="/profile?active_field=communities"><h5>Communities</h5></a>
               </li>
               {{#each user_data.communities}}
               <li>
@@ -114,7 +115,7 @@
                 <hr>
               </li>
               <li>
-                <a class="sidebar-title" href="/my_tournaments"><h5>Tournaments</h5></a>
+                <a class="sidebar-title" href="/profile?active_field=tournaments"><h5>Tournaments</h5></a>
               </li>
               {{#each user_data.tournaments}}
               <li>
@@ -171,7 +172,7 @@
                   <tr class="clickable-row" data-href="/communities?id={{id}}">
                     <td><img src="{{#if icon includeZero=true}}/icons/{{{icon}}}{{else}}/site/no-icon.jpg{{/if}}" style="height: 30px;width: 30px"</td>
                     <td><h6>{{name}}</h6></td>
-                    <td>{{tags}}</td>
+                    <td>{{#each tags}}<a href="/search?query_field=communities&tags={{this}}&active_field=communities">{{this}}</a>{{#unless @last}},{{/unless}}{{/each}}</td>
                     <td class="extra">{{description}}</td>
                     <td class="extra">{{num_members}}</td>
                   </tr>
@@ -196,7 +197,7 @@
                   {{#each profile_data.tournaments}}
                   <tr class="clickable-row" data-href="/tournaments?id={{id}}">
                     <td><h7>{{name}}</h7></td>
-                    <td>{{tags}}</td>
+                    <td>{{#each tags}}<a href="/search?query_field=tournaments&tags={{this}}&active_field=tournaments">{{this}}</a>{{#unless @last}},{{/unless}}{{/each}}</td>
                     <td class="extra">{{description}}</td>
                     <td class="extra">{{location}}</td>
                     <td>{{start_date}}</td>
@@ -225,34 +226,41 @@
     <script src="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
     <script src="/js/NotificationHandler.js"></script>
     <script type="text/javascript">
+      let friend_request_btn = document.getElementById('friend-request-btn');
       let ntf_hndlr = NotificationHandler(
         toastr,
-        socket,
-        {
-          on_success: function(notification){
-            switch(notification.name){
-              case 'avatar_submit':
-              document.getElementById('profile-avatar').src = '/avatars/'+notification.url;
-              break;
-              case 'friend_request':
-              document.getElementById().style.display = 'none';
-              break;
-            }
-          }
-        }
-      );
-    </script>
-
-    <script src="/js/DropdownNotificationsHandler.js"></script>
-    <script type="text/javascript">
-      let dd_ntf_hndler = DropdownNotificationsHandler(
         socket
       );
     </script>
 
-    <script type="text/javascript" src="/js/FriendsHandler.js"></script>
+    <!-- Status Events -->
     <script type="text/javascript">
-      let f_hndrl = FriendsHandler(socket);
+      let profile_avatar = document.getElementById('profile-avatar');
+
+      socket.on('avatar_upload_status',function(data){
+        if(data.status === true){
+          if(profile_avatar){
+            profile_avatar.src = '/avatars/'+data.url;
+          }        
+        }
+      });    
+
+    </script>
+
+    <!-- Dropdown Notifications -->
+    <script src="/js/DropdownNotificationsDefinitions.js"></script>
+    <script src="/js/DropdownNotificationsHandler.js"></script>
+    <script type="text/javascript">
+      let dd_ntf_hndler = DropdownNotificationsHandler(
+        socket,
+        DropdownNotificationsDefinitions
+      );
+    </script>
+
+    <!-- Friends List -->
+    <script type="text/javascript" src="/js/FriendsListHandler.js"></script>
+    <script type="text/javascript">
+      let fl_hndler = FriendsListHandler(socket);
     </script>
 
     <!-- Menu Toggle Script -->
