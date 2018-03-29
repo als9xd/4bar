@@ -206,17 +206,25 @@ module.exports = function(config){
 		
 		/********************************************************************************/
 
-		dropdown_notifications:
-			"CREATE TABLE IF NOT EXISTS dropdown_notifications( \
+		notifications:
+			"CREATE TABLE IF NOT EXISTS notifications( \
 				id SERIAL PRIMARY KEY, \
-				recipient_user_id NUMERIC NOT NULL, \
-				sender_user_id NUMERIC NOT NULL, \
-				url TEXT, \
-				notification TEXT, \
-				date TEXT, \
-				read BOOLEAN \
-				)"
-		    
+				date TIMESTAMPTZ, \
+				read BOOL NOT NULL, \
+				active BOOL NOT NULL \
+			)"
+		,
+
+		/********************************************************************************/
+
+		friend_requests:
+			"CREATE TABLE IF NOT EXISTS friend_requests( \
+				notification_id NUMERIC, \
+				tx_user_id NUMERIC NOT NULL, \
+				rx_user_id NUMERIC NOT NULL, \
+				UNIQUE (tx_user_id,rx_user_id) \
+			)"
+		,
 		
 		/********************************************************************************/
 	}

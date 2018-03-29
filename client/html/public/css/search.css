@@ -1,24 +1,3 @@
-#filter-btn {
-	background: transparent;
-	border: 0;
-	outline:none
-}
-
-#filter-btn:active {
-	background: rgba(0,0,0,0.1);
-	outline:none;
-	border-radius: 3px;
-}
-
-#filter-btn:focus {
-	outline:none;
-}
-
-#filter-btn img{
-	cursor: pointer;
-	height: 40px;width: 40px;
-}
-
 .arrow-down{
 	margin-left: 3px;
 	margin-top: 5px;
@@ -46,14 +25,4 @@
 	margin-left: 20px;
 }
 
-ul.results-list{
-	list-style-type:none;
-}
 
-ul.results-list li{
-	margin-bottom: 10px;
-}
-
-ul.results-list li a{
-	text-decoration: none;
-}

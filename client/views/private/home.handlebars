@@ -24,6 +24,15 @@
 
   <body>
 
+    <!-- Friends List -->
+    <div class="btn-group dropup" style="bottom: 0;left:0;position:fixed;z-index: 1001;border:0;" id="friends-dropup">
+      <button style="color:white;border:0;cursor: pointer;" type="button" id="friends-list" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <h5>Friends</h5>
+      </button>
+      <div class="dropdown-menu" id="friends-dropdown-menu">
+      </div>
+    </div>
+
     <div id="wrapper" data-toggle-on='false'>
 
       <!-- Navbar -->
@@ -115,6 +124,7 @@
           <div class="container-fluid">
               <h1>Home</h1>
               <hr/>
+              <button onclick="document.getElementById('friends_list').classList.add('toggled');">test</button>
           </div>
       </div>
       <!-- /Page Content -->
@@ -144,6 +154,11 @@
       let dd_ntf_hndler = DropdownNotificationsHandler(
         socket
       );
+    </script>
+
+    <script type="text/javascript" src="/js/FriendsHandler.js"></script>
+    <script type="text/javascript">
+      let f_hndrl = FriendsHandler(socket);
     </script>
 
     <!-- Menu Toggle Script -->

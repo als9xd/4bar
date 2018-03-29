@@ -53,8 +53,52 @@ body {
   transition: all 0.5s ease;
 }
 
+#friends-list{
+  padding: 2px;
+  -webkit-transition: all 0.5s ease;
+  -moz-transition: all 0.5s ease;
+  -o-transition: all 0.5s ease;
+  transition: all 0.5s ease;
+  height: 22px;
+  width: 0;
+  padding: 0;
+  border-radius: 0 4px 0 0;
+  font-family: Raleway;
+  background-color:#292b2c;
+}
+
+#friends-dropdown-menu{
+  background: #292b2c;
+  border-radius: 2px 2px 0 0;
+  margin-bottom:2px;
+  border: 0;
+}
+
+#friends-dropdown-menu .dropdown-item{
+  color:white;
+  width: 250px;
+  padding: 0;
+  border: 0;
+}
+
+#friends-list{
+  box-shadow: none;
+}
+
+.dropup.show #friends-list{
+  box-shadow: 0 0 0 2px rgba(204,204,204,.5);
+}
+#friends-list:after{
+   content: none;
+}
+
 #wrapper.toggled {
   padding-left: 250px;
+}
+
+#friends-list.toggled{
+  border-radius: 0;
+  width: 250px;
 }
 
 #sidebar-wrapper {

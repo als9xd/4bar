@@ -437,9 +437,11 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 				}
 
 				pg_conn.client.query(
-					"SELECT communities.name,communities.id FROM community_members \
-					INNER JOIN communities ON communities.id = community_members.community_id \
-					INNER JOIN users ON community_members.user_id = users.id AND users.id = $1",
+					"SELECT c.*,array_agg(community_tags.tag) as tags FROM community_tags, \
+						(SELECT communities.id,communities.name,communities.description,communities.icon,communities.num_members FROM community_members \
+						INNER JOIN communities ON communities.id = community_members.community_id \
+						INNER JOIN users ON community_members.user_id = users.id \
+						WHERE users.id = $1 GROUP BY communities.id,communities.name,communities.description,communities.icon) as c GROUP BY c.id,c.name,c.description,c.icon,c.num_members",
 					[
 						profile_id
 					],
@@ -451,9 +453,11 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 						}
 
 						pg_conn.client.query(
-							"SELECT tournaments.name,tournaments.id FROM tournaments \
-							INNER JOIN tournament_attendees ON tournament_attendees.tournament_id = tournaments.id \
-							WHERE tournament_attendees.user_id = $1",
+							"SELECT t.*,array_agg(tournament_tags.tag) as tags FROM tournament_tags, \
+								(SELECT tournaments.id,tournaments.name,tournaments.description,tournaments.location,tournaments.start_date,tournaments.signup_deadline FROM tournaments \
+								INNER JOIN tournament_attendees ON tournament_attendees.tournament_id = tournaments.id \
+								WHERE tournament_attendees.user_id = $1 GROUP BY tournaments.id,tournaments.name,tournaments.description,tournaments.location,tournaments.start_date,tournaments.signup_deadline) as t \
+							GROUP BY t.id,t.name,t.description,t.location,t.start_date,t.signup_deadline",
 							[
 								profile_id
 							],
@@ -475,30 +479,48 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 											return;
 										}
 
-										res.render('private/profile',{
-											/* Navbar,Sidebar data */
-											user_data: {
-												username: req.session.username,
-												id: req.session.user_id,
-												email: req.session.email,
-												avatar: req.session.avatar,
-												communities: req.membership_information.communities,
-												tournaments: req.membership_information.tournaments
-											},
-											/* Navbar,Sidebar data */
+										pg_conn.client.query(
+											"SELECT 1 FROM friend_requests WHERE rx_user_id = $1 AND tx_user_id = $2 "+
+											"AND EXISTS (SELECT 1 FROM friend_requests WHERE rx_user_id = $2 AND tx_user_id = $1 LIMIT 1) LIMIT 1",
+											[
+												req.session.user_id,
+												profile_id
+											],
+											function(err,is_friend){
+												if(err){
+													console.log(err);
+													res.render('public/error',{error:'Could not check if user is friend'});
+													return;
+												}
 
-											profile_data: {
-												id: profile.rows[0].id,
-												username: profile.rows[0].username,
-												name: profile.rows[0].name,
-												email: profile.rows[0].email,
-												avatar: profile.rows[0].avatar,
-												communities: communities.rows,
-												tournaments: tournaments.rows
-											},
+												res.render('private/profile',{
+													/* Navbar,Sidebar data */
+													user_data: {
+														username: req.session.username,
+														id: req.session.user_id,
+														email: req.session.email,
+														avatar: req.session.avatar,
+														communities: req.membership_information.communities,
+														tournaments: req.membership_information.tournaments
+													},
+													/* Navbar,Sidebar data */
 
-											modify_view: profile_id === req.session.user_id
-										});
+													profile_data: {
+														id: profile.rows[0].id,
+														username: profile.rows[0].username,
+														name: profile.rows[0].name,
+														email: profile.rows[0].email,
+														avatar: profile.rows[0].avatar,
+														communities: communities.rows,
+														tournaments: tournaments.rows
+													},
+
+													modify_view: profile_id === req.session.user_id,
+
+													is_friend: typeof is_friend !== 'undefined' && is_friend.rowCount
+												});
+											}
+										);
 									}
 								);
 							}

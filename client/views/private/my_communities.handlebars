@@ -16,6 +16,7 @@
 
     <link rel="stylesheet" href="/css/public.css">
     <link rel="stylesheet" href="/css/sidebar.css">
+    <link rel="stylesheet" href="/css/results_tables.css">
 
     <script src="/socket.io/socket.io.js"></script>
     <script type="text/javascript">let socket = io();</script>
@@ -109,41 +110,37 @@
       <!-- /Sidebar -->
 
       <!-- Page Content -->
-      <div id="page-content-wrapper">
-          
-          <div class="container-fluid">
-            <h1>Communities</h1>
-            <hr>
-            <table class="table table-striped table-hover">
-              <thead>
-                <tr>
-                  <td scope="col"></td>
-                  <td scope="col">Name</td>
-                  <td scope="col">Tags</td>
-                  <td scope="col">Members</td>
-                  <td scope="col">Last Activity</td>
-                  <td scope="col">Description</td>
-                </tr>
-              </thead>
-              <tbody>
-                {{#each user_data.communities}}
-                <tr class="clickable-row" data-href="/communities?id={{id}}" style="cursor: pointer;">
-                  <td><img src="{{#if icon includeZero=true}}/icons/{{{icon}}}{{else}}/site/no-icon.jpg{{/if}}" style="height: 30px;width: 30px"</td>
-                  <td><h6>{{name}}</h6></td>
-                  <td>{{tags}}</td>
-                  <td>{{num_members}}</td>
-                  <td>
-                    <script>
-                      date = new Date('{{last_activity}}');
-                      document.write((date.getUTCMonth()+1)+'/'+date.getUTCDate()+'/'+date.getUTCFullYear());
-                    </script>
-                  </td>
-                  <td>{{description}}</td>
-                </tr>
-                {{/each}}
-              </tbody>
-            </table>
+      <div id="page-content-wrapper">  
+        <div class="container-fluid">
+          <h1>Communities</h1>
+          <hr/>
+          <div class="row" id="search-results-container">
+            <div class="col-sm" id="tournaments-column">
+              <table class="table table-striped table-hover search-results-table" id="communities-table">
+                <thead class="inverse-thead">
+                  <tr>
+                    <td scope="col"></td>
+                    <td scope="col">Name</td>
+                    <td scope="col">Tags</td>
+                    <td scope="col">Description</td>
+                    <td scope="col">Members</td>
+                  </tr>
+                </thead>
+                <tbody>
+                  {{#each user_data.communities}}
+                  <tr class="clickable-row" data-href="/communities?id={{id}}">
+                    <td><img src="{{#if icon includeZero=true}}/icons/{{{icon}}}{{else}}/site/no-icon.jpg{{/if}}" style="height: 30px;width: 30px"</td>
+                    <td><h6>{{name}}</h6></td>
+                    <td>{{tags}}</td>
+                    <td>{{description}}</td>
+                    <td>{{num_members}}</td>
+                  </tr>
+                  {{/each}}
+                </tbody>
+              </table>
+            </div>
           </div>
+        </div>
       </div>
       <!-- /Page Content -->
     </div>
@@ -182,10 +179,11 @@
         $('[data-toggle="tooltip"]').tooltip();
       });
     </script>
-
+    
     <!-- Make rows clickable -->
     <script type="text/javascript">
       $(document).ready(function($) {
+          $(".clickable-row").css('cursor','pointer');
           $(".clickable-row").click(function() {
               window.location = $(this).data("href");
           });

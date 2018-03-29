@@ -26,6 +26,38 @@ const path = require('path');
 
 const fs = require('fs');
 
+let dropdown_notification_definitions = function(pg_conn,socket,data){
+	return {
+		
+		//Get all friend requests and the senders user information
+		friend_requests: new Promise(
+			function(resolve,reject){
+				pg_conn.client.query(
+					"SELECT users.id,users.username,users.avatar,notifications.date,notifications.read,notifications.id as notification_id FROM users "+
+					  "INNER JOIN friend_requests ON users.id = friend_requests.tx_user_id "+
+					  "INNER JOIN notifications ON friend_requests.notification_id = notifications.id "+
+					  "WHERE notifications.id IS NOT NULL AND "+
+					  "notifications.active = TRUE AND "+
+					  "friend_requests.rx_user_id = $1 AND "+
+					  "NOT EXISTS (SELECT 1 FROM friend_requests WHERE rx_user_id = friend_requests.tx_user_id AND tx_user_id = $1)",
+					[
+						socket.handshake.session.user_id
+					],
+					function(err,results){
+						if(err){
+							console.log(err);
+							socket.emit('notification',{error:'Could not get friend requests'})
+							reject();
+						}
+						resolve({type:'friend_requests',data:results.rows});
+					}
+				)
+			}
+		),
+
+	};
+}
+
 module.exports = function(config,pg_conn,ss,uuidv1){	
 	
 	let widget_definitions = pg_conn.widget_definitions;
@@ -291,6 +323,39 @@ module.exports = function(config,pg_conn,ss,uuidv1){
 
 		/********************************************************************************/
 
+		(socket) => {
+			socket.on('friends_req',function(){
+				if(typeof socket.handshake.session.user_id === 'undefined'){
+					return;
+				}
+				
+				// This allows other users to send a notification to another user by their user_id
+				socket.join(socket.handshake.session.user_id);
+
+				pg_conn.client.query(
+					"SELECT users.id,users.username,users.avatar FROM users "+
+					  "INNER JOIN friend_requests ON users.id = friend_requests.rx_user_id "+
+					  "WHERE friend_requests.tx_user_id = $1 AND "+
+					  "EXISTS (SELECT 1 FROM friend_requests WHERE tx_user_id = $1 AND rx_user_id = friend_requests.rx_user_id)"
+					  ,
+					[
+						socket.handshake.session.user_id
+					],
+					function(err,friends){
+						if(err){
+							console.log(err);
+							socket.emit('notification',{error:'Could not get friends'});
+							return;
+						}
+						socket.emit('friends_res',friends.rows);
+					}
+				);
+			});
+		},
+
+
+		/********************************************************************************/
+
 
 		//////////////////////////////////////////////////////////////////////
 		// This listener will retrieve a list of notifications to be dispayed
@@ -305,109 +370,203 @@ module.exports = function(config,pg_conn,ss,uuidv1){
 				}
 
 				// This allows other users to send a notification to another user by their user_id
-				socket.join('dropdown_notifications:'+socket.handshake.session.user_id);
+				socket.join(socket.handshake.session.user_id);
 
-				pg_conn.client.query(
-					"SELECT dropdown_notifications.*,users.avatar FROM dropdown_notifications INNER JOIN users ON users.id = dropdown_notifications.sender_user_id WHERE dropdown_notifications.recipient_user_id = $1",
-					[
-						socket.handshake.session.user_id
-					],
-					function(err,results){
-						if(err){
-							console.log(err);
-							socket.emit('notification',{error: 'Could not get dropdown notifications'});
-							return;
-						}
-						socket.emit('dropdown_notifications_res',results.rows);
+				let promises = [];
+
+				let dd_ntfs = dropdown_notification_definitions(pg_conn,socket)
+
+				for(let i in dd_ntfs){
+					if(dd_ntfs.hasOwnProperty(i)){
+						promises.push(dd_ntfs[i]);
 					}
+				}
 
+				Promise.all(
+					promises
+					).then(
+					function(values){
+						let notifications = {}
+						// Will probably need to order by date here
+						for(let i = 0; i < values.length;i++){
+							notifications[values[i].type] = values[i].data; 
+						}
+						socket.emit('dropdown_notifications_res',notifications);
+					}
 				);
+
 			});
 		},
 
 		/********************************************************************************/
 
-		//////////////////////////////////////////////////////////////////////
-		// This listener will allow a user to submit a predefined dropdown
-		// notification
-		//////////////////////////////////////////////////////////////////////
-
 		(socket,io) => {
 
-			socket.on('dropdown_notifications_submit',function(data){
+			socket.on('friend_request_submit',function(data){
 
 				if(typeof socket.handshake.session.user_id === 'undefined'){
-					socket.emit('notification',{error:'User id is required'});
 					return;
 				}
+
+				data.recipient_user_id = Number(data.recipient_user_id);
 
 				if(isNaN(data.recipient_user_id)){
 					socket.emit('notification',{error: 'User id for dropdown notification must be an integer'});
 					return;
 				}
+
+				if(socket.handshake.session.user_id === data.recipient_user_id){
+					socket.emit('notification',{error: "You can't send a friend request to yourself"});
+					return;
+				}
 				
-				data.recipient_user_id = Number(data.recipient_user_id);
 
-				if(typeof data.type !== 'string'){
-					socket.emit('notification',{error: 'Dropdown notification type must be an string'});
-					return;
-				}
-
-				let dropdown_notification_definitions = {
-					friend_request: {
-						url: '/friend_request?id='+socket.handshake.session.user_id,
-						notification: 'Friend Request From: '+socket.handshake.session.username,
-						success: 'Successfully sent friend request',
-						error: 'Could not send friend request'
-					}
-				}
-
-				if(typeof dropdown_notification_definitions[data.type] === 'undefined'){
-					socket.emit('notification',{error: "Unknown dropdown notification type: '"+data.type+"'"});
-					return;
-				}
+				// This allows other users to send a notification to another user by their user_id
+				socket.join(socket.handshake.session.user_id);
 
 				pg_conn.client.query(
-					"INSERT INTO dropdown_notifications (recipient_user_id,sender_user_id,url,notification,date,read) \
-						VALUES($1,$2,$3,$4,$5,$6) \
-						RETURNING dropdown_notifications.* \
-					",
+					"SELECT 1 FROM friend_requests WHERE rx_user_id = $1 AND tx_user_id = $2 LIMIT 1",
 					[
 						data.recipient_user_id,
-						socket.handshake.session.user_id,
-						dropdown_notification_definitions[data.type].url,
-						dropdown_notification_definitions[data.type].notification,
-						new Date,
-						false
+						socket.handshake.session.user_id
 					],
-					function(err,dropdown_notification){
+					function(err,friend_request_exists){
 						if(err){
 							console.log(err);
-							socket.emit('notification',{error: dropdown_notification_definitions[data.type].error});
+							socket.emit('notification',{error:'Could not check if friend request already exists'});
+							return;
+						}
+
+						if(typeof friend_requests !== 'undefined' && friend_requests.rowCount !== 0){
+							socket.emit('notification',{error: 'You have already sent this user a friend request'});
 							return;
 						}
 
 						pg_conn.client.query(
-							"SELECT avatar FROM users INNER JOIN dropdown_notifications ON dropdown_notifications.sender_user_id = users.id WHERE users.id = $1 LIMIT 1",
+							"SELECT notification_id FROM friend_requests WHERE tx_user_id = $1 AND rx_user_id = $2 LIMIT 1",
 							[
+								data.recipient_user_id,
 								socket.handshake.session.user_id
 							],
-							function(err,avatar){
+							function(err,accept_req){
 								if(err){
 									console.log(err);
-									socket.emit('notification',{error: 'Could not get avatar'});
+									socket.emit('notification',{error:'Could not check if this is a request or response'});
 									return;
 								}
+								let ntf_date = new Date();
 
-								dropdown_notification.rows[0].avatar = avatar.rows[0].avatar;
+								let __build_friend_request = function(notification_id){
+									pg_conn.client.query(
+										"INSERT INTO friend_requests (notification_id,rx_user_id,tx_user_id) \
+											VALUES($1,$2,$3) \
+										",
+										[
+											notification_id,
+											data.recipient_user_id,
+											socket.handshake.session.user_id
+										],
+										function(err){
+											if(err && err.code === '23505'){
+												socket.emit('notification',{error: 'Friend request already sent'});
+												return;
+											}
+											if(err){
+												console.log(err);
+												socket.emit('notification',{error: 'Could not send friend request'});
+												return;
+											}
 
-								io.sockets.in('dropdown_notifications:'+data.recipient_user_id).emit('dropdown_notifications_res',dropdown_notification.rows);
-								
-								socket.emit('notification',{success: dropdown_notification_definitions[data.type].success});
+											pg_conn.client.query(
+												"SELECT users.id,users.username,users.avatar FROM USERS WHERE id = $1",
+												[
+													data.recipient_user_id
+												],
+												function(err,recipient_user_data){
+													if(err){
+														console.log(err);
+														socket.emit('notification',{error:'Could not get user information'});
+														return;
+													}
+
+													if(typeof recipient_user_data === 'undefined' || recipient_user_data.rowCount === 0){
+														socket.emit('notification',{error:'No user with id of '+recipient_user_id});
+														return;
+													}
+
+
+													if(notification_id !== null){
+														io.sockets.in(data.recipient_user_id).emit('dropdown_notifications_res',
+															{
+																friend_requests: 
+																[
+																	{
+																		id: socket.handshake.session.user_id,
+																		username: recipient_user_data.rows[0].username,
+																		avatar: recipient_user_data.rows[0].avatar,
+																		date: ntf_date
+																	}
+																]
+															}	
+														);
+														socket.emit('notification',{success: 'Successfully sent friend request'});
+													}else{
+														pg_conn.client.query(
+															"UPDATE notifications SET active = FALSE WHERE id = $1",
+															[
+																accept_req.rows[0].notification_id
+															],
+															function(err){
+																if(err){
+																	console.log(err);
+																	socket.emit('notification',{error: 'Could not update notifications'});
+																	return;
+																}
+																socket.emit('notification',{success: 'Successfully accepted friend request'});
+															}
+															
+														);
+
+														
+													}
+
+													
+												}
+											);
+
+										}
+									);
+								}
+
+
+								if(accept_req.rowCount === 1){
+									__build_friend_request(null);
+								}else{
+									pg_conn.client.query(
+										"INSERT INTO notifications(date,active,read) \
+											VALUES($1,$2,$3) \
+											RETURNING id \
+										",
+										[
+											ntf_date,
+											true,
+											false
+										],
+										function(err,notification_id){
+											if(err){
+												console.log(err);
+												socket.emit('notification',{error:'Could not create notification'});
+												return;
+											}
+											__build_friend_request(notification_id.rows[0].id);
+										}
+									);
+								}
 							}
 						);
 					}
-				)
+
+				);
 			});
 		},
 

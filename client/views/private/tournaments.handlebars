@@ -16,6 +16,7 @@
 
     <link rel="stylesheet" href="/css/public.css">
     <link rel="stylesheet" href="/css/sidebar.css">
+    <link rel="stylesheet" href="/css/results_tables.css">
 
     <script src="/socket.io/socket.io.js"></script>
     <script type="text/javascript">let socket = io();</script>
@@ -125,7 +126,7 @@
           
           <div class="container-fluid">
             <h1>{{tournament_data.name}}</h1>
-            <h5>Host Community: <a href="communities?id={{community_data.id}}"><img src="{{#if icon includeZero=true}}/icons/{{icon}}{{else}}/site/no-icon.jpg{{/if}}" style="height: 30px;width: 30px">{{community_data.name}}</a></h5>
+            <a href="communities?id={{community_data.id}}"><h6>{{community_data.name}}</h6></a>
             <hr/>
             <button onclick="GenerateTournament()">Generate Tournament Brackets</button> <!--Make button only show up when no rows exist with tournament_id (when coms is empty).-->
             <div class="Tournament_bracket"></div>
