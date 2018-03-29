@@ -112,7 +112,9 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 		() => {
 			app.all('*',middleware['http_redirect']);
 		},
-		
+
+		/********************************************************************************/
+
 		//////////////////////////////////////////////////////////////////////
 		// This route sets the default url ('4bar.org/') to redirect to home
 		//
@@ -375,7 +377,6 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 		//////////////////////////////////////////////////////////////////////
 
 		() => {
-
 			app.get('/profile', middleware['check_authorization'],middleware['membership_information'],function(req, res){
 
 				if(typeof req.query['id'] === 'undefined'){
@@ -925,9 +926,7 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 									);
 								}
 							);
-
 						}
-
 					);
 				}
 			);
@@ -1014,6 +1013,7 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 						tournaments: req.membership_information.tournaments
 					}
 					/* Navbar,Sidebar data */
+
 			  });				
 			});
 		},

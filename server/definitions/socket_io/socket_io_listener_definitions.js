@@ -1489,6 +1489,67 @@ module.exports = function(config,pg_conn,ss,uuidv1){
 
 		/********************************************************************************/
 
+		(socket) => {
+
+			socket.on('toggle_tournament_membership',function(tournament_id){
+				pg_conn.client.query(
+					"SELECT 1 FROM tournament_attendees \
+						WHERE tournament_attendees.user_id = $1 AND tournament_attendees.tournament_id = $2 \
+					",
+					[
+						socket.handshake.session.user_id,
+						Number(tournament_id)
+					],function(err,is_member){
+						if(err){
+							console.log(err);
+							socket.emit('notification',{error:'Could not search tournament members'});
+							return;
+						}
+						if(is_member && is_member.rowCount){
+							pg_conn.client.query(
+								"DELETE FROM tournament_attendees \
+									WHERE tournament_attendees.user_id = $1 AND tournament_attendees.tournament_id = $2",
+								[
+									socket.handshake.session.user_id,
+									Number(tournament_id)
+								]
+								,function(err){
+									if(err){
+										console.log(err);
+										socket.emit('notification',{error:'Could not remove you from the tournament'});
+										return;
+									}
+									socket.emit('notification',{success:'Successfully left tournament'});							
+								}
+							);
+						}else if(is_member && is_member.rowCount === 0){
+							pg_conn.client.query(
+								"INSERT INTO tournament_attendees (user_id,tournament_id) \
+									VALUES ($1,$2) \
+								",
+								[
+									socket.handshake.session.user_id,
+									Number(tournament_id)
+								],
+								function(err){
+									if(err){
+										console.log(err);
+										socket.emit('notification',{error:'Could not join you to the tournament'});
+										return;
+									}
+									socket.emit('notification',{success:'Successfully joined tournament'});							
+								}
+							);
+						}
+					}
+				);
+			});
+
+		},
+
+
+		/********************************************************************************/
+
 
 		//////////////////////////////////////////////////////////////////////
 		// This listener allows user to toggle whether they are a member of 
@@ -1555,7 +1616,6 @@ module.exports = function(config,pg_conn,ss,uuidv1){
 			});
 
 		},
-
 
 		/********************************************************************************/
 
@@ -1649,12 +1709,10 @@ module.exports = function(config,pg_conn,ss,uuidv1){
 							}
 						);
 					}
-
 				);
 			});
 
 		},
-
 
 		/********************************************************************************/
 
@@ -1761,6 +1819,7 @@ module.exports = function(config,pg_conn,ss,uuidv1){
 				);
 			});
 		}
+
 
 		/********************************************************************************/
 
