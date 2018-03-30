@@ -1345,7 +1345,7 @@ module.exports = function(config,pg_conn,uuidv1){
 						}
 
 						pg_conn.client.query(
-							"SELECT privilege_level FROM community_members WHERE user_id = $1 community_id = $2",
+							"SELECT privilege_level FROM community_members WHERE user_id = $1 AND community_id = $2",
 							[
 								socket.handshake.session.user_id,
 								data.community_id
