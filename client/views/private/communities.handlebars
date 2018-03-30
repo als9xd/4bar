@@ -21,7 +21,7 @@
     <link rel="stylesheet" href="/css/friends_list.css">
 
     <script src="/socket.io/socket.io.js"></script>
-    <script type="text/javascript">let socket = io();</script>
+    <script type="text/javascript">let socket = io('/private');</script>
     
  </head>
 
@@ -225,22 +225,23 @@
     <script src='/js/WidgetUIDefinitions.js'></script>
     <script src='/js/WidgetLayoutEngine.js'></script>
     <script> 
-      let wle = WidgetLayoutEngine(
-        WidgetUIDefinitions,
-        document.getElementById('wle'),
-        document.getElementById('page-content-wrapper'),
-        {
-          background: '{{{community_data.wallpaper}}}',
-          defaultBackgroundImage: 'https://www.transparenttextures.com/patterns/3px-tile.png'
-        }
-      );
-    </script>
+      let wle;
 
-    <script>
-      socket.emit('widgets_req','{{community_data.id}}');
+      window.addEventListener('load',function(){
+       wle = WidgetLayoutEngine(
+          WidgetUIDefinitions,
+          document.getElementById('wle'),
+          document.getElementById('page-content-wrapper'),
+          {
+            background: '{{{community_data.wallpaper}}}',
+            defaultBackgroundImage: 'https://www.transparenttextures.com/patterns/3px-tile.png'
+          }
+        );
 
-      socket.on('widgets_res',function (widget_data) {
-        wle.build_widget(widget_data);
+        socket.emit('widgets_req','{{community_data.id}}');
+        socket.on('widgets_res',function (widget_data) {
+          wle.build_widget(widget_data);
+        });
       });
     </script>
 

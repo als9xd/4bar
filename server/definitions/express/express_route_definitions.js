@@ -36,7 +36,7 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 	let app = express_conn.app;
 	let middleware = express_conn.middleware;
 
-	let io = socket_io_conn.io;
+	let private_ns = socket_io_conn.private_ns;
 
 	return [
 
@@ -407,14 +407,14 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 						}
 
 						pg_conn.client.query(
-							"SELECT f_c.num_members,f_c.id,f_c.name,f_c.description,f_c.last_activity,f_c.icon,array_agg(community_tags.tag) as tags \
+							"SELECT f_c.num_members,f_c.id,f_c.name,f_c.description,f_c.creation_date,f_c.last_activity,f_c.icon,array_agg(community_tags.tag) as tags \
 							FROM community_tags,\
 								(SELECT communities.* FROM communities \
 								INNER JOIN community_tags on communities.id = community_tags.community_id \
 								INNER JOIN community_members ON community_members.community_id = communities.id \
 								WHERE community_members.user_id = $1 \
 								GROUP BY communities.id) as f_c WHERE f_c.id = community_tags.community_id \
-							GROUP BY f_c.num_members,f_c.id,f_c.name,f_c.description,f_c.last_activity,f_c.icon ",
+							GROUP BY f_c.num_members,f_c.id,f_c.name,f_c.description,f_c.creation_date,f_c.last_activity,f_c.icon ",
 							[
 								profile_id
 							],
@@ -429,10 +429,9 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 								"SELECT t.name,t.start_date,t.signup_deadline,t.location,t.description,t.id,t.community_id,communities.name as community_name,array_agg(tournament_tags.tag) as tags \
 								FROM tournament_tags,\
 									(SELECT tournaments.* FROM tournaments \
-									INNER JOIN tournament_tags on tournaments.id = tournament_tags.tournament_id \
 									INNER JOIN tournament_attendees ON tournament_attendees.tournament_id = tournaments.id \
 									WHERE tournament_attendees.user_id = $1 \
-									GROUP BY tournaments.id) as t INNER JOIN communities ON communities.id = t.community_id WHERE t.id = tournament_tags.tournament_id \
+									GROUP BY tournaments.id) as t INNER JOIN communities ON communities.id = t.community_id \
 								GROUP BY t.name,t.start_date,t.signup_deadline,t.location,t.description,t.id,t.community_id,communities.name",
 									[
 										profile_id

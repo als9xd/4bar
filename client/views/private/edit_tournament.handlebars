@@ -21,10 +21,12 @@
     <link rel="stylesheet" href="/css/public.css">
     <link rel="stylesheet" href="/css/sidebar.css">
     <link rel="stylesheet" href="/css/friends_list.css">
+
+    <script src="/js/public.js"></script>
  
     <script src="/socket.io/socket.io.js"></script>
-    <script type="text/javascript">let socket = io();</script>
-    
+    <script type="text/javascript">let socket = io('/private');</script>
+
  </head>
 
   <body>
@@ -126,7 +128,7 @@
       <div id="page-content-wrapper">
           
         <div class="container-fluid">
-            <h1>Tournament Creation Wizard</h1>
+            <h1>Edit Tournament Wizard</h1>
             <h5>Community: <a href="communities?id={{community_data.id}}"><img src="{{#if icon includeZero=true}}/icons/{{icon}}{{else}}/site/no-icon.jpg{{/if}}" style="height: 30px;width: 30px">{{community_data.name}}</a></h5>
             <hr/>
             <div class="row">
@@ -151,12 +153,14 @@
                     </div>
                     <div class="form-group">
                       <label for="tournament-signup-deadline"><span class="req">* </span> Signup Deadline: </label>
-                      <input type="text" class="form-control" id="tournament-signup-deadline" value="{{tournament_data.signup_deadline}}"/>
+                      <input type="text" class="form-control" id="tournament-signup-deadline"/>
+                      <script>document.getElementById('tournament-signup-deadline').value = format_date({{tournament_data.signup_deadline}},{includeTime:true})</script>
                     </div>
 
                     <div class="form-group">
                       <label for="tournament-start-date"><span class="req">* </span> Start Date: </label>
-                      <input type="text" class="form-control" id="tournament-start-date" value="{{tournament_data.start_date}}"/>
+                      <input type="text" class="form-control" id="tournament-start-date"/>
+                      <script>document.getElementById('tournament-start-date').value = format_date({{tournament_data.start_date}},{includeTime:true})</script>
                     </div>
                     <div class="form-group">
                       <label for="tournament-tags">Tags: </label>

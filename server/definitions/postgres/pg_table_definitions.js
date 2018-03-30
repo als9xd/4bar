@@ -76,7 +76,8 @@ module.exports = function(config){
 				icon TEXT,\
 				wallpaper TEXT,\
 				layout TEXT,\
-				last_activity TEXT,\
+				creation_date NUMERIC NOT NULL,\
+				last_activity NUMERIC,\
 				num_members NUMERIC NOT NULL\
 			)"
 		,
@@ -152,8 +153,8 @@ module.exports = function(config){
 				description TEXT, \
 				location VARCHAR ("+config.pg.varchar_limits.tournaments.location+") NOT NULL, \
 				attendee_limit INTEGER NOT NULL, \
-				signup_deadline TEXT NOT NULL, \
-				start_date TEXT NOT NULL, \
+				signup_deadline NUMERIC, \
+				start_date NUMERIC NOT NULL, \
 				UNIQUE (community_id,name) \
 			)"
 		,
@@ -196,12 +197,12 @@ module.exports = function(config){
 			"CREATE TABLE IF NOT EXISTS events(\
 				event_name VARCHAR("+config.pg.varchar_limits.events.event_name+") NOT NULL, \
 				event_date DATE NOT NULL, \
-				start_time TIME NOT NULL, \
-				end_time TIME, \
+				start_time NUMERIC NOT NULL, \
+				end_time NUMERIC, \
 				street_address VARCHAR("+config.pg.varchar_limits.events.street_address+") NOT NULL, \
 				city VARCHAR("+config.pg.varchar_limits.events.city+") NOT NULL, \
 				state VARCHAR("+config.pg.varchar_limits.events.state+") NOT NULL \
-				)"
+			)"
 		,    
 		
 		/********************************************************************************/
@@ -209,7 +210,7 @@ module.exports = function(config){
 		notifications:
 			"CREATE TABLE IF NOT EXISTS notifications( \
 				id SERIAL PRIMARY KEY, \
-				date TIMESTAMPTZ, \
+				date NUMERIC NOT NULL, \
 				read BOOL NOT NULL, \
 				active BOOL NOT NULL \
 			)"

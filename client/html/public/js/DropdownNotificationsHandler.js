@@ -47,12 +47,12 @@ let DropdownNotificationsHandler = function(socket,dd_ntf_defs) {
 					new_dropdown_count++;
 					let notification_el = dd_ntf_defs[type](notifications[type][i]);
 
-					let old_date = new Date(notifications[type][i].date);
+					let old_date = notifications[type][i].date;
 
 					let notification_date = document.createElement('div');
 					let set_time =function(){
 			
-						let new_date = new Date;
+						let new_date = Date.now();
 
 			    		let elapsed_min = Math.floor(((new_date - old_date) % msDay) / msMinute);
 			    		let elapsed_hours = Math.floor(((new_date - old_date) % msDay) / msHour);

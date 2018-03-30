@@ -35,12 +35,18 @@ module.exports = class SocketIOConnector{
 
 		this.config = config;
 
+		this.middleware_definitions = require(config.root_dir+'/server/definitions/socket_io/socket_io_middleware_definitions');
+
 		//////////////////////////////////////////////////////////////////////
 		// Attach socket.io to the https server (all socket.io messages are
 		// encrypted)
 		//////////////////////////////////////////////////////////////////////	
 
-		this.io = require('socket.io')(https_server);
+		let io = require('socket.io')(https_server);
+
+		this.public_ns = io.of('/public');
+
+		this.private_ns = io.of('/private');
 
 		this.uuidv1 = require('uuid/v1');
 
@@ -67,7 +73,8 @@ module.exports = class SocketIOConnector{
 
 	attach_session(session){
 		const express_socket_io_session = require('express-socket.io-session')(session);
-		this.io.use(express_socket_io_session);
+		this.public_ns.use(express_socket_io_session);
+		this.private_ns.use(express_socket_io_session);
 	}
 
 	//////////////////////////////////////////////////////////////////////
@@ -94,16 +101,30 @@ module.exports = class SocketIOConnector{
 	// 
 	//////////////////////////////////////////////////////////////////////	
 
-	build_listeners(definition_file,pg_conn,widget_definitions){
+	build_listeners(pg_conn,widget_definitions){
 		let self = this;
 
-		const listener_definitions = require(definition_file)(this.config,pg_conn,self.ss,self.uuidv1);
+		const public_listener_definitions = require(
+			self.config.root_dir+'/server/definitions/socket_io/socket_io_public_listener_definitions'
+		)(this.config,pg_conn);
+
+		self.public_ns.on('connection',function(socket){
+			for(let i = 0; i < public_listener_definitions.length;i++){
+				public_listener_definitions[i](socket,self.public_ns);
+			}
+		});
+
+		const private_listener_definitions = require(
+			self.config.root_dir+'/server/definitions/socket_io/socket_io_private_listener_definitions'
+		)(this.config,pg_conn,self.uuidv1);
 		
-		self.io.on('connection',function(socket){
+		// Add authentication middlware
+		this.private_ns.use(this.middleware_definitions['check_authentication']);
+		
+		self.private_ns.on('connection',function(socket){
 
 			// This allows other users to send a notification to another user by their user_id
 			socket.join(socket.handshake.session.user_id);
-
 
 		    let uploader = new self.SocketIOFile(socket, {
 		        uploadDir: {			// multiple directories,
@@ -272,10 +293,9 @@ module.exports = class SocketIOConnector{
 		        socket.emit('notification',{error: 'Could not upload file'});
 		    });
 
-			for(let i = 0; i < listener_definitions.length;i++){
-				listener_definitions[i](socket,self.io);
+			for(let i = 0; i < private_listener_definitions.length;i++){
+				private_listener_definitions[i](socket,self.private_ns);
 			}
 		});	
 	}
-
 }

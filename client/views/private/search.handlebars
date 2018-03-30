@@ -21,9 +21,11 @@
 
     <link rel="stylesheet" href="/css/search.css">
 
+    <script src="/js/public.js"></script>
+
     <script src="/socket.io/socket.io.js"></script>
-    <script type="text/javascript">let socket = io();</script>
-    
+    <script type="text/javascript">let socket = io('/private');</script>
+
  </head>
 
   <body>
@@ -137,6 +139,8 @@
                         <td scope="col">Name</td>
                         <td scope="col">Tags</td>
                         <td scope="col" class="extra">Description</td>
+                        <td scope="col" class="extra">Creation Date</td>
+                        <td scope="col" class="extra">Last Activity</td>
                         <td scope="col" class="extra">Members</td>
                       </tr>
                     </thead>
@@ -147,6 +151,8 @@
                         <td><h6>{{name}}</h6></td>
                         <td>{{#each tags}}<a href="/search?query_field=communities&tags={{this}}">{{this}}</a>{{#unless @last}},{{/unless}}{{/each}}</td>
                         <td class="extra">{{description}}</td>
+                        <td class="extra"><script>document.write(format_date({{creation_date}}));</script></td>
+                        <td class="extra"><script>document.write(format_date({{last_activity}}));</script></td>
                         <td class="extra">{{num_members}}</td>
                       </tr>
                       {{/each}}
@@ -173,8 +179,8 @@
                         <td>{{#each tags}}<a href="/search?query_field=tournaments&tags={{this}}">{{this}}</a>{{#unless @last}},{{/unless}}{{/each}}</td>
                         <td class="extra">{{description}}</td>
                         <td class="extra">{{location}}</td>
-                        <td>{{start_date}}</td>
-                        <td>{{signup_deadline}}</td>
+                        <td><script>document.write(format_date({{start_date}},{includeTime:true}));</script></td>
+                        <td><script>document.write(format_date({{signup_deadline}},{includeTime:true}));</script></td>
                       </tr>
                       {{/each}}
                     </tbody>

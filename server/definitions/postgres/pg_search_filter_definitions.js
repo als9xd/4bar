@@ -91,7 +91,7 @@ module.exports = function(pg_client){
 			return new Promise(
 				function(resolve,reject){
 					pg_client.query(
-						"SELECT f_c.num_members,f_c.id,f_c.name,f_c.description,f_c.last_activity,f_c.icon,array_agg(community_tags.tag) as tags \
+						"SELECT f_c.num_members,f_c.id,f_c.name,f_c.description,f_c.creation_date,f_c.last_activity,f_c.icon,array_agg(community_tags.tag) as tags \
 						FROM community_tags,\
 							(SELECT communities.* FROM communities \
 							INNER JOIN community_tags on communities.id = community_tags.community_id \
@@ -100,7 +100,7 @@ module.exports = function(pg_client){
 							(to_tsvector(communities.description) @@ plainto_tsquery($2) OR LENGTH($2) = 0) "+conjunction+" \
 							(to_tsvector(community_tags.tag) @@ plainto_tsquery($3) OR LENGTH($3) = 0) \
 							GROUP BY communities.id) as f_c WHERE f_c.id = community_tags.community_id \
-						GROUP BY f_c.num_members,f_c.id,f_c.name,f_c.description,f_c.last_activity,f_c.icon ",
+						GROUP BY f_c.num_members,f_c.id,f_c.name,f_c.description,f_c.creation_date,f_c.last_activity,f_c.icon ",
 						[
 							(typeof input == 'string' || input instanceof String) ? input || '' : input.name || '',
 							(typeof input == 'string' || input instanceof String) ? input || '' : input.desc || '',

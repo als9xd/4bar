@@ -129,7 +129,6 @@ module.exports = class Server{
 		//////////////////////////////////////////////////////////////////////				
 
 		self.socket_io_conn.build_listeners(
-			self.config.root_dir+'/server/definitions/socket_io/socket_io_listener_definitions',
 			self.pg_conn
 		);
 

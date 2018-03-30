@@ -19,7 +19,7 @@
     <link rel="stylesheet" href="/css/friends_list.css">
 
     <script src="/socket.io/socket.io.js"></script>
-    <script type="text/javascript">let socket = io();</script>
+    <script type="text/javascript">let socket = io('/private');</script>
     
   </head>
 
@@ -147,6 +147,10 @@
         toastr,
         socket
       );
+
+      socket.on('error',(err) => {
+        ntf_hndlr.build_notification({error:err});
+      });
     </script>
 
     <!-- Dropdown Notifications -->

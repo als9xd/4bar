@@ -16,17 +16,11 @@
 // A real world example can be found on '4bar/client/views/private/home.handlebars'
 //////////////////////////////////////////////////////////////////////
 
-//////////////////////////////////////////////////////////////////////
-// This module is used for password encryption within the 'login' and
-// 'register' socket listeners
-//////////////////////////////////////////////////////////////////////
-const crypto = require('crypto');
-
 const path = require('path');
 
 const fs = require('fs');
 
-module.exports = function(config,pg_conn,ss,uuidv1){	
+module.exports = function(config,pg_conn,uuidv1){	
 	
 	let widget_definitions = pg_conn.widget_definitions;
 
@@ -53,251 +47,8 @@ module.exports = function(config,pg_conn,ss,uuidv1){
 
 		/********************************************************************************/
 
-		//////////////////////////////////////////////////////////////////////
-		// This listener allows a user to login
-		//////////////////////////////////////////////////////////////////////
-
-		(socket) => {
-
-			socket.on('login_req',function(data){
-				if(!data.username){
-					socket.emit('notification',{error:'Username is required'});
-					return;
-				}
-
-				if(!data.password){
-					socket.emit('notification',{error:'Please enter your password'});
-					return;
-				}
-
-				pg_conn.client.query(
-					"SELECT * FROM users \
-						WHERE username = $1 \
-						LIMIT 1 \
-					",
-					[
-						data.username
-					],
-					function(err,user_info){
-						if(err){
-							console.log(err);
-							socket.emit('notification',{error:'Could not get user'});
-						}else if(user_info && user_info.rows.length){
-							crypto.pbkdf2(
-								data.password,
-								user_info.rows[0].password_salt,
-								Number(user_info.rows[0].password_iterations),
-								user_info.rows[0].password.length,
-								'sha256',
-								function(err,str_hash){
-									if(err){
-										console.log(err);
-									}else if(user_info.rows[0].password.equals(str_hash)){
-
-										// This is used to check whether a user is logged in within the check_auth middleware
-										socket.handshake.session.auth = true;
-
-										socket.handshake.session.user_id = user_info.rows[0].id;
-										socket.handshake.session.username = user_info.rows[0].username;
-										socket.handshake.session.full_name = user_info.rows[0].name;
-										socket.handshake.session.email = user_info.rows[0].email;
-										socket.handshake.session.avatar = user_info.rows[0].avatar;
-
-										socket.handshake.session.save();
-
-										socket.emit('notification',{success: 'Successfully Logged in!'});	
-										socket.emit('login_status',{status:true});
-									}else{
-										socket.emit('notification',{error: 'Invalid username or password'});
-									}
-								}
-							);
-						}else{
-							socket.emit('notification',{error:'Invalid username or password'});
-						}
-					}
-				);
-			});
-
-		},
-
-		/********************************************************************************/
-
-		//////////////////////////////////////////////////////////////////////
-		// This listener allows a user to register
-		//////////////////////////////////////////////////////////////////////
-
-		(socket) => {
-
-			socket.on('register_req',function(data){
-				if(!data.username){
-					socket.emit('notification',{error:'Username is required'});
-					return;
-				}
-
-				if(!data.password){
-					socket.emit('notification',{error:'Password is required'});
-					return;
-				}
-
-				if(!data.password_confirmation){
-					socket.emit('notification',{error:'Please confirm your password'});
-					return;
-				}
-
-				if(data.password !== data.password_confirmation){
-					socket.emit('notification',{error:'Passwords do not match'});
-					return;		
-				}
-
-				// This is a custom function I wrote that makes it easier to check whether the lengths of input strings are within the assigned VARCHAR limits
-				let __invalid_lengths = function(table_name,lengths_obj){
-					let inv_lens = [];
-					for(let i in lengths_obj){
-						if(lengths_obj[i][0].length > config.pg.varchar_limits[table_name][lengths_obj[i][1]]){
-							inv_lens.push({table_name: lengths_obj[i][1],limit: config.pg.varchar_limits[table_name][lengths_obj[i][1]]})
-						}
-						
-					}
-					return inv_lens;
-				}
-
-
-				// This is a custom function I wrote that makes it easier to check whether the lengths of input strings are within the assigned VARCHAR limits
-				let invalid_lengths = __invalid_lengths(
-					'users',
-					[
-						[
-							data.full_name, // Input string #1
-							'name' // Check input string #1's length against the VARCHAR limits for column 'name'
-						],
-						[
-							data.username,
-							'username'
-						],
-						[
-							data.email,
-							'email'
-						]
-					]
-				);
-				if(invalid_lengths.length){
-					let invalid_length_errors = [];
-					for(var i in invalid_lengths){
-						let table_name = invalid_lengths[i].table_name;
-						invalid_length_errors.push(table_name.charAt(0).toUpperCase()+table_name.slice(1) + ' must be less than ' + invalid_lengths[i].limit + ' characters');
-					}
-					socket.emit('notification',{title:'Did not meet length requirements',error:invalid_length_errors});
-					return;
-				}	
-
-				let __check_password_validity = function(str){
-					let reqs = config.registration.password;
-					
-					let invalid_msgs = [];
-					
-					if(str.length < reqs.min_length){
-						invalid_msgs.push("at least "+reqs.min_length+" character"+(reqs.min_length==1?"":"s")+" long")
-					}
-					if(str.replace(/[^A-Z]/g, "").length < reqs.min_alpha){
-						invalid_msgs.push("at least "+reqs.min_alpha+" capital letter"+(reqs.min_alpha==1?"":"s"));
-					}
-					if(str.replace(/[^a-z]/g, "").length < reqs.min_lowercase){
-						invalid_msgs.push("at least "+reqs.min_lowercase+" lowercase letter"+(reqs.min_lowercase==1?"":"s"));
-					}
-					if(str.replace(/[^0-9]/g, "").length < reqs.min_numbers){
-						invalid_msgs.push("at least "+reqs.min_numbers+" number"+(reqs.min_numbers==1?"":"s"));
-					}
-					if(str.replace(/[^!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/g,"").length < reqs.min_specials){
-						invalid_msgs.push("at least "+reqs.min_specials+" special characters");
-					}
-
-					return invalid_msgs;					
-				}
-
-				// This is custom method that checks the password against the rules defined in the config file
-				let invalid_pwd_msgs = __check_password_validity(data.password);
-				if(invalid_pwd_msgs.length){
-					socket.emit('notification',{title:'Did not meet password requirements',error:invalid_pwd_msgs});
-					return;	
-				}
-
-				pg_conn.client.query(
-					"SELECT username FROM users \
-						WHERE username = $1 \
-						LIMIT 1 \
-					",
-					[
-						data.username
-					],
-					function(err,results){
-						if(err){
-							console.log(err);
-							socket.emit('notification',{error:'Could not check if username is already used'});
-							return;
-						}else if(results && results.rows.length === 0){
-
-							let salt = crypto.randomBytes(config.crypto.password.salt_bytes).toString('base64');
-						    crypto.pbkdf2(data.password, salt, config.crypto.password.iterations, config.crypto.password.hash_bytes,'sha256',
-						    	function(err,hash){
-						    		if(err){
-						    			console.log(err);
-						    			socket.emit('notification',{error:'Could not encrypt password'});
-						    			return;
-						    		}else{
-										pg_conn.client.query(
-											"INSERT INTO users (username,name,password,password_salt,password_iterations,email) \
-												VALUES ($1,$2,$3,$4,$5,$6) \
-											RETURNING id \
-											",
-											[
-												data.username,
-												data.full_name,
-												hash,
-												salt,
-												config.crypto.password.iterations,
-												data.email
-											],
-											function(err,results){
-												if(err){
-													console.log(err);
-													socket.emit('notification',{error:'Could not create user'});
-													return;
-												}
-												// This is used to check whether a user is logged in within the check_auth middleware
-												socket.handshake.session.auth = true;
-												
-												socket.handshake.session.user_id = results.rows[0].id;
-												socket.handshake.session.username = data.username;
-												socket.handshake.session.full_name = data.full_name;
-												socket.handshake.session.email = data.email;
-												socket.handshake.session.save();
-
-												socket.emit('notification',{success:'Successfully registered!'});
-												socket.emit('register_status',{status:true});
-											}
-										);    			
-						    		}
-
-						    	}
-						    );
-						}else{
-							socket.emit('notification',{error:'User already exists'});
-							return;
-						}
-					}
-				);
-			});
-
-		},
-
-		/********************************************************************************/
-
 		(socket) => {
 			socket.on('friends_req',function(){
-				if(typeof socket.handshake.session.user_id === 'undefined'){
-					return;
-				}
 				
 				pg_conn.client.query(
 					"SELECT users.id,users.username,users.avatar FROM users "+
@@ -332,13 +83,6 @@ module.exports = function(config,pg_conn,ss,uuidv1){
 		(socket) => {
 			socket.on('dropdown_notifications_req',function(){
 
-				if(typeof socket.handshake.session.user_id === 'undefined'){
-					return;
-				}
-
-				// This allows other users to send a notification to another user by their user_id
-				socket.join(socket.handshake.session.user_id);
-
 				let promises = [];
 
 				for(let i in pg_conn.dropdown_notification_definitions){
@@ -365,11 +109,12 @@ module.exports = function(config,pg_conn,ss,uuidv1){
 
 		/********************************************************************************/
 
-		(socket,io) => {
+		(socket,private_ns) => {
 
 			socket.on('friend_request_submit',function(data){
 
-				if(typeof socket.handshake.session.user_id === 'undefined'){
+				if(typeof data.recipient_user_id === 'undefined'){
+					socket.emit('notification',{error:'Recipient user id is required'});
 					return;
 				}
 
@@ -415,7 +160,7 @@ module.exports = function(config,pg_conn,ss,uuidv1){
 									socket.emit('notification',{error:'Could not check if this is a request or response'});
 									return;
 								}
-								let ntf_date = new Date();
+								let ntf_date = Date.now();
 
 								let __build_friend_request = function(notification_id){
 									pg_conn.client.query(
@@ -457,14 +202,14 @@ module.exports = function(config,pg_conn,ss,uuidv1){
 
 
 													if(notification_id !== null){
-														io.sockets.in(data.recipient_user_id).emit('dropdown_notifications_res',
+														private_ns.in(data.recipient_user_id).emit('dropdown_notifications_res',
 															{
 																friend_requests: 
 																[
 																	{
 																		id: socket.handshake.session.user_id,
-																		username: recipient_user_data.rows[0].username,
-																		avatar: recipient_user_data.rows[0].avatar,
+																		username: socket.handshake.session.username,
+																		avatar: socket.handshake.session.avatar,
 																		date: ntf_date,
 																		// Display as a friend request 
 																		type: 'REQUEST'
@@ -488,12 +233,12 @@ module.exports = function(config,pg_conn,ss,uuidv1){
 																}
 																socket.emit('notification',{success: 'Successfully accepted friend request'});
 																socket.emit('friend_request_status',{status:true,type:'ACCEPT'});
-																io.sockets.in(data.recipient_user_id).emit('dropdown_notifications_res',
+																private_ns.in(data.recipient_user_id).emit('dropdown_notifications_res',
 																	{
 																		friend_requests: 
 																		[
 																			{
-																				id: socket.handshake.session.user_id,
+																				id: data.recipient_user_id,
 																				username: recipient_user_data.rows[0].username,
 																				avatar: recipient_user_data.rows[0].avatar,
 																				date: ntf_date,
@@ -670,8 +415,18 @@ module.exports = function(config,pg_conn,ss,uuidv1){
 												return;
 											}
 
-											data.signup_deadline = String(data.signup_deadline);
-											data.start_date = String(data.start_date);
+											data.signup_deadline = Date.parse(String(data.signup_deadline));
+											if(isNaN(data.signup_deadline)){
+												socket.emit('notification',{error:'Invalid signup deadline date format'});
+												return;
+											}
+
+											data.start_date = Date.parse(String(data.start_date));
+
+											if(isNaN(data.start_date)){
+												socket.emit('notification',{error:'Invalid start date format'});
+												return;
+											}
 
 											pg_conn.client.query(
 												"INSERT INTO tournaments (community_id,name,description,location,attendee_limit,signup_deadline,start_date) \
@@ -775,7 +530,7 @@ module.exports = function(config,pg_conn,ss,uuidv1){
 		(socket) => {
 			socket.on('community_submit',function(data){
 
-				if(typeof data.name === 'undefined' || data.name.length === 0){
+				if(typeof data.name !== 'string' || data.name.length === 0){
 					socket.emit('notification',{error:'Community name is required'});
 					return;
 				}
@@ -792,7 +547,7 @@ module.exports = function(config,pg_conn,ss,uuidv1){
 							return;
 						}else if(typeof community_exists !== 'undefined' && community_exists.rows.length === 0){
 
-							let date = new Date;
+							let date = Date.now();
 
 							// This is a custom function I wrote that makes it easier to check whether the lengths of input strings are within the assigned VARCHAR limits
 							let __invalid_lengths = function(table_name,lengths_obj){
@@ -830,12 +585,13 @@ module.exports = function(config,pg_conn,ss,uuidv1){
 							}
 
 							pg_conn.client.query(
-								"INSERT INTO communities (name,description,last_activity,num_members) \
-								VALUES ($1,$2,$3,$4) \
+								"INSERT INTO communities (name,description,creation_date,last_activity,num_members) \
+								VALUES ($1,$2,$3,$4,$5) \
 								RETURNING id",
 								[
 									data.name,
 									data.description,
+									date,
 									date,
 									0
 								],
@@ -963,7 +719,7 @@ module.exports = function(config,pg_conn,ss,uuidv1){
 								}
 
 								if(privilege_level.rows[0].privilege_level > config.privileges['admin']){
-									socket.emit('notification',{error:'Insufficient privleges to edit community'});
+									socket.emit('notification',{error:'Insufficient privileges to edit community'});
 									return;
 								}
 
@@ -994,7 +750,7 @@ module.exports = function(config,pg_conn,ss,uuidv1){
 										}
 
 
-										let date = new Date;
+										let date = Date.now();
 
 										// This is a custom function I wrote that makes it easier to check whether the lengths of input strings are within the assigned VARCHAR limits
 										let __invalid_lengths = function(table_name,lengths_obj){
@@ -1127,7 +883,8 @@ module.exports = function(config,pg_conn,ss,uuidv1){
 				data.tournament_id = Number(data.tournament_id);
 
 				if(isNaN(data.tournament_id)){
-					socket.emit('notification',{error: 'Tournament_id id must be a number'});
+					socket.emit('notification',{error: 'Tournament id must be a number'});
+					return;
 				}
 
 				pg_conn.client.query(
@@ -1166,7 +923,7 @@ module.exports = function(config,pg_conn,ss,uuidv1){
 								}
 
 								if(privilege_level.rows[0].privilege_level > config.privileges['admin']){
-									socket.emit('notification',{error:'Insufficient privleges to edit tournament'});
+									socket.emit('notification',{error:'Insufficient privileges to edit tournament'});
 									return;
 								}
 
@@ -1241,8 +998,18 @@ module.exports = function(config,pg_conn,ss,uuidv1){
 											return;
 										}
 
-										data.signup_deadline = String(data.signup_deadline);
-										data.start_date = String(data.start_date);
+										data.signup_deadline = Date.parse(String(data.signup_deadline));
+										if(isNaN(data.signup_deadline)){
+											socket.emit('notification',{error:'Invalid signup deadline date format'});
+											return;
+										}
+
+										data.start_date = Date.parse(String(data.start_date));
+
+										if(isNaN(data.start_date)){
+											socket.emit('notification',{error:'Invalid start date format'});
+											return;
+										}
 
 										pg_conn.client.query(
 											"UPDATE tournaments SET \
@@ -1346,6 +1113,19 @@ module.exports = function(config,pg_conn,ss,uuidv1){
 		(socket) => {
 
 			socket.on('widgets_req',function(community_id){
+				
+				if(typeof community_id === 'undefined'){
+					socket.emit('notification',{error:'Community id is required'});
+					return;
+				}
+
+				community_id = Number(community_id);
+
+				if(isNaN(community_id)){
+					socket.emit('notification',{error:'Community id must be a number'});
+					return;
+				}
+
 				pg_conn.client.query(
 					"SELECT layout \
 						FROM communities \
@@ -1357,6 +1137,11 @@ module.exports = function(config,pg_conn,ss,uuidv1){
 					function(err,results){
 						if(err){
 							console.log(err);
+							return;
+						}
+
+						if(typeof results === 'undefined' || results.rowCount === 0){
+							socket.emit('notification',{error:'No community with id of '+community_id});
 							return;
 						}
 
@@ -1398,22 +1183,79 @@ module.exports = function(config,pg_conn,ss,uuidv1){
 		(socket) => {
 
 			socket.on('layout_submit_req',function(data){
+
+				if(typeof data.community_id === 'undefined'){
+					socket.emit('notification',{error:'Community id is required'});
+					return;
+				}
+
+				data.community_id = Number(data.community_id);
+
+				if(isNaN(data.community_id)){
+					socket.emit('notification',{error:'Community id must be a number'});
+					return;
+				}
+
 				pg_conn.client.query(
-					"UPDATE communities \
-						SET layout = $1 \
-						WHERE id = $2 \
-					",
+					"SELECT 1 FROM communities WHERE id = $1 LIMIT 1",
 					[
-						JSON.stringify(data.layout),
 						data.community_id
-					],function(err,results){
+					],
+					function(err,community_exists){
 						if(err){
 							console.log(err);
-							socket.emit('notification',{error:'Layout could not be saved'});
+							socket.emit('Could not check if community exists');
 							return;
 						}
-						socket.emit('notification',{success:'Successfully saved layout'});
-						socket.emit('layout_submit_status',{status:true});
+
+						if(typeof community_exists === 'undefined' || community_exists.rowCount == 0){
+							socket.emit('Not community with id of '+data.community_id);
+							return;
+						}
+
+						pg_conn.client.query(
+							"SELECT privilege_level FROM community_members WHERE user_id = $1 AND community_id = $2 LIMIT 1",
+							[
+								socket.handshake.session.user_id,
+								data.community_id
+							],
+							function(err,privilege_level){
+								if(err){
+									console.log(err);
+									socket.emit('notification',{error:'Could not get privilege information'});
+									return;
+								}
+
+								if(typeof privilege_level === 'undefined' || privilege_level.rowCount === 0){
+									socket.emit('notification',{error:'You must be a member of the community to submit a layout'});
+									return;
+								}
+
+								if(privilege_level.rows[0].privilege_level > config.privileges['admin']){
+									socket.emit('notification',{error:'Insufficient privileges to submit community layout'});
+									return;
+								}
+
+								pg_conn.client.query(
+									"UPDATE communities \
+										SET layout = $1 \
+										WHERE id = $2 \
+									",
+									[
+										JSON.stringify(data.layout),
+										data.community_id
+									],function(err,results){
+										if(err){
+											console.log(err);
+											socket.emit('notification',{error:'Layout could not be saved'});
+											return;
+										}
+										socket.emit('notification',{success:'Successfully saved layout'});
+										socket.emit('layout_submit_status',{status:true});
+									}
+								);
+							}
+						);
 					}
 				);
 			});
@@ -1430,6 +1272,19 @@ module.exports = function(config,pg_conn,ss,uuidv1){
 		(socket) => {
 
 			socket.on('available_widgets_req',function(community_id){
+
+				if(typeof community_id === 'undefined'){
+					socket.emit('notification',{error:'Community id is required'});
+					return;
+				}
+
+				community_id = Number(community_id);
+
+				if(isNaN(community_id)){
+					socket.emit('notification',{error:'Community id must be a number'});
+					return;
+				}
+
 				for(let widget_type in widget_definitions){
 					if(widget_definitions.hasOwnProperty(widget_type)){
 						widget_definitions[widget_type].available(community_id,function(available_widgets,notification){
@@ -1460,8 +1315,9 @@ module.exports = function(config,pg_conn,ss,uuidv1){
 		(socket) => {
 
 			socket.on('widget_submit_req',function(data){
+
 				if(typeof data.community_id === 'undefined'){
-					socket.emit('notification',{error:'Could not find community id in widget'});
+					socket.emit('notification',{error:'Community id is required'});
 					return;
 				}
 
@@ -1472,17 +1328,61 @@ module.exports = function(config,pg_conn,ss,uuidv1){
 					return;
 				}
 
-				if(typeof widget_definitions[data.type] !== 'undefined'){
-					widget_definitions[data.type].add(data.community_id,data.data,function(success,notification){
-						notification.name = "widget_submit_res";
-						socket.emit('notification',notification);
-						if(success){
-							socket.emit('widget_submit_status',{status:true});
+				pg_conn.client.query(
+					"SELECT 1 FROM communities WHERE id = $1",
+					[
+						data.community_id
+					],function(err,community_exists){
+						if(err){
+							console.log(err);
+							socket.emit('notification',{error:'Could not check if community exists'});
+							return;
 						}
-					});			
-				}else{
-					socket.emit('notification',{error:"Unknown widget type \'"+data.type+"\'"})
-				}
+
+						if(typeof community_exists === 'undefined' || community_exists.rowCount === 0){
+							socket.emit('notification',{error:'Community with id of '+data.community_id+' does not exist'});
+							return;
+						}
+
+						pg_conn.client.query(
+							"SELECT privilege_level FROM community_members WHERE user_id = $1 community_id = $2",
+							[
+								socket.handshake.session.user_id,
+								data.community_id
+							],
+							function(err,privilege_level){
+								if(err){
+									console.log(err);
+									socket.emit('notification',{error:'Could not get privilege information for community'});
+									return;
+								}
+
+								if(typeof privilege_level === 'undefined' || privilege_level.rowCount === 0){
+									socket.emit('notification',{error:'You must be a member of this community to submit a widget'});
+									return;
+								}
+
+								if(privilege_level.rows[0].privilege_level > config.privileges['admin']){
+									socket.emit('notification',{error:'Insufficient privileges to submit widget'});
+									return;
+								}
+
+								if(typeof widget_definitions[data.type] !== 'undefined'){
+									widget_definitions[data.type].add(data.community_id,data.data,function(success,notification){
+										notification.name = "widget_submit_res";
+										socket.emit('notification',notification);
+										if(success){
+											socket.emit('widget_submit_status',{status:true});
+										}
+									});			
+								}else{
+									socket.emit('notification',{error:"Unknown widget type \'"+data.type+"\'"})
+								}				
+							}
+						);						
+
+					}
+				);
 			});
 
 		},
@@ -1492,56 +1392,89 @@ module.exports = function(config,pg_conn,ss,uuidv1){
 		(socket) => {
 
 			socket.on('toggle_tournament_membership',function(tournament_id){
+
+				if(typeof tournament_id === 'undefined'){
+					socket.emit('notification',{error:'Tournament id is required'});
+					return;
+				}
+
+				tournament_id = Number(tournament_id);
+
+				if(isNaN(tournament_id)){
+					socket.emit('notification',{error:'Tournament id must be a number'});
+					return;
+				}
+
 				pg_conn.client.query(
-					"SELECT 1 FROM tournament_attendees \
-						WHERE tournament_attendees.user_id = $1 AND tournament_attendees.tournament_id = $2 \
-					",
+					"SELECT 1 FROM tournaments WHERE id = $1",
 					[
-						socket.handshake.session.user_id,
-						Number(tournament_id)
-					],function(err,is_member){
+						socket.handshake.session.user_id
+					],function(err,tournament_exists){
 						if(err){
 							console.log(err);
-							socket.emit('notification',{error:'Could not search tournament members'});
+							socket.emit('notification',{error:'Could not check if tournament exists'});
 							return;
 						}
-						if(is_member && is_member.rowCount){
-							pg_conn.client.query(
-								"DELETE FROM tournament_attendees \
-									WHERE tournament_attendees.user_id = $1 AND tournament_attendees.tournament_id = $2",
-								[
-									socket.handshake.session.user_id,
-									Number(tournament_id)
-								]
-								,function(err){
-									if(err){
-										console.log(err);
-										socket.emit('notification',{error:'Could not remove you from the tournament'});
-										return;
-									}
-									socket.emit('notification',{success:'Successfully left tournament'});							
-								}
-							);
-						}else if(is_member && is_member.rowCount === 0){
-							pg_conn.client.query(
-								"INSERT INTO tournament_attendees (user_id,tournament_id) \
-									VALUES ($1,$2) \
-								",
-								[
-									socket.handshake.session.user_id,
-									Number(tournament_id)
-								],
-								function(err){
-									if(err){
-										console.log(err);
-										socket.emit('notification',{error:'Could not join you to the tournament'});
-										return;
-									}
-									socket.emit('notification',{success:'Successfully joined tournament'});							
-								}
-							);
+
+						if(typeof tournament_exists === 'undefined' || tournament_exists.rowCount === 0){
+							socket.emit('notification',{error:'Tournament with id of '+tournament_id+' does not exist'});
+							return;
 						}
+
+						pg_conn.client.query(
+							"SELECT 1 FROM tournament_attendees \
+								WHERE tournament_attendees.user_id = $1 AND tournament_attendees.tournament_id = $2 \
+							",
+							[
+								socket.handshake.session.user_id,
+								Number(tournament_id)
+							],function(err,is_member){
+								if(err){
+									console.log(err);
+									socket.emit('notification',{error:'Could not search tournament members'});
+									return;
+								}
+								if(is_member && is_member.rowCount){
+									pg_conn.client.query(
+										"DELETE FROM tournament_attendees \
+											WHERE tournament_attendees.user_id = $1 AND tournament_attendees.tournament_id = $2",
+										[
+											socket.handshake.session.user_id,
+											Number(tournament_id)
+										]
+										,function(err){
+											if(err){
+												console.log(err);
+												socket.emit('notification',{error:'Could not remove you from the tournament'});
+												return;
+											}
+											socket.emit('notification',{success:'Successfully left tournament'});							
+										}
+									);
+								}else if(is_member && is_member.rowCount === 0){
+									pg_conn.client.query(
+										"INSERT INTO tournament_attendees (user_id,tournament_id) \
+											VALUES ($1,$2) \
+										",
+										[
+											socket.handshake.session.user_id,
+											Number(tournament_id)
+										],
+										function(err){
+											if(err){
+												console.log(err);
+												socket.emit('notification',{error:'Could not join you to the tournament'});
+												return;
+											}
+											socket.emit('notification',{success:'Successfully joined tournament'});							
+										}
+									);
+								}
+							}
+						);
+
 					}
+
 				);
 			});
 
@@ -1559,58 +1492,90 @@ module.exports = function(config,pg_conn,ss,uuidv1){
 		(socket) => {
 
 			socket.on('toggle_community_membership',function(community_id){
+
+				if(typeof community_id === 'undefined'){
+					socket.emit('notification',{error:'Community id is required'});
+					return;
+				}
+
+				community_id = Number(community_id);
+
+				if(isNaN(community_id)){
+					socket.emit('notification',{error:'Community id must be a number'});
+					return;
+				}
+
 				pg_conn.client.query(
-					"SELECT 1 FROM community_members \
-						WHERE community_members.user_id = $1 AND community_members.community_id = $2 \
-					",
+					"SELECT 1 FROM communities WHERE id = $1",
 					[
-						socket.handshake.session.user_id,
-						Number(community_id)
-					],function(err,is_member){
+						community_id
+					],
+					function(err,community_exists){
 						if(err){
 							console.log(err);
-							socket.emit('notification',{error:'Could not search community members'});
+							socket.emit('notification',{error:'Could not check if commmunity exists'});
 							return;
 						}
-						if(is_member && is_member.rowCount){
-							pg_conn.client.query(
-								"DELETE FROM community_members \
-									WHERE community_members.user_id = $1 AND community_members.community_id = $2",
-								[
-									socket.handshake.session.user_id,
-									Number(community_id)
-								]
-								,function(err){
-									if(err){
-										console.log(err);
-										socket.emit('notification',{error:'Could not remove you from the community'});
-										return;
-									}
-									socket.emit('notification',{success:'Successfully left community'});							
-									socket.emit('toggle_community_status',{status:true});
-								}
-							);
-						}else if(is_member && is_member.rowCount === 0){
-							pg_conn.client.query(
-								"INSERT INTO community_members (user_id,community_id,privilege_level) \
-									VALUES ($1,$2,$3) \
-								",
-								[
-									socket.handshake.session.user_id,
-									Number(community_id),
-									config.privileges['member']
-								],
-								function(err){
-									if(err){
-										console.log(err);
-										socket.emit('notification',{error:'Could not join you to the community'});
-										return;
-									}
-									socket.emit('notification',{success:'Successfully joined community'});							
-									socket.emit('toggle_community_status',{status:true});
-								}
-							);
+
+						if(typeof community_exists === 'undefined' || community_exists.rowCount === 0){
+							socket.emit('notification',{error:'Community with id of '+community_id+' does not exist'});
+							return;
 						}
+
+						pg_conn.client.query(
+							"SELECT 1 FROM community_members \
+								WHERE community_members.user_id = $1 AND community_members.community_id = $2 \
+							",
+							[
+								socket.handshake.session.user_id,
+								Number(community_id)
+							],function(err,is_member){
+								if(err){
+									console.log(err);
+									socket.emit('notification',{error:'Could not search community members'});
+									return;
+								}
+								if(is_member && is_member.rowCount){
+									pg_conn.client.query(
+										"DELETE FROM community_members \
+											WHERE community_members.user_id = $1 AND community_members.community_id = $2",
+										[
+											socket.handshake.session.user_id,
+											Number(community_id)
+										]
+										,function(err){
+											if(err){
+												console.log(err);
+												socket.emit('notification',{error:'Could not remove you from the community'});
+												return;
+											}
+											socket.emit('notification',{success:'Successfully left community'});							
+											socket.emit('toggle_community_status',{status:true});
+										}
+									);
+								}else if(is_member && is_member.rowCount === 0){
+									pg_conn.client.query(
+										"INSERT INTO community_members (user_id,community_id,privilege_level) \
+											VALUES ($1,$2,$3) \
+										",
+										[
+											socket.handshake.session.user_id,
+											Number(community_id),
+											config.privileges['member']
+										],
+										function(err){
+											if(err){
+												console.log(err);
+												socket.emit('notification',{error:'Could not join you to the community'});
+												return;
+											}
+											socket.emit('notification',{success:'Successfully joined community'});							
+											socket.emit('toggle_community_status',{status:true});
+										}
+									);
+								}
+							}
+						);
 					}
 				);
 			});
@@ -1627,6 +1592,11 @@ module.exports = function(config,pg_conn,ss,uuidv1){
 		(socket) => {
 
 			socket.on('toggle_tournament_membership',function(tournament_id){
+
+				if(typeof tournament_id === 'undefined'){
+					socket.emit('notification',{error:'Tournament id is required'});
+					return;
+				}
 
 				tournament_id = Number(tournament_id);
 
