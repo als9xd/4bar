@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>4BAR - Edit Tournament</title>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
+    <link href="https://fonts.googleapis.com/css?family=Raleway:400,700" rel="stylesheet">
+
+    <link href="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" rel="stylesheet"/>
+
+    <link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/bootstrap.daterangepicker/2/daterangepicker.css" />
+
+    <link rel="stylesheet" href="/css/jquery.tagsinput.css">
+
+    <link rel="stylesheet" href="/css/public.css">
+    <link rel="stylesheet" href="/css/sidebar.css">
+    <link rel="stylesheet" href="/css/friends_list.css">
+
+    <script src="/js/public.js"></script>
+ 
+    <script src="/socket.io/socket.io.js"></script>
+    <script type="text/javascript">let socket = io('/private');</script>
+
+ </head>
+
+  <body>
+
+    <div id="wrapper" data-toggle-on='false'>
+
+      <!-- Friends List -->
+      <div class="btn-group dropup" id="friends">
+        <button type="button" id="friends-toggle" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <h5>Friends</h5>
+        </button>
+        <div class="dropdown-menu" id="friends-menu">
+        </div>
+      </div>
+
+      <!-- Navbar -->
+      <nav id="navbar-wrapper" class="navbar navbar-toggleable-sm navbar-inverse bg-inverse fixed-top navbar-expand-sm">
+        <div class="navbar-brand">
+          <button class="sidebar-toggler" type="button" aria-expanded="false" aria-label="Toggle navigation" id="menu-toggle">
+            <span class="sidebar-toggler-icon"></span>
+          </button>
+          <a class="navbar-brand" href="/home">4bar.org</a>
+        </div>
+        <div class="collapse navbar-collapse">
+          <form class="form-inline my-2 my-md-0" action="/search" method="GET">
+            <input name="query" class="form-control mr-sm-2">
+            <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+          </form> 
+          <ul class="navbar-nav ml-auto">
+            <li class="nav-item">
+              <a class="nav-link" href="/community_creation" id="community-creation-icon" data-toggle="tooltip" data-placement="bottom" title="Community Creation"><img src="/site/community-creation.png"></a>
+            </li>
+            <li class="nav-item dropdown">
+              <a class="nav-link" href="#" id="notification-dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><img src="/site/notification.png"></a>
+              <div id="notification-dropdown-menu" class="dropdown-menu dropdown-menu-right" aria-labelledby="notification-dropdown">
+                <div class="dropdown-menu-head">
+                  <h5 class="dropdown-item">Notifications<img src="site/settings.png" class="float-right"></h5> 
+                </div>
+              </div>
+            </li>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="profile-dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><img src="{{#if user_data.avatar includeZero=true}}/avatars/{{{user_data.avatar}}}{{else}}/site/no-avatar.jpg{{/if}}"></a>
+              <div id="profile-dropdown-menu" class="dropdown-menu dropdown-menu-right" aria-labelledby="profile-dropdown">
+                <a class="dropdown-menu-head dropdown-item" href="/profile?id={{user_data.id}}">
+                  <h5 class="dropdown-item">{{user_data.username}}</h5> 
+                  <h6 class="dropdown-item">{{user_data.email}}</h6> 
+                </a>
+                <a class="dropdown-item" href="\profile?id={{user_data.id}}">My Profile</a>
+                <a class="dropdown-item" href="\logout">Logout</a>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </nav>
+      <!-- /Navbar -->
+
+      <!-- Sidebar -->
+      <div id="sidebar-wrapper">
+          <ul class="sidebar-nav">
+              <li>
+                  <a class="active" href="/home">Home</a>
+              </li>
+              <li>
+                  <a href="/marketplace">Marketplace</a>
+              </li>
+              <li>
+                <a href="/calendar">Calendar</a>
+              </li>
+              <li>
+                <a href="/geolocation">Nearby Events</a>
+              </li>
+              <li>
+                <hr>
+              </li>
+              <li>
+                <a class="sidebar-title" href="/profile?active_field=communities"><h5>Communities</h5></a>
+              </li>
+              {{#each user_data.communities}}
+              <li>
+                  <a href="/communities?id={{id}}"><img src="{{#if icon includeZero=true}}/icons/{{icon}}{{else}}/site/no-icon.jpg{{/if}}">{{name}}</a>
+              </li>
+              {{/each}}
+              <li>
+                <hr>
+              </li>
+              <li>
+                <a class="sidebar-title" href="/profile?active_field=tournaments"><h5>Tournaments</h5></a>
+              </li>
+              {{#each user_data.tournaments}}
+              <li>
+                  <a href="/tournaments?id={{id}}">{{name}}</a>
+              </li>
+              {{/each}}
+          </ul>
+      </div>
+      <!-- /Sidebar -->
+
+      <!-- Page Content -->
+      <div id="page-content-wrapper">
+          
+        <div class="container-fluid">
+            <h1>Edit Tournament Wizard</h1>
+            <h5>Community: <a href="communities?id={{community_data.id}}"><img src="{{#if icon includeZero=true}}/icons/{{icon}}{{else}}/site/no-icon.jpg{{/if}}" style="height: 30px;width: 30px">{{community_data.name}}</a></h5>
+            <hr/>
+            <div class="row">
+                <div class="col-md-7" style="margin:auto">
+                  <form>
+                  </form>
+                    <div class="form-group">
+                      <label for="tournament-name"><span class="req">* </span>Name: </label>
+                        <input required type="text" id="tournament-name" class="form-control" autocomplete="off" value="{{tournament_data.name}}"/> 
+                    </div>
+                    <div class="form-group">
+                      <label for="tournament-description">Description: </label>
+                      <textarea class="form-control" rows="5" id="tournament-description" value="{{tournament_data.description}}"></textarea>
+                    </div>
+                    <div class="form-group">
+                      <label for="tournament-location">Location: </label>
+                      <input required class="form-control" type="text" id="tournament-location" class="form-control" autocomplete="off" onFocus="geolocate()" value="{{tournament_data.location}}"/> 
+                    </div>
+                    <div class="form-group">
+                      <label for="tournament-attendee-limit">Attendee Limit: </label>
+                      <input required type="text" id="tournament-attendee-limit" class="form-control" autocomplete="off" value="{{tournament_data.attendee_limit}}"/> 
+                    </div>
+                    <div class="form-group">
+                      <label for="tournament-signup-deadline"><span class="req">* </span> Signup Deadline: </label>
+                      <input type="text" class="form-control" id="tournament-signup-deadline"/>
+                      <script>document.getElementById('tournament-signup-deadline').value = format_date({{tournament_data.signup_deadline}},{includeTime:true})</script>
+                    </div>
+
+                    <div class="form-group">
+                      <label for="tournament-start-date"><span class="req">* </span> Start Date: </label>
+                      <input type="text" class="form-control" id="tournament-start-date"/>
+                      <script>document.getElementById('tournament-start-date').value = format_date({{tournament_data.start_date}},{includeTime:true})</script>
+                    </div>
+                    <div class="form-group">
+                      <label for="tournament-tags">Tags: </label>
+                      <input name="tags" id="tournament-tags" value="{{#each tournament_data.tags}}{{tag}}{{#unless @last}},{{/unless}}{{/each}}"/>
+                    </div>
+                    <button class="btn btn-primary" id='tournament-submit-btn'>Submit</button>
+                  </form>
+                </div>
+              </div>
+          </div>
+      </div>
+      <!-- /Page Content -->
+    </div>
+    <!-- /Main Wrapper -->
+
+    <!-- Load jquery -->
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.21.0/moment.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb" crossorigin="anonymous"></script>
+
+    <!-- Load Booststrap -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script>
+
+    <!-- Select date/time -->
+    <script type="text/javascript" src="//cdn.jsdelivr.net/bootstrap.daterangepicker/2/daterangepicker.js"></script>
+    <script type="text/javascript">
+      $('#tournament-signup-deadline').daterangepicker(       
+        {
+          autoApply: true,
+          timePicker: true,
+          singleDatePicker: true,
+          showDropdowns: true,
+          locale: {
+              format: 'MM/DD/YYYY h:mm A'
+          }                   
+        }
+      );
+      $('#tournament-start-date').daterangepicker(       
+        {
+          autoApply: true,
+          timePicker: true,
+          singleDatePicker: true,
+          showDropdowns: true,
+          locale: {
+              format: 'MM/DD/YYYY h:mm A'
+          }         
+        }
+      );      
+    </script>
+    
+    <!-- Load notification handler. Used to display notifications sent from the server through socket.io -->
+    <script src="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
+    <script src="/js/NotificationHandler.js"></script>
+    <script type="text/javascript">
+      let ntf_hndlr = NotificationHandler(
+        toastr,
+        socket
+      );
+    </script>
+
+    <!-- Dropdown Notifications -->
+    <script src="/js/DropdownNotificationsDefinitions.js"></script>
+    <script src="/js/DropdownNotificationsHandler.js"></script>
+    <script type="text/javascript">
+      let dd_ntf_hndler = DropdownNotificationsHandler(
+        socket,
+        DropdownNotificationsDefinitions
+      );
+    </script>
+
+    <!-- Friends List -->
+    <script type="text/javascript" src="/js/FriendsListHandler.js"></script>
+    <script type="text/javascript">
+      let fl_hndler = FriendsListHandler(socket);
+    </script>
+
+    <!-- Menu Toggle Script -->
+    <script src="/js/Sidebar.js"></script>
+
+    <!-- Enable Tooltips -->    
+    <script type="text/javascript">
+      $(document).ready(function(){
+        $('[data-toggle="tooltip"]').tooltip();
+      });
+    </script>
+
+    <!-- Enable tags input -->    
+    <script src="/js/jquery.tagsinput.js"></script>
+    <script type="text/javascript">
+      $('#tournament-tags').tagsInput();
+    </script>
+
+    <script type="text/javascript">
+      $(document).ready(function(){
+        $('#tournament-submit-btn').click(
+          () => {
+            socket.emit('edit_tournament',{
+              tournament_id: '{{tournament_data.id}}',
+              name: $('#tournament-name').val(),
+              description: $('#tournament-description').val(),
+              location: $('#tournament-location').val(),
+              attendee_limit: $('#tournament-attendee-limit').val(),
+              signup_deadline: $('#tournament-signup-deadline').val(),
+              start_date: $('#tournament-start-date').val(),
+              tags: $('#tournament-tags').val()
+            });
+          }
+        );
+      });
+    </script>
+
+    <!-- Google maps autocomplete -->
+    <script>
+
+      let placeSearch, autocomplete;
+
+      function initAutocomplete() {
+        // Create the autocomplete object, restricting the search to geographical
+        // location types.
+        autocomplete = new google.maps.places.Autocomplete(
+            /** @type {!HTMLInputElement} */(document.getElementById('tournament-location')),
+            {types: ['geocode']});
+
+        // When the user selects an address from the dropdown, populate the address
+        // fields in the form.
+        autocomplete.addListener('place_changed', fillInAddress);
+      }
+
+      function fillInAddress() {
+        let place = autocomplete.getPlace();
+      }
+
+
+      function geolocate() {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(function(position) {
+            let geolocation = {
+              lat: position.coords.latitude,
+              lng: position.coords.longitude
+            };
+            let circle = new google.maps.Circle({
+              center: geolocation,
+              radius: position.coords.accuracy
+            });
+            autocomplete.setBounds(circle.getBounds());
+          });
+        }
+      }
+    </script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC-WvQjzOOtExbBjLCwRflnSS2wL1gKN6w&libraries=places&callback=initAutocomplete"
+        async defer></script>
+
+  </body>
+
+</html>

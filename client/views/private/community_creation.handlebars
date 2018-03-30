@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>4BAR - Community Creation</title>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
+    <link href="https://fonts.googleapis.com/css?family=Raleway:400,700" rel="stylesheet">
+
+    <link href="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" rel="stylesheet"/>
+
+    <link rel="stylesheet" href="/css/jquery.tagsinput.css">
+
+    <link rel="stylesheet" href="/css/public.css">
+    <link rel="stylesheet" href="/css/sidebar.css">
+    <link rel="stylesheet" href="/css/friends_list.css">
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script type="text/javascript">let socket = io('/private');</script>
+    
+ </head>
+
+  <body>
+
+    <div id="wrapper" data-toggle-on='false'>
+      
+      <!-- Friends List -->
+      <div class="btn-group dropup" id="friends">
+        <button type="button" id="friends-toggle" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <h5>Friends</h5>
+        </button>
+        <div class="dropdown-menu" id="friends-menu">
+        </div>
+      </div>
+
+      <!-- Navbar -->
+      <nav id="navbar-wrapper" class="navbar navbar-toggleable-sm navbar-inverse bg-inverse fixed-top navbar-expand-sm">
+        <div class="navbar-brand">
+          <button class="sidebar-toggler" type="button" aria-expanded="false" aria-label="Toggle navigation" id="menu-toggle">
+            <span class="sidebar-toggler-icon"></span>
+          </button>
+          <a class="navbar-brand" href="/home">4bar.org</a>
+        </div>
+        <div class="collapse navbar-collapse">
+          <form class="form-inline my-2 my-md-0" action="/search" method="GET">
+            <input name="query" class="form-control mr-sm-2">
+            <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+          </form> 
+          <ul class="navbar-nav ml-auto">
+            <li class="nav-item">
+              <a class="nav-link" href="/community_creation" id="community-creation-icon" data-toggle="tooltip" data-placement="bottom" title="Community Creation"><img src="/site/community-creation.png"></a>
+            </li>
+            <li class="nav-item dropdown">
+              <a class="nav-link" href="#" id="notification-dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><img src="/site/notification.png"></a>
+              <div id="notification-dropdown-menu" class="dropdown-menu dropdown-menu-right" aria-labelledby="notification-dropdown">
+                <div class="dropdown-menu-head">
+                  <h5 class="dropdown-item">Notifications<img src="site/settings.png" class="float-right"></h5> 
+                </div>
+              </div>
+            </li>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="profile-dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><img src="{{#if user_data.avatar includeZero=true}}/avatars/{{{user_data.avatar}}}{{else}}/site/no-avatar.jpg{{/if}}"></a>
+              <div id="profile-dropdown-menu" class="dropdown-menu dropdown-menu-right" aria-labelledby="profile-dropdown">
+                <a class="dropdown-menu-head dropdown-item" href="/profile?id={{user_data.id}}">
+                  <h5 class="dropdown-item">{{user_data.username}}</h5> 
+                  <h6 class="dropdown-item">{{user_data.email}}</h6> 
+                </a>
+                <a class="dropdown-item" href="\profile?id={{user_data.id}}">My Profile</a>
+                <a class="dropdown-item" href="\logout">Logout</a>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </nav>
+      <!-- /Navbar -->
+
+      <!-- Sidebar -->
+      <div id="sidebar-wrapper">
+          <ul class="sidebar-nav">
+              <li>
+                  <a class="active" href="/home">Home</a>
+              </li>
+              <li>
+                  <a href="/marketplace">Marketplace</a>
+              </li>
+              <li>
+                <a href="/calendar">Calendar</a>
+              </li>
+              <li>
+                <a href="/geolocation">Nearby Events</a>
+              </li>
+              <li>
+                <hr>
+              </li>
+              <li>
+                <a class="sidebar-title" href="/profile?active_field=communities"><h5>Communities</h5></a>
+              </li>
+              {{#each user_data.communities}}
+              <li>
+                  <a href="/communities?id={{id}}"><img src="{{#if icon includeZero=true}}/icons/{{icon}}{{else}}/site/no-icon.jpg{{/if}}">{{name}}</a>
+              </li>
+              {{/each}}
+              <li>
+                <hr>
+              </li>
+              <li>
+                <a class="sidebar-title" href="/profile?active_field=tournaments"><h5>Tournaments</h5></a>
+              </li>
+              {{#each user_data.tournaments}}
+              <li>
+                  <a href="/tournaments?id={{id}}">{{name}}</a>
+              </li>
+              {{/each}}
+          </ul>
+      </div>
+      <!-- /Sidebar -->
+
+      <!-- Page Content -->
+      <div id="page-content-wrapper">
+          
+        <div class="container-fluid">
+            <h1>Community Creation Wizard</h1>
+            <hr/>
+            <div class="row">
+                <div class="col-md-7" style="margin:auto">
+                  <form>
+                  </form>
+                    <div class="form-group">
+                      <label for="community-name"><span class="req">* </span>Name: </label>
+                        <input required type="text" id="community-name" class="form-control" autocomplete="off" /> 
+                    </div>
+                    <div class="form-group">
+                      <label for="community-description">Description: </label>
+                      <textarea class="form-control" rows="5" id="community-description"></textarea>
+                    </div>
+                    <div class="form-group">
+                      <label for="community-icon-file">Icon: </label>
+                        <input type="file" id="community-icon-file" /> 
+                    </div>
+                    <div class="form-group">
+                      <label for="community-wallpaper-file">Wallpaper: </label>
+                        <input type="file" id="community-wallpaper-file" /> 
+                    </div>
+                    <div class="form-group">
+                      <label for="community-tags">Tags: </label>
+                      <input name="tags" id="community-tags"/>
+                    </div>
+                    <button class="btn btn-primary" id='community-submit-btn'>Submit</button>
+                  </form>
+                </div>
+              </div>
+          </div>
+      </div>
+      <!-- /Page Content -->
+    </div>
+    <!-- /Main Wrapper -->
+
+    <!-- Load jquery -->
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb" crossorigin="anonymous"></script>
+
+    <!-- Load Booststrap -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script>
+
+    <!-- Upload files -->
+    <script src="/js/socket.io-file-client.js"></script>
+    <script type="text/javascript">
+      let uploader = new SocketIOFileClient(socket);  
+    </script>
+
+    <!-- Load notification handler. Used to display notifications sent from the server through socket.io -->
+    <script src="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
+    <script src="/js/NotificationHandler.js"></script>
+    <script type="text/javascript">
+      let ntf_hndlr = NotificationHandler(
+        toastr,
+        socket
+      );
+      uploader.on('error', function(err) {
+        ntf_hndlr.build_notification({error:String(err)});
+      });
+    </script>
+
+    <script>
+
+      let expected_status_msgs = {
+          'community_creation_status': true,
+          'wallpaper_upload_status' : document.getElementById('community-wallpaper-file').files.length > 0 ? true : false,
+          'icon_upload_status' : document.getElementById('community-icon-file').files.length > 0 ? true : false
+      };
+
+      let received_status_msgs = {};
+
+      let on_finished = function(callback){
+        for(let i in expected_status_msgs){
+          if(expected_status_msgs.hasOwnProperty(i) && expected_status_msgs[i] === true){
+            if(typeof received_status_msgs[i] === 'undefined'){
+              return;
+            }
+          }
+        }
+        callback();
+      }
+
+      let new_community_id = null;
+
+      for(let i in expected_status_msgs){
+        if(expected_status_msgs.hasOwnProperty(i)){
+          socket.on(i,function(status){
+            received_status_msgs[i] = status;
+            if(i === 'community_creation_status'){
+              new_community_id = status.new_community_id;
+
+              uploader.upload(document.getElementById('community-wallpaper-file'), {
+                uploadTo: 'wallpapers',
+                data: {
+                  type: 'wallpaper',
+                  community_id: new_community_id
+                }
+              }); 
+
+              uploader.upload(document.getElementById('community-icon-file'), {
+                uploadTo: 'icons',
+                data: {
+                  type: 'icon',
+                  community_id: new_community_id
+                }
+              });
+
+            }
+            on_finished(
+              function(){
+                let sleep = function(time) {
+                  return new Promise((resolve) => setTimeout(resolve, time));
+                }
+                sleep(500).then(
+                  ()=>{
+                    window.location.replace('/communities?id='+new_community_id);
+                  }
+                )
+                
+              }
+            );
+          });
+        }
+      }
+    </script>
+
+    <!-- Dropdown Notifications -->
+    <script src="/js/DropdownNotificationsDefinitions.js"></script>
+    <script src="/js/DropdownNotificationsHandler.js"></script>
+    <script type="text/javascript">
+      let dd_ntf_hndler = DropdownNotificationsHandler(
+        socket,
+        DropdownNotificationsDefinitions
+      );
+    </script>
+
+    <!-- Friends List -->
+    <script type="text/javascript" src="/js/FriendsListHandler.js"></script>
+    <script type="text/javascript">
+      let fl_hndler = FriendsListHandler(socket);
+    </script>
+
+    <!-- Menu Toggle Script -->
+    <script src="/js/Sidebar.js"></script>
+
+    <!-- Enable Tooltips -->    
+    <script type="text/javascript">
+      $(document).ready(function(){
+        $('[data-toggle="tooltip"]').tooltip();
+      });
+    </script>
+
+    <!-- Enable tags input -->    
+    <script src="/js/jquery.tagsinput.js"></script>
+    <script type="text/javascript">
+      $('#community-tags').tagsInput();
+    </script>
+
+    <script type="text/javascript">
+      $(document).ready(function(){
+        $('#community-submit-btn').click(
+          () => {
+            socket.emit('community_submit',{
+              name: $('#community-name').val(),
+              description: $('#community-description').val(),
+              tags: $('#community-tags').val()
+            });
+           
+          }
+        );
+      });
+    </script>
+
+  </body>
+
+</html>

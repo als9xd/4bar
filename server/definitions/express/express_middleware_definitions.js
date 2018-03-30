@@ -12,7 +12,7 @@
 
 'use strict';
 
-module.exports = function(){
+module.exports = function(pg_conn){
 
 	return {
 
@@ -70,6 +70,53 @@ module.exports = function(){
 				return next();
 			}
 			res.redirect('https://'+req.hostname+req.url);		
+		},
+
+		/********************************************************************************/
+
+		membership_information: function(req,res,next){
+
+			req.membership_information = {};
+
+			pg_conn.client.query(
+				"SELECT communities.* FROM communities \
+					INNER JOIN community_members ON communities.id = community_members.community_id \
+					WHERE community_members.user_id = $1",
+				[
+					req.session.user_id
+				],
+				function(err,communities){
+					if(err){
+						console.log(err);
+						res.render('public/error',{error:'Could not get community'});
+						return;
+					}
+
+					req.membership_information.communities = communities.rows;
+
+					pg_conn.client.query(
+						"SELECT tournaments.*,communities.id as community_id,communities.name as community_name,communities.icon as community_icon FROM tournaments \
+						INNER JOIN tournament_attendees ON tournaments.id = tournament_attendees.tournament_id \
+						INNER JOIN communities ON tournaments.community_id = communities.id \
+						WHERE tournament_attendees.user_id = $1\
+						",
+						[
+							req.session.user_id
+						],
+						function(err, tournaments){
+							if(err){
+								console.log(err);
+								res.render('public/error',{error:'Could not get tournament locations'});
+								return;
+							}
+
+							req.membership_information.tournaments = tournaments.rows;
+
+							next();
+						}
+					);
+				}
+			);
 		}
 
 		/********************************************************************************/

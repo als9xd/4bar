@@ -10,6 +10,7 @@
 
     <!-- Bootstrap core CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
+    <link href="https://fonts.googleapis.com/css?family=Raleway:400,700" rel="stylesheet">
 
     <link href="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" rel="stylesheet"/>
 
@@ -18,7 +19,7 @@
     <link href="/css/login.css" rel="stylesheet">
 
     <script src="/socket.io/socket.io.js"></script>
-    <script type="text/javascript">let socket = io();</script>
+    <script type="text/javascript">let socket = io('/public');</script>
 
   </head>
 
@@ -50,13 +51,16 @@
     <script type="text/javascript">
       let ntf_hndlr = NotificationHandler(
         toastr,
-        socket,
-        {
-          on_success: function(){
-            window.location.replace('/home');
-          }
-        }
+        socket
       );
+    </script>
+
+    <script type="text/javascript">
+      socket.on('login_status',function(data){
+        if(data.status === true){
+          window.location.replace('/home');
+        }
+      });
     </script>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb" crossorigin="anonymous"></script>

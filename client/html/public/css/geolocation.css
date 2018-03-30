@@ -1,0 +1,12 @@
+#page-content-wrapper{
+	height: calc(100vh - 65px);
+}
+
+.container-fluid{
+	height: 100%;
+}
+
+#map {
+	min-width: 500px;
+	min-height: calc(100% - 65px);
+}

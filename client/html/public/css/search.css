@@ -25,14 +25,4 @@
 	margin-left: 20px;
 }
 
-ul.results-list{
-	list-style-type:none;
-}
 
-ul.results-list li{
-	margin-bottom: 10px;
-}
-
-ul.results-list li a{
-	text-decoration: none;
-}

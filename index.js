@@ -123,9 +123,9 @@ if(argv['clean'] === true){
 	const path = require('path');
 
 	let dirs = [
-		path.join(config[env].root_dir,'/client/media/community/icons'),
-		path.join(config[env].root_dir,'/client/media/community/wallpapers'),
-		path.join(config[env].root_dir,'/client/media/user/avatars')
+		path.join(config[env].root_dir,'/client/media/icons'),
+		path.join(config[env].root_dir,'/client/media/wallpapers'),
+		path.join(config[env].root_dir,'/client/media/avatars')
 	];
 
 	let dir_promises = [];

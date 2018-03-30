@@ -57,8 +57,8 @@ function NotificationHandler(toastr,socket,callbacks){
         "showMethod": "fadeIn",
         "hideMethod": "fadeOut"
     };
-    
-    socket.on('notification',function(notification){
+
+    this.build_notification = function(notification){
         if(notification.error){
             toastr.options.closeButton = true;
             toastr.options.timeOut = 0;
@@ -77,13 +77,14 @@ function NotificationHandler(toastr,socket,callbacks){
 
             if(callbacks && callbacks.on_error){
                 callbacks.on_error(notification);
-            }else{
-                if(notification.title){
-                    toastr.error(notification.error,notification.title);
-                }else{
-                    toastr.error(notification.error);
-                }
             }
+            
+            if(notification.title){
+                toastr.error(notification.error,notification.title);
+            }else{
+                toastr.error(notification.error);
+            }
+            
 
             toastr.options.closeButton = false;
             toastr.options.timeOut = 5000;
@@ -104,14 +105,19 @@ function NotificationHandler(toastr,socket,callbacks){
 
             if(callbacks && callbacks.on_success){
                 callbacks.on_success(notification);
-            }else{
-                if(notification.title){
-                    toastr.success(notification.success,notification.title);
-                }else{
-                    toastr.success(notification.success);
-                }
             }
-        }
 
+            if(notification.title){
+                toastr.success(notification.success,notification.title);
+            }else{
+                toastr.success(notification.success);
+            }
+        }        
+    }
+    
+    socket.on('notification',function(notification){
+        build_notification(notification);
     });  
+
+    return this;
 }

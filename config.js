@@ -39,9 +39,7 @@ const config = {
 					name: 200
 				},
 				communities: {
-					name: 30,
-					unique_name: 255,
-					last_activity: 10
+					name: 30
 				},
 				community_tags: {
 					tag: 20
@@ -82,6 +80,11 @@ const config = {
 				min_numbers: 1,
 				min_specials: 1
 			}
+		},
+		privileges: {
+			admin: 1,
+			mod: 2,
+			member: 3
 		}
 	},
 
@@ -114,9 +117,7 @@ const config = {
 					name: 200
 				},
 				communities: {
-					name: 30,
-					unique_name: 255,
-					last_activity: 10
+					name: 30
 				},
 				community_tags: {
 					tag: 20
@@ -157,6 +158,11 @@ const config = {
 				min_numbers: 1,
 				min_specials: 1
 			}
+		},
+		privileges: {
+			admin: 1,
+			mod: 2,
+			member: 3
 		}
 	}
 };

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
+
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="description" content="">
@@ -9,211 +10,173 @@
     <title>4BAR - Home</title>
 
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
+    <link href="https://fonts.googleapis.com/css?family=Raleway:400,700" rel="stylesheet">
 
     <link href="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" rel="stylesheet"/>
 
     <link rel="stylesheet" href="/css/public.css">
-    <link rel="stylesheet" href="/css/home.css">
+    <link rel="stylesheet" href="/css/sidebar.css">
+    <link rel="stylesheet" href="/css/friends_list.css">
 
     <script src="/socket.io/socket.io.js"></script>
-    <script type="text/javascript">let socket = io();</script>
-
-    <link rel="stylesheet" href="/css/public.css">
-    <link rel="stylesheet" href="/css/home.css">
-
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.3.1/dist/leaflet.css"
-      integrity="sha512-Rksm5RenBEKSKFjgI3a41vrjkw4EVPlJ3+OiI65vTjIdo9brlAacEuKOiQ5OFh7cOI1bkDwLqdLw3Zg0cRJAAQ=="
-      crossorigin=""/>
-  
-    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC-WvQjzOOtExbBjLCwRflnSS2wL1gKN6w"
-  type="text/javascript"></script>">
-
-    <script type="text/javascript">
-      socket.emit('communities_req');
-    </script>
+    <script type="text/javascript">let socket = io('/private');</script>
     
- </head>
+  </head>
 
   <body>
 
-    <nav class="navbar navbar-toggleable-md navbar-inverse bg-inverse fixed-top">
-      <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target=".navbar-collapse" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
+    <!-- Friends List -->
+    <div class="btn-group dropup" id="friends">
+      <button type="button" id="friends-toggle" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <h5>Friends</h5>
       </button>
-      <a class="navbar-brand" href="/home">4BAR</a>
+      <div class="dropdown-menu" id="friends-menu">
+      </div>
+    </div>
 
-      <div class="collapse navbar-collapse" >
+    <div id="wrapper" data-toggle-on='false'>
 
-        <form class="form-inline my-2 my-md-0" action="/search" method="GET">
+      <!-- Navbar -->
+      <nav id="navbar-wrapper" class="navbar navbar-toggleable-sm navbar-inverse bg-inverse fixed-top navbar-expand-sm">
+        <div class="navbar-brand">
+          <button class="sidebar-toggler" type="button" aria-expanded="false" aria-label="Toggle navigation" id="menu-toggle">
+            <span class="sidebar-toggler-icon"></span>
+          </button>
+          <a class="navbar-brand" href="/home">4bar.org</a>
+        </div>
+        <div class="collapse navbar-collapse">
+          <form class="form-inline my-2 my-md-0" action="/search" method="GET">
             <input name="query" class="form-control mr-sm-2">
             <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
-        </form>
+          </form> 
+          <ul class="navbar-nav ml-auto">
+            <li class="nav-item">
+              <a class="nav-link" href="/community_creation" id="community-creation-icon" data-toggle="tooltip" data-placement="bottom" title="Community Creation"><img src="/site/community-creation.png"></a>
+            </li>
+            <li class="nav-item dropdown">
+              <a class="nav-link" href="#" id="notification-dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><img src="/site/notification.png"></a>
+              <div id="notification-dropdown-menu" class="dropdown-menu dropdown-menu-right" aria-labelledby="notification-dropdown">
+                <div class="dropdown-menu-head">
+                  <h5 class="dropdown-item">Notifications<img src="site/settings.png" class="float-right"></h5> 
+                </div>
+              </div>
+            </li>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="profile-dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><img src="{{#if user_data.avatar includeZero=true}}/avatars/{{{user_data.avatar}}}{{else}}/site/no-avatar.jpg{{/if}}"></a>
+              </a>
+              <div id="profile-dropdown-menu" class="dropdown-menu dropdown-menu-right" aria-labelledby="profile-dropdown">
+                <a class="dropdown-menu-head dropdown-item" href="/profile?id={{user_data.id}}">
+                  <h5 class="dropdown-item">{{user_data.username}}</h5> 
+                  <h6 class="dropdown-item">{{user_data.email}}</h6> 
+                </a>
+                <a class="dropdown-item" href="\profile?id={{user_data.id}}">My Profile</a>
+                <a class="dropdown-item" href="\logout">Logout</a>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </nav>
+      <!-- /Navbar -->
 
-        <ul class="navbar-nav ml-auto">
-          <li class="nav-item active">
-            <a class="nav-link" href="/home">Home <span class="sr-only">(current)</span></a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="/cc_wizard">Community Creation</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="/calendar">Calendar</a>
-          </li>
-          <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" id="dropdown01" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{{username}}}'s Profile</a>
-            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdown01">
-              <a class="dropdown-item" href="\profile?id={{user_id}}">View</a>
-              <a class="dropdown-item" href="\logout">Logout</a>
-            </div>
-          </li>
-        </ul>
+      <!-- Sidebar -->
+      <div id="sidebar-wrapper">
+          <ul class="sidebar-nav">
+              <li>
+                  <a class="active" href="/home">Home</a>
+              </li>
+              <li>
+                  <a href="/marketplace">Marketplace</a>
+              </li>
+              <li>
+                <a href="/calendar">Calendar</a>
+              </li>
+              <li>
+                <a href="/geolocation">Nearby Events</a>
+              </li>
+              <li>
+                <hr>
+              </li>
+              <li>
+                <a class="sidebar-title" href="/profile?active_field=communities"><h5>Communities</h5></a>
+              </li>
+              {{#each user_data.communities}}
+              <li>
+                  <a href="/communities?id={{id}}"><img src="{{#if icon includeZero=true}}/icons/{{icon}}{{else}}/site/no-icon.jpg{{/if}}">{{name}}</a>
+              </li>
+              {{/each}}
+              <li>
+                <hr>
+              </li>
+              <li>
+                <a class="sidebar-title" href="/profile?active_field=tournaments"><h5>Tournaments</h5></a>
+              </li>
+              {{#each user_data.tournaments}}
+              <li>
+                  <a href="/tournaments?id={{id}}">{{name}}</a>
+              </li>
+              {{/each}}
+          </ul>
       </div>
-    </nav>
+      <!-- /Sidebar -->
 
-    <div id="no-communities" class="jumbotron" style="display:none">
-      <div class="container">
-        <h1 class="display-3">Hello, {{{username}}}!</h1>
-        <p>It looks like you haven't added any communities yet. Community interaction is a great way to build your profile.</p>
-        <p><a class="btn btn-primary btn-lg" href="#" role="button">Learn more »</a></p>
-      </div>
-    </div>
-
-    <div class="container" style="margin-top: 40px">
-      <div class="row">
-        <div class="span6" style="float: none; margin: 0 auto;">
-            <div id="mapid" style="min-height:500px;min-width:500px"></div>
-        </div> 
-      </div>
-      <div class="row">
-        <table class="table table-responsive" style="display:table;">
-          <h2>My Communities</h2>
-            <thead>
-              <tr>
-                <th scope="col"></th>
-                <th scope="col" style="min-width: 150px"></th>
-                <th scope="col">Description</th>
-                <th scope="col">Recent Activity</th>
-              </tr>
-            </thead>
-            <tbody id="c_table">
-            </tbody>
-        </table>
-      </div>
-    </div>
-
-    {{#unless is_member}}
-      <script type="text/javascript">
-      document.getElementById('no-communities').style="display:block;"
-      </script>
-    {{/unless}}
-
-    <script type="text/javascript">
-      const c_table = document.getElementById('c_table');
-
-      socket.on('communities_res',function(coms){
-        while (c_table.firstChild) {
-            c_table.removeChild(c_table.firstChild);
-        }
-        for(let com in coms){
-          if(coms.hasOwnProperty(com)){
-            let new_row = document.createElement('tr');
-            new_row.classList.add('clickable_row');
-            new_row.setAttribute('href',coms[com].url);
-
-            let new_icon_col = document.createElement('td');
-            let new_icon = document.createElement('img');
-            if(coms[com].icon){
-              new_icon.src = coms[com].icon;
-            }else{
-              new_icon.src = '/site/no-icon.jpg';
-            }
-            new_icon.style.height = '30px';
-            new_icon.style.width = '30px';
-            new_icon_col.appendChild(new_icon);
-            new_row.appendChild(new_icon_col);
-
-            let new_name_col = document.createElement('th');
-            new_name_col.scope = "row";
-            new_name_col.innerHTML = coms[com].name;
-            new_row.appendChild(new_name_col);
-
-            let new_description_col = document.createElement('td');
-            new_description_col.innerHTML = coms[com].description;
-            new_row.appendChild(new_description_col);
-
-            let new_recent_activity_col = document.createElement('td');
-            new_recent_activity_col.innerHTML = coms[com].last_activity;
-            new_row.appendChild(new_recent_activity_col);
-            
-            new_row.onclick = function(){window.location = coms[com].url};
-
-            c_table.appendChild(new_row);
-          }
-        }
+      <!-- Page Content -->
+      <div id="page-content-wrapper">
           
-      });
-    </script>
+          <div class="container-fluid">
+              <h1>Home</h1>
+              <hr/>
+          </div>
+      </div>
+      <!-- /Page Content -->
+    </div>
+    <!-- /Main Wrapper -->
 
-    <script src="https://unpkg.com/leaflet@1.3.1/dist/leaflet.js"
-   integrity="sha512-/Nsx9X4HebavoBvEBuyp3I7od5tA0UzAxs+j83KgC8PU0kgB4XiK4Lfe4y4cgBtaRJQEIFCW+oC506aPT2L1zw=="
-   crossorigin="">
-    </script>
-   
-    <script>
-
-      var map = L.map('mapid',{
-        center: [37.951424, -91.768959],
-        zoom: 15
-        });
-        L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-      }).addTo(map);
-  
-      function get_coords(address, callback){
-        var gc = new google.maps.Geocoder();
-        var opts = { 'address' : address };
-        var lat;
-        var lng;
-        
-        gc.geocode(opts, function (results, status){
-          if (status == google.maps.GeocoderStatus.OK){   
-            lat = results[0].geometry.location.lat();
-            lng = results[0].geometry.location.lng();
-            callback([lat, lng]);
-            }else{
-              console.log('error')
-            }
-        }); 
-      }
-  
-      let locations = [];
-
-      {{#each locations}}
-        locations.push("{{this}}");
-      {{/each}}
-      
-      for(let i = 0; i < locations.length;i++){
-        
-        get_coords(locations[i], function(result){
-        var marker = L.marker(result).addTo(map);
-        });
-      }
-  
-    </script>
-
+    <!-- Load jquery -->
     <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb" crossorigin="anonymous"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script>
- 
-    <script src="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
 
+    <!-- Load Booststrap -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script>
+
+    <!-- Load notification handler. Used to display notifications sent from the server through socket.io -->
+    <script src="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
     <script src="/js/NotificationHandler.js"></script>
     <script type="text/javascript">
       let ntf_hndlr = NotificationHandler(
         toastr,
         socket
       );
+
+      socket.on('error',(err) => {
+        ntf_hndlr.build_notification({error:err});
+      });
+    </script>
+
+    <!-- Dropdown Notifications -->
+    <script src="/js/DropdownNotificationsDefinitions.js"></script>
+    <script src="/js/DropdownNotificationsHandler.js"></script>
+    <script type="text/javascript">
+      let dd_ntf_hndler = DropdownNotificationsHandler(
+        socket,
+        DropdownNotificationsDefinitions
+      );
+    </script>
+
+    <!-- Friends List -->
+    <script type="text/javascript" src="/js/FriendsListHandler.js"></script>
+    <script type="text/javascript">
+      let fl_hndler = FriendsListHandler(socket);
+    </script>
+
+    <!-- Menu Toggle Script -->
+    <script src="/js/Sidebar.js"></script>
+
+    <!-- Enable Tooltips -->    
+    <script type="text/javascript">
+      $(document).ready(function(){
+        $('[data-toggle="tooltip"]').tooltip();
+      });
     </script>
 
   </body>

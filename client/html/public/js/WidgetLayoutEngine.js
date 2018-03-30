@@ -10,7 +10,7 @@
 //
 //////////////////////////////////////////////////////////////////////
 
-let WidgetLayoutEngine = function(widget_ui_definitions,parent,settings){
+let WidgetLayoutEngine = function(widget_ui_definitions,parent,background_parent,settings){
 
   let __wle = this;
 
@@ -30,7 +30,7 @@ let WidgetLayoutEngine = function(widget_ui_definitions,parent,settings){
   //////////////////////////////////////////////////////////////////////
 
   let wle_base = parent;
-  wle_base.style = "min-height: 100% !important";
+  wle_base.style = "min-height: 100% !important;width:100%";
   wle_base.style.height = "100%";
 
   //////////////////////////////////////////////////////////////////////
@@ -114,23 +114,20 @@ let WidgetLayoutEngine = function(widget_ui_definitions,parent,settings){
   let wle_layout_background = document.createElement('div');
   wle_layout_background.style = 'min-height: 100% !important;';
   wle_layout_background.style.height = '100%';
-  wle_layout_background.style.backgroundColor = 'rgb(122,122,122)';
+  wle_layout_background.style.backgroundSize = 'cover';
 
-  if(settings && settings.background != null){
-    let background_img = new Image();
-    background_img.onload = function(){
-      wle_layout_background.style.backgroundSize = 'cover';
-      wle_layout_background.style.backgroundImage = 'url('+settings.background+')';
-    }
-    background_img.onerror = function(){
-      if(settings && settings.defaultBackgroundImage){
-        wle_layout_background.style.backgroundImage = 'url('+settings.defaultBackgroundImage+')';
-      }
-    }
-    background_img.src = settings.background;
+  if(background_parent === null){
+    background_parent = wle_layout_background;
+  }
+
+  if(settings && settings.background.length){
+    background_parent.style.backgroundImage = 'url("/wallpapers/'+settings.background+'")';
   }else{
       if(settings && settings.defaultBackgroundImage){
-        wle_layout_background.style.backgroundImage = 'url('+settings.defaultBackgroundImage+')';
+        background_parent.style.backgroundImage = 'url('+settings.defaultBackgroundImage+')';
+        background_parent.style.backgroundRepeat = 'repeat';
+        background_parent.style.backgroundSize = 'auto';
+        background_parent.style.backgroundColor = 'rgb(122,122,122)';
       }    
   }
 

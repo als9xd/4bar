@@ -72,13 +72,12 @@ module.exports = function(config){
 			"CREATE TABLE IF NOT EXISTS communities(\
 				id SERIAL PRIMARY KEY,\
 				name VARCHAR("+config.pg.varchar_limits.communities.name+") UNIQUE NOT NULL,\
-				unique_name VARCHAR("+config.pg.varchar_limits.communities.unique_name+") UNIQUE NOT NULL,\
-				url TEXT UNIQUE NOT NULL,\
 				description TEXT,\
 				icon TEXT,\
 				wallpaper TEXT,\
 				layout TEXT,\
-				last_activity VARCHAR("+config.pg.varchar_limits.communities.last_activity+"),\
+				creation_date NUMERIC NOT NULL,\
+				last_activity NUMERIC,\
 				num_members NUMERIC NOT NULL\
 			)"
 		,
@@ -154,8 +153,8 @@ module.exports = function(config){
 				description TEXT, \
 				location VARCHAR ("+config.pg.varchar_limits.tournaments.location+") NOT NULL, \
 				attendee_limit INTEGER NOT NULL, \
-				signup_deadline TEXT NOT NULL, \
-				start_date TEXT NOT NULL, \
+				signup_deadline NUMERIC, \
+				start_date NUMERIC NOT NULL, \
 				UNIQUE (community_id,name) \
 			)"
 		,
@@ -176,6 +175,7 @@ module.exports = function(config){
 			"CREATE TABLE IF NOT EXISTS tournament_attendees( \
 				tournament_id NUMERIC NOT NULL, \
 				user_id NUMERIC NOT NULL,\
+				privilege_level NUMERIC NOT NULL,\
 				UNIQUE (tournament_id,user_id) \
 			)"
 		,
@@ -189,7 +189,7 @@ module.exports = function(config){
 				parent_id NUMERIC,\
 				player_id NUMERIC\
 			)"
-    ,
+    	,
     
 		/********************************************************************************/
 
@@ -197,15 +197,36 @@ module.exports = function(config){
 			"CREATE TABLE IF NOT EXISTS events(\
 				event_name VARCHAR("+config.pg.varchar_limits.events.event_name+") NOT NULL, \
 				event_date DATE NOT NULL, \
-				start_time TIME NOT NULL, \
-				end_time TIME, \
+				start_time NUMERIC NOT NULL, \
+				end_time NUMERIC, \
 				street_address VARCHAR("+config.pg.varchar_limits.events.street_address+") NOT NULL, \
 				city VARCHAR("+config.pg.varchar_limits.events.city+") NOT NULL, \
 				state VARCHAR("+config.pg.varchar_limits.events.state+") NOT NULL \
-				)"
-		    
+			)"
+		,    
 		
 		/********************************************************************************/
 
+		notifications:
+			"CREATE TABLE IF NOT EXISTS notifications( \
+				id SERIAL PRIMARY KEY, \
+				date NUMERIC NOT NULL, \
+				read BOOL NOT NULL, \
+				active BOOL NOT NULL \
+			)"
+		,
+
+		/********************************************************************************/
+
+		friend_requests:
+			"CREATE TABLE IF NOT EXISTS friend_requests( \
+				notification_id NUMERIC, \
+				tx_user_id NUMERIC NOT NULL, \
+				rx_user_id NUMERIC NOT NULL, \
+				UNIQUE (tx_user_id,rx_user_id) \
+			)"
+		,
+		
+		/********************************************************************************/
 	}
 };

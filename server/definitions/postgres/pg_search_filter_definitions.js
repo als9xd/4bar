@@ -91,7 +91,7 @@ module.exports = function(pg_client){
 			return new Promise(
 				function(resolve,reject){
 					pg_client.query(
-						"SELECT f_c.num_members,f_c.id,f_c.name,f_c.description,f_c.last_activity,f_c.url,f_c.icon,array_agg(community_tags.tag) as tags \
+						"SELECT f_c.num_members,f_c.id,f_c.name,f_c.description,f_c.creation_date,f_c.last_activity,f_c.icon,array_agg(community_tags.tag) as tags \
 						FROM community_tags,\
 							(SELECT communities.* FROM communities \
 							INNER JOIN community_tags on communities.id = community_tags.community_id \
@@ -100,8 +100,7 @@ module.exports = function(pg_client){
 							(to_tsvector(communities.description) @@ plainto_tsquery($2) OR LENGTH($2) = 0) "+conjunction+" \
 							(to_tsvector(community_tags.tag) @@ plainto_tsquery($3) OR LENGTH($3) = 0) \
 							GROUP BY communities.id) as f_c WHERE f_c.id = community_tags.community_id \
-						GROUP BY f_c.num_members,f_c.id,f_c.name,f_c.description,f_c.last_activity,f_c.url,f_c.icon \
-						ORDER BY f_c.num_members DESC",
+						GROUP BY f_c.num_members,f_c.id,f_c.name,f_c.description,f_c.creation_date,f_c.last_activity,f_c.icon ",
 						[
 							(typeof input == 'string' || input instanceof String) ? input || '' : input.name || '',
 							(typeof input == 'string' || input instanceof String) ? input || '' : input.desc || '',
@@ -118,16 +117,6 @@ module.exports = function(pg_client){
 					);	
 				}
 			);		
-		},
-
-		/********************************************************************************/
-
-		tournaments: function(input){
-			return new Promise(
-				function(resolve,reject){
-					resolve();
-				}
-			);
 		},
 
 		/********************************************************************************/
@@ -179,7 +168,7 @@ module.exports = function(pg_client){
 			return new Promise(
 				function(resolve,reject){
 					pg_client.query(
-						"SELECT t.name,t.start_date,t.location,t.description,t.id,t.community_id,communities.name as community_name,array_agg(tournament_tags.tag) as tags \
+						"SELECT t.name,t.start_date,t.signup_deadline,t.location,t.description,t.id,t.community_id,communities.name as community_name,array_agg(tournament_tags.tag) as tags \
 						FROM tournament_tags,\
 							(SELECT tournaments.* FROM tournaments \
 							INNER JOIN tournament_tags on tournaments.id = tournament_tags.tournament_id \
@@ -188,7 +177,7 @@ module.exports = function(pg_client){
 							(to_tsvector(tournaments.location) @@ plainto_tsquery($2) OR LENGTH($2) = 0) "+conjunction+" \
 							(to_tsvector(tournament_tags.tag) @@ plainto_tsquery($3) OR LENGTH($3) = 0) \
 							GROUP BY tournaments.id) as t INNER JOIN communities ON communities.id = t.community_id WHERE t.id = tournament_tags.tournament_id \
-						GROUP BY t.name,t.start_date,t.location,t.description,t.id,t.community_id,communities.name \
+						GROUP BY t.name,t.start_date,t.signup_deadline,t.location,t.description,t.id,t.community_id,communities.name \
 						",
 						[
 							(typeof input == 'string' || input instanceof String) ? input || '' : input.name || '',
