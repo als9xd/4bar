@@ -14,6 +14,10 @@ ul.results-list li a{
 	display: none;
 }
 
+.search-results-column{
+	margin-bottom: 10px;
+}
+
 .search-results-table-title{
 	padding: 10px;
 	cursor: pointer;

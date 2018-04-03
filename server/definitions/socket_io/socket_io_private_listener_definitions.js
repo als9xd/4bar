@@ -503,7 +503,7 @@ module.exports = function(config,pg_conn,uuidv1){
 
 																	// 'name' is used to differentiate between file upload success messages so that we can upload files after the tournament has been successfully submitted
 																	socket.emit('notification',{success: 'Successfully created and joined tournament'});
-																	socket.emit('tournament_create_status',{status:true});
+																	socket.emit('tournament_creation_status',{status:true,new_tournament_id:tournament_id.rows[0].id});
 																}
 															);
 														}

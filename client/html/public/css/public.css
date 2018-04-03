@@ -117,12 +117,7 @@ body {
   min-width: 350px;
 }
 
-#community-creation-icon img{
-  width: 30px;
-  height: 30px;  
-}
-
-#tournament-creation-icon img{
+.navbar-icon{
   width: 30px;
   height: 30px;  
 }

@@ -84,7 +84,6 @@ const argv = require('minimist')(
 			h: 'help',
 			
 			a: 'environment',
-			p: 'password',
 			
 			b: 'build',
 			d: 'destroy',
@@ -98,11 +97,10 @@ const argv = require('minimist')(
 if(argv['help']){
     console.log(
 		"\n"+
-		"usage: node index.js [--help] [--environment env] [--password pass] [--build] [--destroy] [--rebuild] [--clean]\n"+
+		"usage: node index.js [--help] [--environment env] [--build] [--destroy] [--rebuild] [--clean]\n"+
 		"\n"+
 		"  -h, --help                   : display usage information\n"+		
 		"  -e env, --environment env    : where env is the environment to use defined within '4bar/config.js'\n"+
-		"  -p pass, --password pass     : where pass is the password to use when connecting to postgresql\n"+
 		"  -b, --build                  : build the postgresql tables defined within '4bar/definitions/pg_table_definitions'\n"+
 		"  -d, --destroy                : destroy the postgresql tables\n"+
 		"  -r, --rebuild                : destroy and rebuild the postgresql tables defined within '4bar/definitions/pg_table_definitions'\n"+
