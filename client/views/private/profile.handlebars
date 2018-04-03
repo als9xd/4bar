@@ -205,7 +205,7 @@
                     <tr class="clickable-row" data-href="/communities?id={{id}}">
                       <td><img src="{{#if icon includeZero=true}}/icons/{{{icon}}}{{else}}/site/no-icon.jpg{{/if}}" style="height: 30px;width: 30px"</td>
                       <td><h6>{{name}}</h6></td>
-                      <td>{{#each tags}}<a href="/search?query_field=communities&tag={{this}}">{{this}}</a>{{#unless @last}},{{/unless}}{{/each}}</td>
+                      <td>{{#each tags}}<a href="/search?query_field=communities&tag={{this}}&active_field=communities">{{this}}</a>{{#unless @last}},{{/unless}}{{/each}}</td>
                       <td class="extra">{{description}}</td>
                       <td class="extra"><script>document.write(format_date({{creation_date}}));</script></td>
                       <td class="extra"><script>document.write(format_date({{last_activity}}));</script></td>

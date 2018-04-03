@@ -211,72 +211,50 @@
     </script>
 
     <script>
-
-      let expected_status_msgs = {
-          'community_creation_status': true,
-          'wallpaper_upload_status' : document.getElementById('community-wallpaper-file').files.length > 0 ? true : false,
-          'icon_upload_status' : document.getElementById('community-icon-file').files.length > 0 ? true : false
-      };
-
-      let received_status_msgs = {};
-
-      let on_finished = function(callback){
-        for(let i in expected_status_msgs){
-          if(expected_status_msgs.hasOwnProperty(i) && expected_status_msgs[i] === true){
-            if(typeof received_status_msgs[i] === 'undefined'){
-              return;
-            }
-          }
-        }
-        callback();
-      }
+      let expected_file_upload_status = 0;
 
       let new_community_id = null;
 
-      for(let i in expected_status_msgs){
-        if(expected_status_msgs.hasOwnProperty(i)){
-          socket.on(i,function(status){
-            received_status_msgs[i] = status;
-            if(i === 'community_creation_status'){
-              new_community_id = status.new_community_id;
-
-              if(expected_status_msgs['wallpaper_upload_status'] === true){
-                uploader.upload(document.getElementById('community-wallpaper-file'), {
-                  uploadTo: 'wallpapers',
-                  data: {
-                    type: 'wallpaper',
-                    community_id: new_community_id
-                  }
-                }); 
+      socket.on('community_creation_status',function(data){
+        if(data.status === true){
+          new_community_id = data.new_community_id;
+          if(document.getElementById('community-icon-file').files.length != 0){
+            expected_file_upload_status++;
+            uploader.upload(document.getElementById('community-icon-file'), {
+              uploadTo: 'icons',
+              data: {
+                type: 'icon',
+                community_id: new_community_id
               }
-
-              if(expected_status_msgs['icon_upload_status'] === true){
-                uploader.upload(document.getElementById('community-icon-file'), {
-                  uploadTo: 'icons',
-                  data: {
-                    type: 'icon',
-                    community_id: new_community_id
-                  }
-                });
+            });
+          }
+          if(document.getElementById('community-wallpaper-file').files.length != 0){
+            expected_file_upload_status++;
+            uploader.upload(document.getElementById('community-wallpaper-file'), {
+              uploadTo: 'wallpapers',
+              data: {
+                type: 'wallpaper',
+                community_id: new_community_id
               }
-            }
-
-            on_finished(
-              function(){
-                let sleep = function(time) {
-                  return new Promise((resolve) => setTimeout(resolve, time));
-                }
-                sleep(500).then(
-                  ()=>{
-                    window.location = '/communities?id='+new_community_id;
-                  }
-                )
-                
-              }
-            );
-          });
+            }); 
+          }        
         }
-      }
+
+        if(expected_file_upload_status === 0){
+          window.location = '/communities?id='+new_community_id;
+        }
+      });
+
+      let receveived_file_upload_status = 0;
+
+      socket.on('wallpaper_upload_status',function(data){
+        if((receveived_file_upload_status+=data.status)===expected_file_upload_status){window.location = '/communities?id='+new_community_id};
+      });
+
+      socket.on('icon_upload_status',function(data){
+        if((receveived_file_upload_status+=data.status)===expected_file_upload_status){window.location = '/communities?id='+new_community_id};
+      });
+
     </script>
 
     <!-- Dropdown Notifications -->
