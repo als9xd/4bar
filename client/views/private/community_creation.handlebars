@@ -38,6 +38,7 @@
         </div>
       </div>
 
+
       <!-- Navbar -->
       <nav id="navbar-wrapper" class="navbar navbar-toggleable-sm navbar-inverse bg-inverse fixed-top navbar-expand-sm">
         <div class="navbar-brand">
@@ -46,11 +47,18 @@
           </button>
           <a class="navbar-brand" href="/home">4bar.org</a>
         </div>
+
         <div class="collapse navbar-collapse">
-          <form class="form-inline my-2 my-md-0" action="/search" method="GET">
-            <input name="query" class="form-control mr-sm-2">
-            <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
-          </form> 
+          <ul class="navbar-nav mr-auto">
+            <li class="nav-item nav-auto-spacing">
+              <form id="search-form" class="form-inline my-2 my-md-0" action="/search" method="GET">
+                <input name="query" class="form-control mr-sm-2">
+              </form>
+            </li>
+            <li class="nav-item nav-auto-spacing">
+              <button class="btn btn-outline-success my-2 my-sm-0" onclick="document.getElementById('search-form').submit()" for="submit-search-form" >Search</button>
+            </li>
+          </ul>
           <ul class="navbar-nav ml-auto">
             <li class="nav-item">
               <a class="nav-link" href="/community_creation" id="community-creation-icon" data-toggle="tooltip" data-placement="bottom" title="Community Creation"><img src="/site/community-creation.png"></a>
@@ -82,8 +90,23 @@
       <!-- Sidebar -->
       <div id="sidebar-wrapper">
           <ul class="sidebar-nav">
+              <li class="sidebar-collapse">
+                <form class="form-inline my-2 my-md-0" action="/search" method="GET">
+                  <input name="query" class="form-control mr-sm-2 search-query-input">
+                  <button class="btn btn-outline-success my-2 my-sm-0" type="submit" >Search</button>
+                </form>
+              </li>
+              <li class="sidebar-collapse">
+                <a href="\profile?id={{user_data.id}}">My Profile</a>
+              </li>
+              <li class="sidebar-collapse">
+                  <a class="active" href="/community_creation">Community Creation</a>
+              </li>
+              <li class="sidebar-collapse">
+                <hr>
+              </li>
               <li>
-                  <a class="active" href="/home">Home</a>
+                  <a href="/home">Home</a>
               </li>
               <li>
                   <a href="/marketplace">Marketplace</a>
@@ -127,7 +150,7 @@
             <h1>Community Creation Wizard</h1>
             <hr/>
             <div class="row">
-                <div class="col-md-7" style="margin:auto">
+                <div class="col-md">
                   <form>
                   </form>
                     <div class="form-group">
@@ -217,23 +240,27 @@
             if(i === 'community_creation_status'){
               new_community_id = status.new_community_id;
 
-              uploader.upload(document.getElementById('community-wallpaper-file'), {
-                uploadTo: 'wallpapers',
-                data: {
-                  type: 'wallpaper',
-                  community_id: new_community_id
-                }
-              }); 
+              if(expected_status_msgs['wallpaper_upload_status'] === true){
+                uploader.upload(document.getElementById('community-wallpaper-file'), {
+                  uploadTo: 'wallpapers',
+                  data: {
+                    type: 'wallpaper',
+                    community_id: new_community_id
+                  }
+                }); 
+              }
 
-              uploader.upload(document.getElementById('community-icon-file'), {
-                uploadTo: 'icons',
-                data: {
-                  type: 'icon',
-                  community_id: new_community_id
-                }
-              });
-
+              if(expected_status_msgs['icon_upload_status'] === true){
+                uploader.upload(document.getElementById('community-icon-file'), {
+                  uploadTo: 'icons',
+                  data: {
+                    type: 'icon',
+                    community_id: new_community_id
+                  }
+                });
+              }
             }
+
             on_finished(
               function(){
                 let sleep = function(time) {

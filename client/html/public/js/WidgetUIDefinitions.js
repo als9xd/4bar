@@ -96,7 +96,6 @@ const WidgetUIDefinitions = {
         let tr_description = document.createElement('tr');
         tr_description.innerHTML = data.tournaments[t].description.length > 1 ? data.tournaments[t].description : 'No description available';
 
-
         table.appendChild(tr_description);
 
       }

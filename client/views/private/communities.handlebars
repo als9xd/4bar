@@ -20,12 +20,14 @@
     <link rel="stylesheet" href="/css/sidebar.css">
     <link rel="stylesheet" href="/css/friends_list.css">
 
+    <link rel="stylesheet" href="/css/communities.css">
+
     <script src="/socket.io/socket.io.js"></script>
     <script type="text/javascript">let socket = io('/private');</script>
     
  </head>
 
-  <body style="height: 100vh">
+  <body>
 
     <div id="wrapper" data-toggle-on='false'>
 
@@ -46,24 +48,33 @@
           </button>
           <a class="navbar-brand" href="/home">4bar.org</a>
         </div>
+
         <div class="collapse navbar-collapse">
-          <form class="form-inline my-2 my-md-0" action="/search" method="GET">
-            <input name="query" class="form-control mr-sm-2">
-            <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
-          </form> 
+          <ul class="navbar-nav mr-auto">
+            <li class="nav-item nav-auto-spacing">
+              <form id="search-form" class="form-inline my-2 my-md-0" action="/search" method="GET">
+                <input name="query" class="form-control mr-sm-2">
+              </form>
+            </li>
+            <li class="nav-item nav-auto-spacing">
+              <button class="btn btn-outline-success my-2 my-sm-0" onclick="document.getElementById('search-form').submit()" for="submit-search-form" >Search</button>
+            </li>
+          </ul>
           <ul class="navbar-nav ml-auto">
-            <li class="nav-item" style="margin-top: auto;margin-bottom: auto;margin-right:10px">
-              {{#if c_edit_privileges}}
+            {{#if c_edit_privileges}}
+            <li class="nav-item nav-auto-spacing">
                 <a href="/edit_community?id={{community_data.id}}" id="edit-community"><button class="btn btn-outline-primary my-2 my-sm-0">Edit Community</button></a>
-              {{/if}}
             </li>
-            <li class="nav-item" style="margin-top: auto;margin-bottom: auto;">
-              {{#if c_is_member}}
+            {{/if}}
+            {{#if c_is_member}}
+            <li class="nav-item nav-auto-spacing">
                 <button class="btn btn-outline-primary my-2 my-sm-0" id='toggle-membership-btn' data-is-member="true"  onclick="toggle_membership();">Leave Community</button>
-              {{else}}
-                <button class="btn btn-outline-primary my-2 my-sm-0" id='toggle-membership-btn' data-is-member="false"  onclick="toggle_membership();">Join Community</button>
-              {{/if}}
             </li>
+            {{else}}
+            <li class="nav-item nav-auto-spacing">
+                <button class="btn btn-outline-primary my-2 my-sm-0" id='toggle-membership-btn' data-is-member="false"  onclick="toggle_membership();">Join Community</button>
+            </li>
+            {{/if}}
             {{#if c_edit_privileges}}
             <li class="nav-item">
               <a class="nav-link" href="/tournament_creation?id={{community_data.id}}" id="tournament-creation-icon" data-toggle="tooltip" data-placement="bottom" title="Tournament Creation"><img src="/site/trophy.png"></a>
@@ -99,6 +110,40 @@
       <!-- Sidebar -->
       <div id="sidebar-wrapper">
           <ul class="sidebar-nav">
+              <li class="sidebar-collapse">
+                <form class="form-inline my-2 my-md-0" action="/search" method="GET">
+                  <input name="query" class="form-control mr-sm-2 search-query-input">
+                  <button class="btn btn-outline-success my-2 my-sm-0" type="submit" >Search</button>
+                </form>
+              </li>
+              <li class="sidebar-collapse">
+                <a href="\profile?id={{user_data.id}}">My Profile</a>
+              </li>
+              <li class="sidebar-collapse">
+                  <a href="/community_creation">Community Creation</a>
+              </li>
+              {{#if c_edit_privileges}}
+              <li class="sidebar-collapse">
+                  <a href="/tournament_creation?id={{community_data.id}}">Tournament Creation</a>
+              </li>
+              {{/if}}
+              {{#if c_edit_privileges}}
+              <li class="sidebar-collapse sidebar-btn">
+                  <button class="btn btn-outline-primary my-2 my-sm-0" style="cursor:pointer" onclick="window.location.replace('/edit_community?id={{community_data.id}}')">Edit Community</button>
+              </li>
+              {{/if}}
+              {{#if c_is_member}}
+              <li class="sidebar-collapse sidbar-btn">
+                  <button class="btn btn-outline-primary my-2 my-sm-0 toggle-membership-btn" data-is-member="true"  onclick="toggle_membership();">Leave Community</button>
+              </li>
+              {{else}}
+              <li class="sidebar-collapse">
+                  <button class="btn btn-outline-primary my-2 my-sm-0 toggle-membership-btn" data-is-member="false"  onclick="toggle_membership();">Join Community</button>
+              </li>
+              {{/if}}
+              <li class="sidebar-collapse">
+                <hr>
+              </li>
               <li>
                   <a href="/home">Home</a>
               </li>
@@ -138,10 +183,10 @@
       <!-- /Sidebar -->
 
       <!-- Page Content -->
-      <div id="page-content-wrapper" style="height: calc(100vh - 65px);background-size: cover;background-image: no-repeat;background-image: center center;">
+      <div id="page-content-wrapper">
           
         <div class="container-fluid">
-            <div style="box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);background-color:#292b2c;color:white;padding:10px;border-radius:3px;">
+            <div id="community-banner">
               <h1>{{community_data.name}}</h1>
               <div>
                 <h7 style="display: block;">Tags: {{#each community_data.tags}}{{tag}}{{#unless @last}},{{/unless}}{{/each}}</h7>
@@ -203,20 +248,22 @@
 
     <!-- Toggle community membership -->    
     <script>
-      let toggle_membership_btn = document.getElementById('toggle-membership-btn');
+      let toggle_membership_btns = document.getElementsByClassName('toggle-membership-btn');
       let edit_button = document.getElementById('edit-community');
       let tournament_icon = document.getElementById('tournament-creation-icon');
       function toggle_membership(){
         socket.emit('toggle_community_membership',{{{community_data.id}}});
-        if(toggle_membership_btn.getAttribute('data-is-member') == 'false'){
-          toggle_membership_btn.innerHTML = 'Leave Community';
-          toggle_membership_btn.setAttribute('data-is-member','true');
-        }
-        else if(toggle_membership_btn.getAttribute('data-is-member') == 'true'){
-          toggle_membership_btn.innerHTML = 'Join Community';
-          toggle_membership_btn.setAttribute('data-is-member','false');
-          edit_button.style.display = "none";
-          tournament_icon.style.display = "none";
+        for(let i = 0; i < toggle_membership_btns.length;i++){
+          if(toggle_membership_btns[i].getAttribute('data-is-member') == 'false'){
+            toggle_membership_btns[i].innerHTML = 'Leave Community';
+            toggle_membership_btns[i].setAttribute('data-is-member','true');
+          }
+          else if(toggle_membership_btns[i].getAttribute('data-is-member') == 'true'){
+            toggle_membership_btns[i].innerHTML = 'Join Community';
+            toggle_membership_btns[i].setAttribute('data-is-member','false');
+            edit_button.style.display = "none";
+            tournament_icon.style.display = "none";
+          }
         }
       }
 

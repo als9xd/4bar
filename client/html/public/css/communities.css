@@ -1,0 +1,17 @@
+body{
+	height: 100vh;
+}
+
+#page-content-wrapper{
+	height: calc(100vh - 65px);
+	background-size: cover;
+	background-image: no-repeat;
+	background-image: center center;
+}
+
+#community-banner{
+	box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
+	background-color:#292b2c;
+	color:white;
+	padding:10px;border-radius:3px;
+}

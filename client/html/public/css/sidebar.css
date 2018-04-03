@@ -140,11 +140,19 @@ body {
   background: #171a1c;
 }
 
+.sidebar-btn{
+  margin-top:10px!important;
+  margin-bottom:10px!important; 
+}
+
 .sidebar-nav li a:active, .sidebar-nav li a:focus {
   text-decoration: none;
 }
 
 @media(min-width:768px) {
+  .sidebar-collapse {
+    display: none;
+  }
   #wrapper {
     padding-left: 0;
   }

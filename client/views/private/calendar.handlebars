@@ -46,11 +46,18 @@
           </button>
           <a class="navbar-brand" href="/home">4bar.org</a>
         </div>
+
         <div class="collapse navbar-collapse">
-          <form class="form-inline my-2 my-md-0" action="/search" method="GET">
-            <input name="query" class="form-control mr-sm-2">
-            <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
-          </form> 
+          <ul class="navbar-nav mr-auto">
+            <li class="nav-item nav-auto-spacing">
+              <form id="search-form" class="form-inline my-2 my-md-0" action="/search" method="GET">
+                <input name="query" class="form-control mr-sm-2">
+              </form>
+            </li>
+            <li class="nav-item nav-auto-spacing">
+              <button class="btn btn-outline-success my-2 my-sm-0" onclick="document.getElementById('search-form').submit()" for="submit-search-form" >Search</button>
+            </li>
+          </ul>
           <ul class="navbar-nav ml-auto">
             <li class="nav-item">
               <a class="nav-link" href="/community_creation" id="community-creation-icon" data-toggle="tooltip" data-placement="bottom" title="Community Creation"><img src="/site/community-creation.png"></a>
@@ -65,7 +72,6 @@
             </li>
             <li class="nav-item dropdown">
               <a class="nav-link dropdown-toggle" href="#" id="profile-dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><img src="{{#if user_data.avatar includeZero=true}}/avatars/{{{user_data.avatar}}}{{else}}/site/no-avatar.jpg{{/if}}"></a>
-              </a>
               <div id="profile-dropdown-menu" class="dropdown-menu dropdown-menu-right" aria-labelledby="profile-dropdown">
                 <a class="dropdown-menu-head dropdown-item" href="/profile?id={{user_data.id}}">
                   <h5 class="dropdown-item">{{user_data.username}}</h5> 
@@ -83,6 +89,21 @@
       <!-- Sidebar -->
       <div id="sidebar-wrapper">
           <ul class="sidebar-nav">
+              <li class="sidebar-collapse">
+                <form class="form-inline my-2 my-md-0" action="/search" method="GET">
+                  <input name="query" class="form-control mr-sm-2 search-query-input">
+                  <button class="btn btn-outline-success my-2 my-sm-0" type="submit" >Search</button>
+                </form>
+              </li>
+              <li class="sidebar-collapse">
+                <a href="\profile?id={{user_data.id}}">My Profile</a>
+              </li>
+              <li class="sidebar-collapse">
+                  <a href="/community_creation">Community Creation</a>
+              </li>
+              <li class="sidebar-collapse">
+                <hr>
+              </li>
               <li>
                   <a href="/home">Home</a>
               </li>

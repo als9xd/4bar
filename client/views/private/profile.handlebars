@@ -39,6 +39,7 @@
         </div>
       </div>
 
+
       <!-- Navbar -->
       <nav id="navbar-wrapper" class="navbar navbar-toggleable-sm navbar-inverse bg-inverse fixed-top navbar-expand-sm">
         <div class="navbar-brand">
@@ -47,13 +48,20 @@
           </button>
           <a class="navbar-brand" href="/home">4bar.org</a>
         </div>
+
         <div class="collapse navbar-collapse">
-          <form class="form-inline my-2 my-md-0" action="/search" method="GET">
-            <input name="query" class="form-control mr-sm-2">
-            <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
-          </form> 
+          <ul class="navbar-nav mr-auto">
+            <li class="nav-item nav-auto-spacing">
+              <form id="search-form" class="form-inline my-2 my-md-0" action="/search" method="GET">
+                <input name="query" class="form-control mr-sm-2">
+              </form>
+            </li>
+            <li class="nav-item nav-auto-spacing">
+              <button class="btn btn-outline-success my-2 my-sm-0" onclick="document.getElementById('search-form').submit()" for="submit-search-form" >Search</button>
+            </li>
+          </ul>
           <ul class="navbar-nav ml-auto">
-            <li class="nav-item" style="margin-top: auto;margin-bottom: auto;margin-right:10px">
+            <li class="nav-item nav-auto-spacing">
               {{#unless modify_view}}
               {{#unless sent_friend_request}}
               <button id="friend-request-btn" class="btn btn-outline-primary my-2 my-sm-0" onclick="socket.emit('friend_request_submit',{recipient_user_id:'{{profile_data.id}}'});">Send Friend Request</button>
@@ -90,6 +98,28 @@
       <!-- Sidebar -->
       <div id="sidebar-wrapper">
           <ul class="sidebar-nav">
+              <li class="sidebar-collapse">
+                <form class="form-inline my-2 my-md-0" action="/search" method="GET">
+                  <input name="query" class="form-control mr-sm-2 search-query-input">
+                  <button class="btn btn-outline-success my-2 my-sm-0" type="submit" >Search</button>
+                </form>
+              </li>
+              <li class="sidebar-collapse">
+                <a class="active" href="\profile?id={{user_data.id}}">My Profile</a>
+              </li>
+              <li class="sidebar-collapse">
+                  <a href="/community_creation">Community Creation</a>
+              </li>
+              {{#unless modify_view}}
+              {{#unless sent_friend_request}}
+              <li class="sidebar-collapse">
+                <button id="friend-request-btn" class="btn btn-outline-primary my-2 my-sm-0" onclick="socket.emit('friend_request_submit',{recipient_user_id:'{{profile_data.id}}'});">Send Friend Request</button>
+              </li>
+              {{/unless}}
+              {{/unless}}
+              <li class="sidebar-collapse">
+                <hr>
+              </li>
               <li>
                   <a href="/home">Home</a>
               </li>
@@ -126,7 +156,6 @@
               {{/each}}
           </ul>
       </div>
-      <!-- /Sidebar -->
 
       <!-- Page Content -->
       <div id="page-content-wrapper">
@@ -176,7 +205,7 @@
                     <tr class="clickable-row" data-href="/communities?id={{id}}">
                       <td><img src="{{#if icon includeZero=true}}/icons/{{{icon}}}{{else}}/site/no-icon.jpg{{/if}}" style="height: 30px;width: 30px"</td>
                       <td><h6>{{name}}</h6></td>
-                      <td>{{#each tags}}<a href="/search?query_field=communities&tags={{this}}">{{this}}</a>{{#unless @last}},{{/unless}}{{/each}}</td>
+                      <td>{{#each tags}}<a href="/search?query_field=communities&tag={{this}}">{{this}}</a>{{#unless @last}},{{/unless}}{{/each}}</td>
                       <td class="extra">{{description}}</td>
                       <td class="extra"><script>document.write(format_date({{creation_date}}));</script></td>
                       <td class="extra"><script>document.write(format_date({{last_activity}}));</script></td>
@@ -202,8 +231,9 @@
                 <tbody>
                   {{#each profile_data.tournaments}}
                   <tr class="clickable-row" data-href="/tournaments?id={{id}}">
+                    <td><a href="/communities?id={{community_id}}"><h7>{{community_name}}</h7></a></td>
                     <td><h7>{{name}}</h7></td>
-                    <td>{{#each tags}}<a href="/search?query_field=tournaments&tags={{this}}&active_field=tournaments">{{this}}</a>{{#unless @last}},{{/unless}}{{/each}}</td>
+                    <td>{{#each tags}}<a href="/search?query_field=tournaments&tag={{this}}&active_field=tournaments">{{this}}</a>{{#unless @last}},{{/unless}}{{/each}}</td>
                     <td class="extra">{{description}}</td>
                     <td class="extra">{{location}}</td>
                     <td><script>document.write(format_date({{start_date}},{includeTime:true}));</script></td>

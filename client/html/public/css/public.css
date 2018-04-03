@@ -15,6 +15,17 @@ body {
   padding-top: 65px; 
 }
 
+.nav-auto-spacing{
+  margin-top: auto;
+  margin-bottom: auto;
+  margin-right: 10px;
+}
+
+.search-query-input{
+  width: 140px  !important;
+  margin-left: 10px !important;
+  margin-right: .5rem !important;
+}
 
 #notifications-count {
   background-color: #fa3e3e;
@@ -27,6 +38,13 @@ body {
   position: absolute; /* Position the badge within the relatively positioned button */
   top: 2px;
   right: 18px;
+}
+
+.dropdown-toggle::after{
+  display: inline;
+  float: right;
+  position: absolute;
+  margin-top: 10px;
 }
 
 .dropdown-menu {
