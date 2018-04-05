@@ -126,6 +126,16 @@
                 </form>
               </li>
               <li class="sidebar-collapse">
+                <button type="button" class="btn btn-outline-primary" data-toggle="modal" data-target="#community-information-modal">
+                Community Information
+                </button>              
+              </li>
+              <li class="sidebar-collapse">
+                <button type="button" class="btn btn-outline-primary" data-toggle="modal" data-target="#widget-selection-modal">
+                Create a New Widget
+                </button>             
+              </li>
+              <li class="sidebar-collapse">
                 <a href="/profile?id={{user_data.id}}">My Profile</a>
               </li>
               <li class="sidebar-collapse">
@@ -177,9 +187,10 @@
           
         <div class="container-fluid">
 
-        <h1>Edit Community - <a href="/communities?id={{community_data.id}}">{{community_data.name}}</a></h1>
-
-        <hr>
+        <h1>Edit Community</h1>
+        <h5>Community: <a href="/communities?id={{community_data.id}}"><img src="{{#if icon includeZero=true}}/icons/{{icon}}{{else}}/site/no-icon.jpg{{/if}}" style="height: 30px;width: 30px">{{community_data.name}}</a></h5>
+        
+        <hr/>
 
         <div class="row" id="widget-creation-row">
           <div id="wle">
@@ -273,12 +284,10 @@
               </button>
             </div>
             <div class="modal-body">
-              <form onsubmit="socket.emit('widget_submit_req',{community_id:'{{{community_data.id}}}',type:'youtube',data:{url:document.getElementById('youtube_url').value}});">
-                <div class="form-group">
-                  <label for="youtube_url"><span class="req">* </span> Url: </label>
-                  <input required type="text" id="youtube_url" class="form-control" autocomplete="off" /> 
-                </div>
-              </form>
+              <div class="form-group">
+                <label for="youtube_url"><span class="req">* </span> Url: </label>
+                <input required type="text" id="youtube_url" class="form-control" autocomplete="off" /> 
+              </div>
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -299,12 +308,10 @@
               </button>
             </div>
             <div class="modal-body">
-              <form onsubmit="widget_submit('twitter',{screen_name:document.getElementById('twitter_screen_name').value});">
-                <div class="form-group">
-                  <label for="youtube_url"><span class="req">* </span> Accout Name: </label>
-                  <input required type="text" id="twitter_screen_name" class="form-control" autocomplete="off" /> 
-                </div>
-              </form>
+              <div class="form-group">
+                <label for="youtube_url"><span class="req">* </span> Accout Name: </label>
+                <input required type="text" id="twitter_screen_name" class="form-control" autocomplete="off" /> 
+              </div>
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -325,11 +332,9 @@
               </button>
             </div>
             <div class="modal-body">
-              <form onsubmit="widget_submit('tournaments');">
-                <div class="form-group">
-                  No Available Settings
-                </div>
-              </form>
+              <div class="form-group">
+                No Available Settings
+              </div>
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
