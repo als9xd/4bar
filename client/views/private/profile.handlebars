@@ -86,8 +86,8 @@
                   <h5 class="dropdown-item">{{user_data.username}}</h5> 
                   <h6 class="dropdown-item">{{user_data.email}}</h6> 
                 </a>
-                <a class="dropdown-item" href="\profile?id={{user_data.id}}">My Profile</a>
-                <a class="dropdown-item" href="\logout">Logout</a>
+                <a class="dropdown-item" href="/profile?id={{user_data.id}}">My Profile</a>
+                <a class="dropdown-item" href="/logout">Logout</a>
               </div>
             </li>
           </ul>
@@ -105,7 +105,7 @@
                 </form>
               </li>
               <li class="sidebar-collapse">
-                <a class="active" href="\profile?id={{user_data.id}}">My Profile</a>
+                <a class="active" href="/profile?id={{user_data.id}}">My Profile</a>
               </li>
               <li class="sidebar-collapse">
                   <a href="/community_creation">Community Creation</a>
@@ -161,11 +161,11 @@
       <div id="page-content-wrapper">
         <div class="container">
           <div class="row">
-            <div style="display: inline-block;">
-              <img id="profile-avatar" src="{{#if profile_data.avatar includeZero=true}}/avatars/{{profile_data.avatar}}{{else}}/site/no-avatar.jpg{{/if}}" style="height:110px;width:110px;display: inline-block;margin-right: 10px;">
+            <div class="profile-information">
+              <img class="profile-avatar-lg" src="{{#if profile_data.avatar includeZero=true}}/avatars/{{profile_data.avatar}}{{else}}/site/no-avatar.jpg{{/if}}">
             </div>
-            <div style="display:inline-block">
-              <div style="font-size:2.4rem;font-weight: 400;line-height: 3rem;">{{profile_data.username}}</div>
+            <div class="profile-information">
+              <div id="profile-username">{{profile_data.username}}</div>
               <div>
                 {{profile_data.name}}
               </div>
@@ -203,7 +203,7 @@
                   <tbody>
                     {{#each profile_data.communities}}
                     <tr class="clickable-row" data-href="/communities?id={{id}}">
-                      <td><img src="{{#if icon includeZero=true}}/icons/{{{icon}}}{{else}}/site/no-icon.jpg{{/if}}" style="height: 30px;width: 30px"</td>
+                      <td><img src="{{#if icon includeZero=true}}/icons/{{{icon}}}{{else}}/site/no-icon.jpg{{/if}}" class="community-icon"></td>
                       <td><h6>{{name}}</h6></td>
                       <td>{{#each tags}}<a href="/search?query_field=communities&tag={{this}}&active_field=communities">{{this}}</a>{{#unless @last}},{{/unless}}{{/each}}</td>
                       <td class="extra">{{description}}</td>

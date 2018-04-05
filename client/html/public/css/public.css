@@ -192,3 +192,18 @@ body {
      -moz-box-shadow: inset 0px 0px 0px black;
           box-shadow: inset 0px 0px 0px black;
 }
+
+.community-icon{
+  height: 30px;
+  width: 30px;
+}
+
+.profile-avatar{
+  height: 30px;
+  width: 30px; 
+}
+
+.profile-avatar-lg{
+  height: 80px;
+  width: 80px; 
+}

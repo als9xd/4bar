@@ -79,8 +79,8 @@
                   <h5 class="dropdown-item">{{user_data.username}}</h5> 
                   <h6 class="dropdown-item">{{user_data.email}}</h6> 
                 </a>
-                <a class="dropdown-item" href="\profile?id={{user_data.id}}">My Profile</a>
-                <a class="dropdown-item" href="\logout">Logout</a>
+                <a class="dropdown-item" href="/profile?id={{user_data.id}}">My Profile</a>
+                <a class="dropdown-item" href="/logout">Logout</a>
               </div>
             </li>
           </ul>
@@ -149,7 +149,7 @@
           
         <div class="container-fluid">
             <h1>Tournament Creation Wizard</h1>
-            <h5>Host Community: <a href="/communities?id={{community_data.id}}"><img src="{{#if icon includeZero=true}}/icons/{{icon}}{{else}}/site/no-icon.jpg{{/if}}" style="height: 30px;width: 30px">{{community_data.name}}</a></h5>
+            <h5>Host Community: <a href="/communities?id={{community_data.id}}"><img src="{{#if icon includeZero=true}}/icons/{{icon}}{{else}}/site/no-icon.jpg{{/if}}" class="community-icon">{{community_data.name}}</a></h5>
             <hr/>
             <div class="row">
                 <div class="col-md">

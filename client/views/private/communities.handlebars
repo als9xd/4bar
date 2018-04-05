@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" style="height: 100vh">
+<html lang="en">
   <head>
 
     <meta charset="utf-8">
@@ -98,8 +98,8 @@
                   <h5 class="dropdown-item">{{user_data.username}}</h5> 
                   <h6 class="dropdown-item">{{user_data.email}}</h6> 
                 </a>
-                <a class="dropdown-item" href="\profile?id={{user_data.id}}">My Profile</a>
-                <a class="dropdown-item" href="\logout">Logout</a>
+                <a class="dropdown-item" href="/profile?id={{user_data.id}}">My Profile</a>
+                <a class="dropdown-item" href="/logout">Logout</a>
               </div>
             </li>
           </ul>
@@ -117,7 +117,7 @@
                 </form>
               </li>
               <li class="sidebar-collapse">
-                <a href="\profile?id={{user_data.id}}">My Profile</a>
+                <a href="/profile?id={{user_data.id}}">My Profile</a>
               </li>
               <li class="sidebar-collapse">
                   <a href="/community_creation">Community Creation</a>
@@ -129,16 +129,16 @@
               {{/if}}
               {{#if c_edit_privileges}}
               <li class="sidebar-collapse sidebar-btn edit-community-btn">
-                  <button class="btn btn-outline-primary my-2 my-sm-0" style="cursor:pointer" onclick="window.location.href = '/edit_community?id={{community_data.id}}'">Edit Community</button>
+                  <a href="/edit_community?id={{community_data.id}}"><button class="btn btn-outline-primary my-2 my-sm-0">Edit Community</button></a>
               </li>
               {{/if}}
               {{#if c_is_member}}
               <li class="sidebar-collapse sidbar-btn">
-                  <button class="btn btn-outline-primary my-2 my-sm-0 toggle-membership-btn" data-is-member="true"  onclick="toggle_membership();">Leave Community</button>
+                  <button class="btn btn-outline-primary my-2 my-sm-0 toggle-membership-btn" data-is-member="true" onclick="toggle_membership();">Leave Community</button>
               </li>
               {{else}}
               <li class="sidebar-collapse">
-                  <button class="btn btn-outline-primary my-2 my-sm-0 toggle-membership-btn" data-is-member="false"  onclick="toggle_membership();">Join Community</button>
+                  <button class="btn btn-outline-primary my-2 my-sm-0 toggle-membership-btn" data-is-member="false" onclick="toggle_membership();">Join Community</button>
               </li>
               {{/if}}
               <li class="sidebar-collapse">

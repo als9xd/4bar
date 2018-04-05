@@ -20,6 +20,8 @@
     <link rel="stylesheet" href="/css/sidebar.css">
     <link rel="stylesheet" href="/css/friends_list.css">
 
+    <link rel="stylesheet" href="/css/edit_community.css">
+
     <script src="/socket.io/socket.io.js"></script>
     <script type="text/javascript">let socket = io('/private');</script>
 
@@ -92,8 +94,8 @@
                   <h5 class="dropdown-item">{{user_data.username}}</h5> 
                   <h6 class="dropdown-item">{{user_data.email}}</h6> 
                 </a>
-                <a class="dropdown-item" href="\profile?id={{user_data.id}}">My Profile</a>
-                <a class="dropdown-item" href="\logout">Logout</a>
+                <a class="dropdown-item" href="/profile?id={{user_data.id}}">My Profile</a>
+                <a class="dropdown-item" href="/logout">Logout</a>
               </div>
             </li>
           </ul>
@@ -111,7 +113,7 @@
                 </form>
               </li>
               <li class="sidebar-collapse">
-                <a href="\profile?id={{user_data.id}}">My Profile</a>
+                <a href="/profile?id={{user_data.id}}">My Profile</a>
               </li>
               <li class="sidebar-collapse">
                   <a href="/community_creation">Community Creation</a>
@@ -158,13 +160,13 @@
       <!-- /Sidebar -->
 
       <!-- Page Content -->
-      <div id="page-content-wrapper" style="height: calc(100vh - 65px);">
+      <div id="page-content-wrapper">
           
         <div class="container-fluid">
           <h1>Edit Community Information</h1>
           <hr>
           <div class="row">
-              <div class="col-md-7" style="margin:auto">
+              <div class="col-sm">
                 <form>
                 </form>
                   <div class="form-group">
@@ -192,39 +194,37 @@
               </div>
             </div>
         </div>
-        <h1>Widget Creation</h1>
-        <hr>
-        <div class="row" style="height: calc(100vh - 65px);">
-          <div class="col-md-6" style="margin:auto" style="height: calc(100vh - 65px);">
-            <fieldset>
-                <legend class="text-center">Youtube</legend>
-                <div class="form-group">
-                  <label for="youtube_url"><span class="req">* </span> Url: </label>
-                  <input required type="text" name="youtube_url" id="youtube_url" class="form-control" autocomplete="off" /> 
-                </div>
+        <div class="row" id="widget-creation-row">
+          <div class="col-sm" id="widget-creation-col">
+            <h1>Widget Creation</h1>
+            <hr>
+              <legend class="text-center">Youtube</legend>
+              <div class="form-group">
+                <label for="youtube_url"><span class="req">* </span> Url: </label>
+                <input required type="text" name="youtube_url" id="youtube_url" class="form-control" autocomplete="off" /> 
+              </div>
 
-                <div class="form-group">
-                    <button class="btn btn-primary" onclick="socket.emit('widget_submit_req',{community_id:'{{{community_data.id}}}',type:'youtube',data:{url:document.getElementById('youtube_url').value}});">Create</button>
-                </div>
+              <div class="form-group">
+                  <button class="btn btn-primary" onclick="socket.emit('widget_submit_req',{community_id:'{{{community_data.id}}}',type:'youtube',data:{url:document.getElementById('youtube_url').value}});">Create</button>
+              </div>
 
-                <legend class="text-center">Twitter</legend>
-                <div class="form-group">
-                  <label for="twitter_screen_name"><span class="req">* </span> Account Name: </label>
-                  <input required type="text" name="twitter_screen_name" id="twitter_screen_name" class="form-control" autocomplete="off" /> 
-                </div>
+              <legend class="text-center">Twitter</legend>
+              <div class="form-group">
+                <label for="twitter_screen_name"><span class="req">* </span> Account Name: </label>
+                <input required type="text" name="twitter_screen_name" id="twitter_screen_name" class="form-control" autocomplete="off" /> 
+              </div>
 
-                <div class="form-group">
-                    <button class="btn btn-primary" onclick="widget_submit('twitter',{screen_name:document.getElementById('twitter_screen_name').value});">Create</button>
-                </div>
+              <div class="form-group">
+                  <button class="btn btn-primary" onclick="widget_submit('twitter',{screen_name:document.getElementById('twitter_screen_name').value});">Create</button>
+              </div>
 
-                <legend class="text-center">Community Tournaments List</legend>
+              <legend class="text-center">Community Tournaments List</legend>
 
-                <div class="form-group">
-                    <button class="btn btn-primary" onclick="widget_submit('tournaments');">Create</button>
-                </div>
+              <div class="form-group">
+                  <button class="btn btn-primary" onclick="widget_submit('tournaments');">Create</button>
+              </div>
 
-                <hr>
-            </fieldset>
+              <hr>
           </div>
 
           <div id="wle">

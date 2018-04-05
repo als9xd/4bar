@@ -2,7 +2,13 @@
     margin: auto;
     text-align: center;
 }
+
+#event-calendar iframe{
+	border: 0;
+}
+
 .event-modal-buttons{
     margin: auto;
     text-align: center;
 }
+
