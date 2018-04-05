@@ -103,7 +103,7 @@ const WidgetUIDefinitions = {
 
     widget.appendChild(table);
 
-    widget_container.classList.add('col-sm-4')
+    widget_container.classList.add('col-sm')
     return widget;
   }
 }

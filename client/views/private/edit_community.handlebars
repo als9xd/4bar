@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" style="height: 100vh">
+<html lang="en">
   <head>
 
     <meta charset="utf-8">
@@ -41,7 +41,7 @@
     
  </head>
 
-  <body style="height: 100vh">
+  <body>
 
     <div id="wrapper" data-toggle-on='false'>
 
@@ -76,6 +76,19 @@
             </li>
           </ul>
           <ul class="navbar-nav ml-auto">
+            <li class="nav-item nav-auto-spacing edit-community-btn">
+              <button type="button" class="btn btn-outline-primary" data-toggle="modal" data-target="#community-information-modal">
+                Community Information
+              </button>
+            </li>
+            <li class="nav-item nav-auto-spacing edit-community-btn">
+              <button type="button" class="btn btn-outline-primary" data-toggle="modal" data-target="#widget-selection-modal">
+                Create a New Widget
+              </button>
+            </li>
+            <li class="nav-item tournament-creation-btn">
+              <a class="nav-link" href="/tournament_creation?id={{community_data.id}}" data-toggle="tooltip" data-placement="bottom" title="Tournament Creation"><img src="/site/trophy.png" class="navbar-icon"></a>
+            </li>
             <li class="nav-item">
               <a class="nav-link" href="/community_creation" data-toggle="tooltip" data-placement="bottom" title="Community Creation"><img src="/site/community-creation.png" class="navbar-icon"></a>
             </li>
@@ -163,70 +176,12 @@
       <div id="page-content-wrapper">
           
         <div class="container-fluid">
-          <h1>Edit Community Information</h1>
-          <hr>
-          <div class="row">
-              <div class="col-sm">
-                <form>
-                </form>
-                  <div class="form-group">
-                    <label for="community-name"><span class="req">* </span>Name: </label>
-                      <input required type="text" id="community-name" class="form-control" autocomplete="off" value="{{community_data.name}}"/> 
-                  </div>
-                  <div class="form-group">
-                    <label for="community-description">Description: </label>
-                    <textarea class="form-control" rows="5" id="community-description">{{community_data.description}}</textarea>
-                  </div>
-                  <div class="form-group">
-                    <label for="community-icon-file">Icon: </label>
-                      <input type="file" id="community-icon-file" value="{{community_data.icon}}" /> 
-                  </div>
-                  <div class="form-group">
-                    <label for="community-wallpaper-file">Wallpaper: </label>
-                      <input type="file" id="community-wallpaper-file" value="{{community_data.icon}}" /> 
-                  </div>
-                  <div class="form-group">
-                    <label for="community-tags">Tags: </label>
-                    <input name="tags" id="community-tags" value="{{#each community_data.tags}}{{tag}}{{#unless @last}},{{/unless}}{{/each}}"/>
-                  </div>
-                  <button class="btn btn-primary" id='community-submit-btn'>Submit</button>
-                </form>
-              </div>
-            </div>
-        </div>
+
+        <h1>Edit Community - <a href="/communities?id={{community_data.id}}">{{community_data.name}}</a></h1>
+
+        <hr>
+
         <div class="row" id="widget-creation-row">
-          <div class="col-sm" id="widget-creation-col">
-            <h1>Widget Creation</h1>
-            <hr>
-              <legend class="text-center">Youtube</legend>
-              <div class="form-group">
-                <label for="youtube_url"><span class="req">* </span> Url: </label>
-                <input required type="text" name="youtube_url" id="youtube_url" class="form-control" autocomplete="off" /> 
-              </div>
-
-              <div class="form-group">
-                  <button class="btn btn-primary" onclick="socket.emit('widget_submit_req',{community_id:'{{{community_data.id}}}',type:'youtube',data:{url:document.getElementById('youtube_url').value}});">Create</button>
-              </div>
-
-              <legend class="text-center">Twitter</legend>
-              <div class="form-group">
-                <label for="twitter_screen_name"><span class="req">* </span> Account Name: </label>
-                <input required type="text" name="twitter_screen_name" id="twitter_screen_name" class="form-control" autocomplete="off" /> 
-              </div>
-
-              <div class="form-group">
-                  <button class="btn btn-primary" onclick="widget_submit('twitter',{screen_name:document.getElementById('twitter_screen_name').value});">Create</button>
-              </div>
-
-              <legend class="text-center">Community Tournaments List</legend>
-
-              <div class="form-group">
-                  <button class="btn btn-primary" onclick="widget_submit('tournaments');">Create</button>
-              </div>
-
-              <hr>
-          </div>
-
           <div id="wle">
           </div>
         </div>
@@ -234,6 +189,156 @@
       <!-- /Page Content -->
     </div>
     <!-- /Main Wrapper -->
+
+    <!-- Modals -->
+    <div>
+
+     <!-- Community Information Modal -->
+      <div class="modal fade" id="community-information-modal" tabindex="-1" role="dialog" aria-labelledby="community-information-modal-title" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="community-information-modal-title">Community Information</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <form id="edit-community-form">
+                <div class="form-group">
+                  <label for="community-name"><span class="req">* </span>Name: </label>
+                    <input required type="text" id="community-name" class="form-control" autocomplete="off" value="{{community_data.name}}"/> 
+                </div>
+                <div class="form-group">
+                  <label for="community-description">Description: </label>
+                  <textarea class="form-control" rows="5" id="community-description">{{community_data.description}}</textarea>
+                </div>
+                <div class="form-group">
+                  <label for="community-icon-file">Icon: </label>
+                    <input type="file" id="community-icon-file" value="{{community_data.icon}}" /> 
+                </div>
+                <div class="form-group">
+                  <label for="community-wallpaper-file">Wallpaper: </label>
+                    <input type="file" id="community-wallpaper-file" value="{{community_data.icon}}" /> 
+                </div>
+                <div class="form-group">
+                  <label for="community-tags">Tags: </label>
+                  <input name="tags" id="community-tags" value="{{#each community_data.tags}}{{tag}}{{#unless @last}},{{/unless}}{{/each}}"/>
+                </div>
+              </form>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+              <button type="button" class="btn btn-primary" id="community-submit-btn">Save changes</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Widget Selection Modal -->
+      <div class="modal fade" id="widget-selection-modal" tabindex="-1" role="dialog" aria-labelledby="widget-selection-modal-title" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="widget-selection-modal-title">Widget Type</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <div class="form-group">
+                <select class="form-control" id="widget-selection">
+                  <option value="youtube-modal">Youtube</option>
+                  <option value="twitter-modal">Twitter</option>
+                  <option value="tournaments-list-modal">Tournaments List</option>
+                </select>
+              </div>                  
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+              <button type="button" class="btn btn-primary" id="widget-modal-selection-btn">Next</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Youtube Modal -->
+      <div class="modal fade" id="youtube-modal" tabindex="-1" role="dialog" aria-labelledby="youtube-modal-title" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="youtube-modal-title">Youtube Widget</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <form onsubmit="socket.emit('widget_submit_req',{community_id:'{{{community_data.id}}}',type:'youtube',data:{url:document.getElementById('youtube_url').value}});">
+                <div class="form-group">
+                  <label for="youtube_url"><span class="req">* </span> Url: </label>
+                  <input required type="text" id="youtube_url" class="form-control" autocomplete="off" /> 
+                </div>
+              </form>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+              <button type="button" class="btn btn-primary" onclick="socket.emit('widget_submit_req',{community_id:'{{{community_data.id}}}',type:'youtube',data:{url:document.getElementById('youtube_url').value}});">Create</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Twitter Modal -->
+      <div class="modal fade" id="twitter-modal" tabindex="-1" role="dialog" aria-labelledby="twitter-modal-title" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="twitter-modal-title">Twitter Widget</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <form onsubmit="widget_submit('twitter',{screen_name:document.getElementById('twitter_screen_name').value});">
+                <div class="form-group">
+                  <label for="youtube_url"><span class="req">* </span> Accout Name: </label>
+                  <input required type="text" id="twitter_screen_name" class="form-control" autocomplete="off" /> 
+                </div>
+              </form>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+              <button type="button" class="btn btn-primary" onclick="widget_submit('twitter',{screen_name:document.getElementById('twitter_screen_name').value});">Create</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tournament List Modal -->
+      <div class="modal fade" id="tournaments-list-modal" tabindex="-1" role="dialog" aria-labelledby="tournaments-list-modal-title" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="tournaments-list-modal-title">Tournaments List Widget</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <form onsubmit="widget_submit('tournaments');">
+                <div class="form-group">
+                  No Available Settings
+                </div>
+              </form>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+              <button type="button" class="btn btn-primary" onclick="widget_submit('tournaments');">Create</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- Load jquery -->
     <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
@@ -386,6 +491,13 @@
           );
         }
       );  
+    </script>
+
+    <script>
+      $('#widget-modal-selection-btn').click(function() {
+        $('#widget-selection-modal').modal('hide');
+        $('#'+$('#widget-selection').val()).modal('show');
+      })
     </script>
 
   </body>

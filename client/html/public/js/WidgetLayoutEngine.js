@@ -17,13 +17,6 @@ let WidgetLayoutEngine = function(widget_ui_definitions,parent,background_parent
   __wle.rows = [];
   __wle.widgets = [];
 
-  __wle.build_header = function(text){
-    let header = document.createElement('h1');
-    header.style.textAlign = "center";
-    header.style.borderBottom = "2px solid black";
-    header.innerHTML = text;
-    return header;  
-  }  
 
   //////////////////////////////////////////////////////////////////////
   // Widget Layout Engine Base Initialization
@@ -40,8 +33,6 @@ let WidgetLayoutEngine = function(widget_ui_definitions,parent,background_parent
   let wle_available_holder;
   
   if(settings && settings.template){
-    let wle_available_header = __wle.build_header('Available Widgets');
-    wle_base.appendChild(wle_available_header);
 
     let wle_available_container = document.createElement('div');
     wle_available_container.style.marginLeft = "auto";
@@ -52,6 +43,7 @@ let WidgetLayoutEngine = function(widget_ui_definitions,parent,background_parent
     wle_available_holder.style.minHeight = "100px";
     wle_available_holder.style.border = "thin solid #ccc";
     wle_available_holder.style.margin = "10px";
+    wle_available_holder.style.padding = '10px';
     wle_available_container.appendChild(wle_available_holder);
   }
 
@@ -61,6 +53,7 @@ let WidgetLayoutEngine = function(widget_ui_definitions,parent,background_parent
 
   if(settings && settings.template){
     let wle_layout_buttons_container = document.createElement('div');
+    wle_layout_buttons_container.style.marginBottom = '10px';
     wle_layout_buttons_container.classList.add('container');
     wle_layout_buttons_container.innerHTML = "Rows:";
     wle_base.appendChild(wle_layout_buttons_container);
@@ -98,11 +91,6 @@ let WidgetLayoutEngine = function(widget_ui_definitions,parent,background_parent
   //////////////////////////////////////////////////////////////////////
   // Layout Template Initialization
   //////////////////////////////////////////////////////////////////////  
-
-  if(settings && settings.template){
-    let wle_layout_header = __wle.build_header('Widgets Layout');
-    wle_base.appendChild(wle_layout_header);
-  }
 
   let wle_layout_container = document.createElement('div');
   wle_layout_container.style.height = "100%";
@@ -234,6 +222,7 @@ let WidgetLayoutEngine = function(widget_ui_definitions,parent,background_parent
     let new_row_button_group = document.createElement('div');
     new_row_button_group.classList.add('container');
     new_row_button_group.style.width = "100%";
+    new_row_button_group.style.marginBottom = '10px';
     new_row_button_group.classList.add('btn-group','btn-group-large');
     new_row_button_group.style.marginTop = "10px";
 
