@@ -15,6 +15,17 @@ body {
   padding-top: 65px; 
 }
 
+.nav-auto-spacing{
+  margin-top: auto;
+  margin-bottom: auto;
+  margin-right: 10px;
+}
+
+.search-query-input{
+  width: 140px  !important;
+  margin-left: 10px !important;
+  margin-right: .5rem !important;
+}
 
 #notifications-count {
   background-color: #fa3e3e;
@@ -27,6 +38,13 @@ body {
   position: absolute; /* Position the badge within the relatively positioned button */
   top: 2px;
   right: 18px;
+}
+
+.dropdown-toggle::after{
+  display: inline;
+  float: right;
+  position: absolute;
+  margin-top: 10px;
 }
 
 .dropdown-menu {
@@ -99,12 +117,7 @@ body {
   min-width: 350px;
 }
 
-#community-creation-icon img{
-  width: 30px;
-  height: 30px;  
-}
-
-#tournament-creation-icon img{
+.navbar-icon{
   width: 30px;
   height: 30px;  
 }
@@ -178,4 +191,19 @@ body {
   -webkit-box-shadow: inset 0px 0px 0px black;
      -moz-box-shadow: inset 0px 0px 0px black;
           box-shadow: inset 0px 0px 0px black;
+}
+
+.community-icon{
+  height: 30px;
+  width: 30px;
+}
+
+.profile-avatar{
+  height: 30px;
+  width: 30px; 
+}
+
+.profile-avatar-lg{
+  height: 80px;
+  width: 80px; 
 }

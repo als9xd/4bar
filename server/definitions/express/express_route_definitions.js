@@ -637,8 +637,6 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 						return;
 					}
 
-					req.query['id'] = Number(req.query['id']);
-
 					pg_conn.client.query(
 						"SELECT * FROM communities where id = $1 LIMIT 1",
 						[

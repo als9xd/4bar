@@ -503,7 +503,7 @@ module.exports = function(config,pg_conn,uuidv1){
 
 																	// 'name' is used to differentiate between file upload success messages so that we can upload files after the tournament has been successfully submitted
 																	socket.emit('notification',{success: 'Successfully created and joined tournament'});
-																	socket.emit('tournament_create_status',{status:true});
+																	socket.emit('tournament_creation_status',{status:true,new_tournament_id:tournament_id.rows[0].id});
 																}
 															);
 														}
@@ -1389,100 +1389,6 @@ module.exports = function(config,pg_conn,uuidv1){
 
 		/********************************************************************************/
 
-		(socket) => {
-
-			socket.on('toggle_tournament_membership',function(tournament_id){
-
-				if(typeof tournament_id === 'undefined'){
-					socket.emit('notification',{error:'Tournament id is required'});
-					return;
-				}
-
-				tournament_id = Number(tournament_id);
-
-				if(isNaN(tournament_id)){
-					socket.emit('notification',{error:'Tournament id must be a number'});
-					return;
-				}
-
-				pg_conn.client.query(
-					"SELECT 1 FROM tournaments WHERE id = $1",
-					[
-						socket.handshake.session.user_id
-					],function(err,tournament_exists){
-						if(err){
-							console.log(err);
-							socket.emit('notification',{error:'Could not check if tournament exists'});
-							return;
-						}
-
-						if(typeof tournament_exists === 'undefined' || tournament_exists.rowCount === 0){
-							socket.emit('notification',{error:'Tournament with id of '+tournament_id+' does not exist'});
-							return;
-						}
-
-						pg_conn.client.query(
-							"SELECT 1 FROM tournament_attendees \
-								WHERE tournament_attendees.user_id = $1 AND tournament_attendees.tournament_id = $2 \
-							",
-							[
-								socket.handshake.session.user_id,
-								Number(tournament_id)
-							],function(err,is_member){
-								if(err){
-									console.log(err);
-									socket.emit('notification',{error:'Could not search tournament members'});
-									return;
-								}
-								if(is_member && is_member.rowCount){
-									pg_conn.client.query(
-										"DELETE FROM tournament_attendees \
-											WHERE tournament_attendees.user_id = $1 AND tournament_attendees.tournament_id = $2",
-										[
-											socket.handshake.session.user_id,
-											Number(tournament_id)
-										]
-										,function(err){
-											if(err){
-												console.log(err);
-												socket.emit('notification',{error:'Could not remove you from the tournament'});
-												return;
-											}
-											socket.emit('notification',{success:'Successfully left tournament'});							
-										}
-									);
-								}else if(is_member && is_member.rowCount === 0){
-									pg_conn.client.query(
-										"INSERT INTO tournament_attendees (user_id,tournament_id) \
-											VALUES ($1,$2) \
-										",
-										[
-											socket.handshake.session.user_id,
-											Number(tournament_id)
-										],
-										function(err){
-											if(err){
-												console.log(err);
-												socket.emit('notification',{error:'Could not join you to the tournament'});
-												return;
-											}
-											socket.emit('notification',{success:'Successfully joined tournament'});							
-										}
-									);
-								}
-							}
-						);
-
-					}
-
-				);
-			});
-
-		},
-
-
-		/********************************************************************************/
-
 
 		//////////////////////////////////////////////////////////////////////
 		// This listener allows user to toggle whether they are a member of 
@@ -1690,105 +1596,105 @@ module.exports = function(config,pg_conn,uuidv1){
 		// This listener adds a node to a brachet tree for a tournament
 		//////////////////////////////////////////////////////////////////////
 
-		(socket) => {
-			socket.on('add_bracket_node',function(node_data){
-				pg_conn.client.query(
-					"INSERT INTO tournament_brackets (tournament_id,parent_id,player_id) \
-						VALUES ($1,$2,$3) \
-					RETURNING id \
-					",
-					[
-						node_data.tournament_id,
-						node_data.parent_id,
-						node_data.player_id
-					],
-					function(err,results){
-						if(err){
-							console.log(err)
-							socket.emit('notification',{error:'Could not add bracket node'});
-							return;
-						}
-						socket.emit('last_node_id',results.rows[0].id);
-					}
-				);
-			});
-		},
+		// (socket) => {
+		// 	socket.on('add_bracket_node',function(node_data){
+		// 		pg_conn.client.query(
+		// 			"INSERT INTO tournament_brackets (tournament_id,parent_id,player_id) \
+		// 				VALUES ($1,$2,$3) \
+		// 			RETURNING id \
+		// 			",
+		// 			[
+		// 				node_data.tournament_id,
+		// 				node_data.parent_id,
+		// 				node_data.player_id
+		// 			],
+		// 			function(err,results){
+		// 				if(err){
+		// 					console.log(err)
+		// 					socket.emit('notification',{error:'Could not add bracket node'});
+		// 					return;
+		// 				}
+		// 				socket.emit('last_node_id',results.rows[0].id);
+		// 			}
+		// 		);
+		// 	});
+		// },
 
-		/********************************************************************************/
+		// /********************************************************************************/
 		
-		//////////////////////////////////////////////////////////////////////
-		// This listener retrieves bracket nodes for a particular tournament
-		//////////////////////////////////////////////////////////////////////
+		// //////////////////////////////////////////////////////////////////////
+		// // This listener retrieves bracket nodes for a particular tournament
+		// //////////////////////////////////////////////////////////////////////
 
-		(socket) => {
-			socket.on('get_brackets',function(tournament_id){
-				pg_conn.client.query(
-					"SELECT * FROM tournament_brackets where tournament_id = $1",
-					[
-						tournament_id
-					],
-					function(err,results){
-						if(err){
-							console.log(err)
-							socket.emit('notification',{error:'Could not get bracket nodes'});
-							return;
-						}
-						socket.emit('bracket_nodes',results.rows);
-					}
-				);
-			});
-		},
+		// (socket) => {
+		// 	socket.on('get_brackets',function(tournament_id){
+		// 		pg_conn.client.query(
+		// 			"SELECT * FROM tournament_brackets where tournament_id = $1",
+		// 			[
+		// 				tournament_id
+		// 			],
+		// 			function(err,results){
+		// 				if(err){
+		// 					console.log(err)
+		// 					socket.emit('notification',{error:'Could not get bracket nodes'});
+		// 					return;
+		// 				}
+		// 				socket.emit('bracket_nodes',results.rows);
+		// 			}
+		// 		);
+		// 	});
+		// },
 		
-		//////////////////////////////////////////////////////////////////////
-		// This listener retrieves participants of a particular tournament
-		//////////////////////////////////////////////////////////////////////
+		// //////////////////////////////////////////////////////////////////////
+		// // This listener retrieves participants of a particular tournament
+		// //////////////////////////////////////////////////////////////////////
 
-		(socket) => {
-			socket.on('get_participants',function(tournament_id){
-				pg_conn.client.query(
-					"SELECT user_id FROM tournament_attendees where tournament_id = $1",
-					[
-						tournament_id
-					],
-					function(err,results){
-						if(err){
-							console.log(err)
-							socket.emit('notification',{error:'Could not get participants'});
-							return;
-						}
-						socket.emit('participants',results.rows);
-					}
-				);
-			});
-		},
+		// (socket) => {
+		// 	socket.on('get_participants',function(tournament_id){
+		// 		pg_conn.client.query(
+		// 			"SELECT user_id FROM tournament_attendees where tournament_id = $1",
+		// 			[
+		// 				tournament_id
+		// 			],
+		// 			function(err,results){
+		// 				if(err){
+		// 					console.log(err)
+		// 					socket.emit('notification',{error:'Could not get participants'});
+		// 					return;
+		// 				}
+		// 				socket.emit('participants',results.rows);
+		// 			}
+		// 		);
+		// 	});
+		// },
 
-		/********************************************************************************/
+		// /********************************************************************************/
 
-		//////////////////////////////////////////////////////////////////////
-		// This listener updates a tournament bracket node 
-		//////////////////////////////////////////////////////////////////////
+		// //////////////////////////////////////////////////////////////////////
+		// // This listener updates a tournament bracket node 
+		// //////////////////////////////////////////////////////////////////////
 
-		(socket) => {
-			socket.on('update_bracket_node',function(node_data){
-				pg_conn.client.query(
-					"UPDATE tournament_brackets \
-						SET player_id = $1 \
-						WHERE id = $2 \
-					",
-					[
-						node_data.player_id,
-						node_data.node_id
-					],function(err,results){
-						if(err){
-							console.log(err);
-							socket.emit('notification',{error:'Bracket node could not be updated'});
-							return;
-						}
-						socket.emit('notification',{success:'Successfully updated bracket node'});
-					}
-				);
-			});
-		}
+		// (socket) => {
+		// 	socket.on('update_bracket_node',function(node_data){
+		// 		pg_conn.client.query(
+		// 			"UPDATE tournament_brackets \
+		// 				SET player_id = $1 \
+		// 				WHERE id = $2 \
+		// 			",
+		// 			[
+		// 				node_data.player_id,
+		// 				node_data.node_id
+		// 			],function(err,results){
+		// 				if(err){
+		// 					console.log(err);
+		// 					socket.emit('notification',{error:'Bracket node could not be updated'});
+		// 					return;
+		// 				}
+		// 				socket.emit('notification',{success:'Successfully updated bracket node'});
+		// 			}
+		// 		);
+		// 	});
+		// }
 
 
 		/********************************************************************************/

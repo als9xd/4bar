@@ -88,23 +88,21 @@ module.exports = function(pg_client){
 			}else if(settings && settings.union === true){
 				conjunction = 'OR';
 			}
+
 			return new Promise(
 				function(resolve,reject){
 					pg_client.query(
-						"SELECT f_c.num_members,f_c.id,f_c.name,f_c.description,f_c.creation_date,f_c.last_activity,f_c.icon,array_agg(community_tags.tag) as tags \
-						FROM community_tags,\
-							(SELECT communities.* FROM communities \
-							INNER JOIN community_tags on communities.id = community_tags.community_id \
+						"SELECT c.*,array_agg(tags.tag) AS tags \
+							FROM communities c LEFT OUTER JOIN community_tags tags ON tags.community_id = c.id \
 							WHERE \
-							(to_tsvector(communities.name) @@ plainto_tsquery($1) OR LENGTH($1) = 0) "+conjunction+" \
-							(to_tsvector(communities.description) @@ plainto_tsquery($2) OR LENGTH($2) = 0) "+conjunction+" \
-							(to_tsvector(community_tags.tag) @@ plainto_tsquery($3) OR LENGTH($3) = 0) \
-							GROUP BY communities.id) as f_c WHERE f_c.id = community_tags.community_id \
-						GROUP BY f_c.num_members,f_c.id,f_c.name,f_c.description,f_c.creation_date,f_c.last_activity,f_c.icon ",
+							(to_tsvector(c.name) @@ plainto_tsquery($1) OR LENGTH($1) = 0) "+conjunction+" \
+							(to_tsvector(c.description) @@ plainto_tsquery($2) OR LENGTH($2) = 0) "+conjunction+" \
+							(to_tsvector(tags.tag) @@ plainto_tsquery($3) OR LENGTH($3) = 0) \
+							GROUP BY c.id",
 						[
 							(typeof input == 'string' || input instanceof String) ? input || '' : input.name || '',
 							(typeof input == 'string' || input instanceof String) ? input || '' : input.desc || '',
-							(typeof input == 'string' || input instanceof String) ? input || '' : input.tags || ''
+							(typeof input == 'string' || input instanceof String) ? input || '' : input.tag || ''
 						],
 						function(err,communities){
 							if(err){
@@ -168,18 +166,17 @@ module.exports = function(pg_client){
 			return new Promise(
 				function(resolve,reject){
 					pg_client.query(
-						"SELECT t.name,t.start_date,t.signup_deadline,t.location,t.description,t.id,t.community_id,communities.name as community_name,array_agg(tournament_tags.tag) as tags \
-						FROM tournament_tags,\
-							(SELECT tournaments.* FROM tournaments \
-							INNER JOIN tournament_tags on tournaments.id = tournament_tags.tournament_id \
+						"SELECT c.id as community_id,c.name as community_name,t.*,array_agg(tags.tag) AS tags \
+							FROM tournaments t INNER JOIN communities c ON t.community_id = c.id LEFT OUTER JOIN tournament_tags tags ON tags.tournament_id = t.id \
 							WHERE \
-							(to_tsvector(tournaments.name) @@ plainto_tsquery($1) OR LENGTH($1) = 0) "+conjunction+" \
-							(to_tsvector(tournaments.location) @@ plainto_tsquery($2) OR LENGTH($2) = 0) "+conjunction+" \
-							(to_tsvector(tournament_tags.tag) @@ plainto_tsquery($3) OR LENGTH($3) = 0) \
-							GROUP BY tournaments.id) as t INNER JOIN communities ON communities.id = t.community_id WHERE t.id = tournament_tags.tournament_id \
-						GROUP BY t.name,t.start_date,t.signup_deadline,t.location,t.description,t.id,t.community_id,communities.name \
+							(to_tsvector(c.name) @@ plainto_tsquery($1) OR LENGTH($1) = 0) "+conjunction+" \
+							(to_tsvector(t.name) @@ plainto_tsquery($2) OR LENGTH($2) = 0) "+conjunction+" \
+							(to_tsvector(t.location) @@ plainto_tsquery($3) OR LENGTH($3) = 0) "+conjunction+" \
+							(to_tsvector(tags.tag) @@ plainto_tsquery($4) OR LENGTH($4) = 0) \
+							GROUP BY t.id,c.id \
 						",
 						[
+							(typeof input == 'string' || input instanceof String) ? input || '' : input.host_community || '',
 							(typeof input == 'string' || input instanceof String) ? input || '' : input.name || '',
 							(typeof input == 'string' || input instanceof String) ? input || '' : input.location || '',
 							(typeof input == 'string' || input instanceof String) ? input || '' : input.tag || ''

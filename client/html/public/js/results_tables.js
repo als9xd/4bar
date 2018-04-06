@@ -1,6 +1,6 @@
 $(document).ready(function($) {
 
-    let table_titles = $(".search-results-table-title");
+    let table_titles = $('.search-results-table-title');
 
     let tables = {};
 
@@ -9,8 +9,17 @@ $(document).ready(function($) {
     }
 
     $('html').click(function(evt){    
-     if($(evt.target).closest('#search-results-container').length)
+      if($(evt.target).closest('#search-results-container').length){
         return;       
+      }
+
+      if($(evt.target).closest('#sidebar-wrapper').length){
+        return;       
+      }
+
+      if($(evt.target).closest('#navbar-wrapper').length){
+        return;       
+      }
 
       for(let i = 0; i < table_titles.length;i++){
         table_titles[i].style.background = '#292b2c';
@@ -24,7 +33,6 @@ $(document).ready(function($) {
 
     $(".search-results-table-title").click(function() {
         for(let i = 0; i < table_titles.length;i++){
-          // console.log($(table_titles[i]).attr('id'), $(this).attr('id'));
           if($(table_titles[i]).attr('id') !== $(this).attr('id')){
               table_titles[i].style.background = '#292b2c';
               let table = document.getElementById(table_titles[i].getAttribute('data-toggle'));

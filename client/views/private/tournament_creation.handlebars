@@ -48,17 +48,24 @@
           </button>
           <a class="navbar-brand" href="/home">4bar.org</a>
         </div>
+
         <div class="collapse navbar-collapse">
-          <form class="form-inline my-2 my-md-0" action="/search" method="GET">
-            <input name="query" class="form-control mr-sm-2">
-            <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
-          </form> 
+          <ul class="navbar-nav mr-auto">
+            <li class="nav-item nav-auto-spacing">
+              <form id="search-form" class="form-inline my-2 my-md-0" action="/search" method="GET">
+                <input name="query" class="form-control mr-sm-2">
+              </form>
+            </li>
+            <li class="nav-item nav-auto-spacing">
+              <button class="btn btn-outline-success my-2 my-sm-0" onclick="document.getElementById('search-form').submit()" for="submit-search-form" >Search</button>
+            </li>
+          </ul>
           <ul class="navbar-nav ml-auto">
             <li class="nav-item">
-              <a class="nav-link" href="/community_creation" id="community-creation-icon" data-toggle="tooltip" data-placement="bottom" title="Community Creation"><img src="/site/community-creation.png"></a>
+              <a class="nav-link" href="/community_creation" data-toggle="tooltip" data-placement="bottom" title="Community Creation"><img src="/site/community-creation.png" class="navbar-icon"></a>
             </li>
             <li class="nav-item dropdown">
-              <a class="nav-link" href="#" id="notification-dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><img src="/site/notification.png"></a>
+              <a class="nav-link" href="#" id="notification-dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><img src="/site/notification.png" class="navbar-icon"></a>
               <div id="notification-dropdown-menu" class="dropdown-menu dropdown-menu-right" aria-labelledby="notification-dropdown">
                 <div class="dropdown-menu-head">
                   <h5 class="dropdown-item">Notifications<img src="site/settings.png" class="float-right"></h5> 
@@ -72,8 +79,8 @@
                   <h5 class="dropdown-item">{{user_data.username}}</h5> 
                   <h6 class="dropdown-item">{{user_data.email}}</h6> 
                 </a>
-                <a class="dropdown-item" href="\profile?id={{user_data.id}}">My Profile</a>
-                <a class="dropdown-item" href="\logout">Logout</a>
+                <a class="dropdown-item" href="/profile?id={{user_data.id}}">My Profile</a>
+                <a class="dropdown-item" href="/logout">Logout</a>
               </div>
             </li>
           </ul>
@@ -84,8 +91,23 @@
       <!-- Sidebar -->
       <div id="sidebar-wrapper">
           <ul class="sidebar-nav">
+              <li class="sidebar-collapse">
+                <form class="form-inline my-2 my-md-0" action="/search" method="GET">
+                  <input name="query" class="form-control mr-sm-2 search-query-input">
+                  <button class="btn btn-outline-success my-2 my-sm-0" type="submit" >Search</button>
+                </form>
+              </li>
+              <li class="sidebar-collapse">
+                <a href="/profile?id={{user_data.id}}">My Profile</a>
+              </li>
+              <li class="sidebar-collapse">
+                  <a href="/community_creation">Community Creation</a>
+              </li>
+              <li class="sidebar-collapse">
+                <hr>
+              </li>
               <li>
-                  <a class="active" href="/home">Home</a>
+                  <a href="/home">Home</a>
               </li>
               <li>
                   <a href="/marketplace">Marketplace</a>
@@ -127,10 +149,10 @@
           
         <div class="container-fluid">
             <h1>Tournament Creation Wizard</h1>
-            <h5>Host Community: <a href="communities?id={{community_data.id}}"><img src="{{#if icon includeZero=true}}/icons/{{icon}}{{else}}/site/no-icon.jpg{{/if}}" style="height: 30px;width: 30px">{{community_data.name}}</a></h5>
+            <h5>Community: <a href="/communities?id={{community_data.id}}"><img src="{{#if icon includeZero=true}}/icons/{{icon}}{{else}}/site/no-icon.jpg{{/if}}" class="community-icon">{{community_data.name}}</a></h5>
             <hr/>
             <div class="row">
-                <div class="col-md-7" style="margin:auto">
+                <div class="col-md">
                   <form>
                   </form>
                     <div class="form-group">
@@ -141,9 +163,14 @@
                       <label for="tournament-description">Description: </label>
                       <textarea class="form-control" rows="5" id="tournament-description"></textarea>
                     </div>
+                    <label for="tournament-location">Location: </label>
                     <div class="form-group">
-                      <label for="tournament-location">Location: </label>
-                      <input required class="form-control" type="text" id="tournament-location" class="form-control" autocomplete="off" value="{{tournament_data.location}}" onFocus="geolocate()"/> 
+                      <div class="input-group">
+                        <input required class="form-control" type="text" id="tournament-location" class="form-control" autocomplete="off" value="{{tournament_data.location}}"/>
+                        <span class="input-group-btn">
+                          <button class="btn btn-secondary" type="button" onclick="geolocate()">Find My Location</button>
+                        </span>
+                      </div> 
                     </div>
                     <div class="form-group">
                       <label for="tournament-attendee-limit">Attendee Limit: </label>
@@ -223,7 +250,7 @@
     <script type="text/javascript">
       socket.on('tournament_creation_status',function(data){
         if(data.status === true){
-          window.location.replace('/tournaments?id='+notification.tournament_id);       
+          window.location = '/tournaments?id='+data.new_tournament_id;       
         }
       });    
 
@@ -283,7 +310,7 @@
     <!-- Google maps autocomplete -->
     <script>
 
-      let placeSearch, autocomplete;
+      let placeSearch, autocomplete,geocoder;
 
       function initAutocomplete() {
         // Create the autocomplete object, restricting the search to geographical
@@ -297,13 +324,22 @@
         autocomplete.addListener('place_changed', fillInAddress);
       }
 
+      function initGeocoder() {
+        geocoder = new google.maps.Geocoder;
+      }
+
+      function initGoogleMaps(argument) {
+        initAutocomplete();
+        initGeocoder();
+      }
+
       function fillInAddress() {
         let place = autocomplete.getPlace();
       }
 
-
       function geolocate() {
         if (navigator.geolocation) {
+          ntf_hndlr.build_notification({success:'Getting Location...'});
           navigator.geolocation.getCurrentPosition(function(position) {
             let geolocation = {
               lat: position.coords.latitude,
@@ -314,11 +350,25 @@
               radius: position.coords.accuracy
             });
             autocomplete.setBounds(circle.getBounds());
-          });
+          
+            geocoder.geocode({'location':{lat:position.coords.latitude,lng:position.coords.longitude}},function(results,status) {
+              if(status === 'OK'){
+                if(results[0]){
+                  document.getElementById('tournament-location').value = results[0].formatted_address;
+                  ntf_hndlr.build_notification({success:'Location Found!'});
+                }
+              }
+            });
+          },function(error){
+            if(error.code == error.PERMISSION_DENIED){
+              ntf_hndlr.build_notification({error:'Please enable location services in your browser'});
+            }
+          }
+          );
         }
       }
     </script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC-WvQjzOOtExbBjLCwRflnSS2wL1gKN6w&libraries=places&callback=initAutocomplete"
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC-WvQjzOOtExbBjLCwRflnSS2wL1gKN6w&libraries=places&callback=initGoogleMaps"
         async defer></script>
 
   </body>

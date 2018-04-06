@@ -45,26 +45,34 @@
           </button>
           <a class="navbar-brand" href="/home">4bar.org</a>
         </div>
+
         <div class="collapse navbar-collapse">
-          <form class="form-inline my-2 my-md-0" action="/search" method="GET">
-            <input name="query" class="form-control mr-sm-2">
-            <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
-          </form> 
+          <ul class="navbar-nav mr-auto">
+            <li class="nav-item nav-auto-spacing">
+              <form id="search-form" class="form-inline my-2 my-md-0" action="/search" method="GET">
+                <input name="query" class="form-control mr-sm-2">
+              </form>
+            </li>
+            <li class="nav-item nav-auto-spacing">
+              <button class="btn btn-outline-success my-2 my-sm-0" onclick="document.getElementById('search-form').submit()" for="submit-search-form" >Search</button>
+            </li>
+          </ul>
           <ul class="navbar-nav ml-auto">
-            <li class="nav-item" style="margin-top: auto;margin-bottom: auto;margin-right:10px">
-              {{#if t_edit_privileges}}
-                <a href="/edit_tournament?id={{tournament_data.id}}" id="edit-tournament"><button class="btn btn-outline-primary my-2 my-sm-0">Edit Tournament</button></a>
-              {{/if}}
+            {{#if t_edit_privileges}}
+            <li class="nav-item nav-auto-spacing edit-tournament-btn">
+                <a href="/edit_tournament?id={{tournament_data.id}}"><button class="btn btn-outline-primary my-2 my-sm-0">Edit Tournament</button></a>
             </li>
-            <li class="nav-item" style="margin-top: auto;margin-bottom: auto;">
-              {{#if t_is_member}}
-                <button class="btn btn-outline-primary my-2 my-sm-0" id='toggle-membership-btn' data-is-member="true"  onclick="toggle_membership();">Leave Tournament</button>
-              {{else}}
-                <button class="btn btn-outline-primary my-2 my-sm-0" id='toggle-membership-btn' data-is-member="false"  onclick="toggle_membership();">Join Tournament</button>
-              {{/if}}
+            {{/if}}
+            <li class="nav-item nav-auto-spacing">
+                <button class="btn btn-outline-primary my-2 my-sm-0 toggle-membership-btn" data-is-member="{{t_is_member}}" onclick="toggle_membership();">{{#if t_is_member}}Leave Tournament{{else}}Join Tournament{{/if}}</button>
             </li>
+            {{#if c_edit_privileges}}
             <li class="nav-item">
-              <a class="nav-link" href="/community_creation" id="community-creation-icon" data-toggle="tooltip" data-placement="bottom" title="Community Creation"><img src="/site/community-creation.png"></a>
+              <a class="nav-link" href="/tournament_creation?id={{community_data.id}}" data-toggle="tooltip" data-placement="bottom" title="Tournament Creation"><img src="/site/trophy.png" class="navbar-icon"></a>
+            </li>
+            {{/if}}
+            <li class="nav-item">
+              <a class="nav-link" href="/community_creation" id="community-creation-icon" data-toggle="tooltip" data-placement="bottom" title="Community Creation"><img src="/site/community-creation.png" class="navbar-icon"></a>
             </li>
             <li class="nav-item dropdown">
               <a class="nav-link" href="#" id="notification-dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><img src="/site/notification.png"></a>
@@ -81,8 +89,8 @@
                   <h5 class="dropdown-item">{{user_data.username}}</h5> 
                   <h6 class="dropdown-item">{{user_data.email}}</h6> 
                 </a>
-                <a class="dropdown-item" href="\profile?id={{user_data.id}}">My Profile</a>
-                <a class="dropdown-item" href="\logout">Logout</a>
+                <a class="dropdown-item" href="/profile?id={{user_data.id}}">My Profile</a>
+                <a class="dropdown-item" href="/logout">Logout</a>
               </div>
             </li>
           </ul>
@@ -93,6 +101,29 @@
       <!-- Sidebar -->
       <div id="sidebar-wrapper">
           <ul class="sidebar-nav">
+              <li class="sidebar-collapse">
+                <form class="form-inline my-2 my-md-0" action="/search" method="GET">
+                  <input name="query" class="form-control mr-sm-2 search-query-input">
+                  <button class="btn btn-outline-success my-2 my-sm-0" type="submit" >Search</button>
+                </form>
+              </li>
+              <li class="sidebar-collapse">
+                <a href="/profile?id={{user_data.id}}">My Profile</a>
+              </li>
+              <li class="sidebar-collapse">
+                  <a href="/community_creation">Community Creation</a>
+              </li>
+              {{#if t_edit_privileges}}
+              <li class="sidebar-collapse sidebar-btn edit-tournament-btn">
+                  <a href="/edit_tournament?id={{tournament_data.id}}"><button class="btn btn-outline-primary my-2 my-sm-0">Edit Tournament</button></a>
+              </li>
+              {{/if}}
+              <li class="sidebar-collapse sidbar-btn">
+                  <button class="btn btn-outline-primary my-2 my-sm-0 toggle-membership-btn" data-is-member="{{t_is_member}}" onclick="toggle_membership();">{{#if t_is_member}}Leave Tournament{{else}}Join Tournament{{/if}}</button>
+              </li>
+              <li class="sidebar-collapse">
+                <hr>
+              </li>
               <li>
                   <a href="/home">Home</a>
               </li>
@@ -192,18 +223,22 @@
 
     <!-- Toggle tournament membership -->    
     <script>
-      let toggle_membership_btn = document.getElementById('toggle-membership-btn');
-      let edit_button = document.getElementById('edit-tournament');
+      let toggle_membership_btns = document.getElementsByClassName('toggle-membership-btn');
+      let edit_tournament_btns = document.getElementsByClassName('edit-tournament-btn');
       function toggle_membership(){
         socket.emit('toggle_tournament_membership',{{{tournament_data.id}}});
-        if(toggle_membership_btn.getAttribute('data-is-member') == 'false'){
-          toggle_membership_btn.innerHTML = 'Leave Tournament';
-          toggle_membership_btn.setAttribute('data-is-member','true');
-        }
-        else if(toggle_membership_btn.getAttribute('data-is-member') == 'true'){
-          toggle_membership_btn.innerHTML = 'Join Tournament';
-          toggle_membership_btn.setAttribute('data-is-member','false');
-          edit_button.style.display = "none";
+        for(let i = 0; i < toggle_membership_btns.length;i++){
+          if(toggle_membership_btns[i].getAttribute('data-is-member') == 'false'){
+            toggle_membership_btns[i].innerHTML = 'Leave Tournament';
+            toggle_membership_btns[i].setAttribute('data-is-member','true');
+          }
+          else if(toggle_membership_btns[i].getAttribute('data-is-member') == 'true'){
+            toggle_membership_btns[i].innerHTML = 'Join Tournament';
+            toggle_membership_btns[i].setAttribute('data-is-member','false');
+            for(let j = 0; j < edit_tournament_btns.length;j++){
+              edit_tournament_btns[j].style.display = "none";
+            }
+          }
         }
       }
 
