@@ -188,7 +188,7 @@
         <div class="container-fluid">
 
         <h1>Edit Community</h1>
-        <h5>Community: <a href="/communities?id={{community_data.id}}"><img src="{{#if icon includeZero=true}}/icons/{{icon}}{{else}}/site/no-icon.jpg{{/if}}" style="height: 30px;width: 30px">{{community_data.name}}</a></h5>
+        <h5>Community: <a href="/communities?id={{community_data.id}}"><img src="{{#if icon includeZero=true}}/icons/{{icon}}{{else}}/site/no-icon.jpg{{/if}}" class="community-icon">{{community_data.name}}</a></h5>
         
         <hr/>
 
@@ -291,7 +291,7 @@
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-              <button type="button" class="btn btn-primary" onclick="socket.emit('widget_submit_req',{community_id:'{{{community_data.id}}}',type:'youtube',data:{url:document.getElementById('youtube_url').value}});">Create</button>
+              <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="socket.emit('widget_submit_req',{community_id:'{{{community_data.id}}}',type:'youtube',data:{url:document.getElementById('youtube_url').value}});">Create</button>
             </div>
           </div>
         </div>
@@ -315,7 +315,7 @@
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-              <button type="button" class="btn btn-primary" onclick="widget_submit('twitter',{screen_name:document.getElementById('twitter_screen_name').value});">Create</button>
+              <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="widget_submit('twitter',{screen_name:document.getElementById('twitter_screen_name').value});">Create</button>
             </div>
           </div>
         </div>
@@ -338,7 +338,7 @@
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-              <button type="button" class="btn btn-primary" onclick="widget_submit('tournaments');">Create</button>
+              <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="widget_submit('tournaments');">Create</button>
             </div>
           </div>
         </div>

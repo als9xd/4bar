@@ -19,8 +19,6 @@
     <link rel="stylesheet" href="/css/friends_list.css">
     <link rel="stylesheet" href="/css/results_tables.css">
 
-    <link rel="stylesheet" href="/css/search.css">
-
     <script src="/js/public.js"></script>
 
     <script src="/socket.io/socket.io.js"></script>
@@ -169,7 +167,7 @@
                     <tbody>
                       {{#each results.communities}}
                       <tr class="clickable-row" data-href="/communities?id={{id}}">
-                        <td><img src="{{#if icon includeZero=true}}/icons/{{{icon}}}{{else}}/site/no-icon.jpg{{/if}}" style="height: 30px;width: 30px"</td>
+                        <td><img src="{{#if icon includeZero=true}}/icons/{{{icon}}}{{else}}/site/no-icon.jpg{{/if}}" class="community-icon"></td>
                         <td><h6>{{name}}</h6></td>
                         <td>{{#each tags}}<a href="/search?query_field=communities&tag={{this}}&active_field=communities">{{this}}</a>{{#unless @last}},{{/unless}}{{/each}}</td>
                         <td class="extra">{{description}}</td>
