@@ -92,13 +92,14 @@ module.exports = function(pg_client){
 			return new Promise(
 				function(resolve,reject){
 					pg_client.query(
-						"SELECT c.*,array_agg(tags.tag) AS tags \
-							FROM communities c LEFT OUTER JOIN community_tags tags ON tags.community_id = c.id \
+						"SELECT c.*,(SELECT array_agg(c_t.tag) FROM community_tags c_t WHERE c.id = c_t.community_id) AS tags \
+							FROM communities c LEFT OUTER JOIN community_tags t ON t.community_id = c.id \
 							WHERE \
 							(to_tsvector(c.name) @@ plainto_tsquery($1) OR LENGTH($1) = 0) "+conjunction+" \
 							(to_tsvector(c.description) @@ plainto_tsquery($2) OR LENGTH($2) = 0) "+conjunction+" \
-							(to_tsvector(tags.tag) @@ plainto_tsquery($3) OR LENGTH($3) = 0) \
-							GROUP BY c.id",
+							(to_tsvector(t.tag) @@ plainto_tsquery($3) OR LENGTH($3) = 0) \
+							GROUP BY c.id\
+						",
 						[
 							(typeof input == 'string' || input instanceof String) ? input || '' : input.name || '',
 							(typeof input == 'string' || input instanceof String) ? input || '' : input.desc || '',
@@ -166,7 +167,7 @@ module.exports = function(pg_client){
 			return new Promise(
 				function(resolve,reject){
 					pg_client.query(
-						"SELECT c.id as community_id,c.name as community_name,t.*,array_agg(tags.tag) AS tags \
+						"SELECT c.id as community_id,c.name as community_name,t.*,(SELECT array_agg(t_t.tag) FROM tournament_tags t_t WHERE t.id = t_t.tournament_id) AS tags \
 							FROM tournaments t INNER JOIN communities c ON t.community_id = c.id LEFT OUTER JOIN tournament_tags tags ON tags.tournament_id = t.id \
 							WHERE \
 							(to_tsvector(c.name) @@ plainto_tsquery($1) OR LENGTH($1) = 0) "+conjunction+" \
