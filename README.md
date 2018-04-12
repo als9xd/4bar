@@ -63,9 +63,7 @@ Note: The username and password were shared in the discord channel
 
 ### Start the Production Webserver
 
-1. [Make Sure the Webserver isn't already running](#stop-the-production-webserver)
-2. cd to '4bar/'
-3. type ```sudo node index.js --password p &``` where p is the password for the postgresqsl database
+Right now we are working on finding a way to make the website run persistently ( webserver doesn't stop after you log out of ssh session) without saving the database password. So for the time being you have to start it normally with `sudo node index.js`
 
 # Working with the Repository
 
@@ -96,8 +94,8 @@ Note: this won't remove untracked files or folders
 
 Its probably best to create a new branch for your project and then do a pull request. Here are a couple of links that I used to understand this functionality.
 
-[How a github workflow should look](https://guides.github.com/introduction/flow/)
-[How brances work](https://git-scm.com/book/id/v2/Git-Branching-Branches-in-a-Nutshell)
+- [How a github workflow should look](https://guides.github.com/introduction/flow/)
+- [How brances work](https://git-scm.com/book/id/v2/Git-Branching-Branches-in-a-Nutshell)
 
 Note: before you push your code make sure you aren't pushing any icons/wallpapers
 
@@ -141,8 +139,8 @@ Note: before you push your code make sure you aren't pushing any icons/wallpaper
         1. Install postresql through whatever method is supplied for your os
         2. To open the postgresql prompt type ```sudo -u postgres psql```
         3. To change the 'postgres' user's password type ```\password postgres```. Then enter 'pass' as the password.
-        4. To create the database type ```CREATE DATABASE "4bar"```
-        5. To change the database owner type ```ALTER DATABASE "4bar" OWNER TO postgres```
+        4. To create the database type ```CREATE DATABASE "4bar";```
+        5. To change the database owner type ```ALTER DATABASE "4bar" OWNER TO postgres;```
         6. To exit the psql promp type ```\q```
 
 Note: These are just default settings. They be changed within 'config.js'
