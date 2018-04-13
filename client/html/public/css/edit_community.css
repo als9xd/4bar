@@ -1,0 +1,13 @@
+#page-content-wrapper{
+	height: calc(100vh - 65px);
+}
+
+#widget-creation-row{
+	height: calc(100vh - 65px);
+	margin-top: 10px;
+}
+
+#widget-creation-col{
+	margin:auto;
+	height: calc(100vh - 65px);
+}

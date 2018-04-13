@@ -16,11 +16,14 @@
     "pg": "^7.4.1",
     "readline-sync": "^1.4.7",
     "socket.io": "^2.0.4",
+    "socket.io-file": "^2.0.2",
+    "socket.io-file-client": "^2.0.2",
     "vault-cipher": "^0.4.0"
   },
   "devDependencies": {},
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "help": "node index.js --help",
+    "start": "node index.js"
   },
   "repository": {
     "type": "git",

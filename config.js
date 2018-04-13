@@ -1,3 +1,14 @@
+//////////////////////////////////////////////////////////////////////
+// 4bar/config.js
+//
+// Overview: 
+//	- contains the default configuration settings to be used to start
+//    the 4bar server
+//  
+//////////////////////////////////////////////////////////////////////
+
+'use strict';
+
 const config = {
 	development: {
 		ssl: {
@@ -24,19 +35,11 @@ const config = {
 					name: 226,
 					email: 254
 				},
-				games: {
-					title: 200
-				},
-				platforms: {
-					name: 20
-				}, 
 				market_items: {
 					name: 200
-				},			
+				},
 				communities: {
-					name: 30,
-					unique_name: 255,
-					last_activity: 10
+					name: 30
 				},
 				community_tags: {
 					tag: 20
@@ -46,6 +49,19 @@ const config = {
 				community_stats: {
 					stat_name: 30,
 					stat_value: 255
+				},
+				tournaments: {
+					name: 255,
+					location: 255
+				},
+				tournament_tags: {
+					tag: 20
+				},
+        events: {
+					event_name: 40,
+					street_address: 255,
+					city: 40,
+					state: 13,
 				}
 			}
 		},
@@ -64,6 +80,11 @@ const config = {
 				min_numbers: 1,
 				min_specials: 1
 			}
+		},
+		privileges: {
+			admin: 1,
+			mod: 2,
+			member: 3
 		}
 	},
 
@@ -92,19 +113,11 @@ const config = {
 					name: 226,
 					email: 254
 				},
-				games: {
-					title: 200
-				},
-				platforms: {
-					name: 20
-				}, 
 				market_items: {
 					name: 200
-				},	
+				},
 				communities: {
-					name: 30,
-					unique_name: 255,
-					last_activity: 10
+					name: 30
 				},
 				community_tags: {
 					tag: 20
@@ -114,6 +127,19 @@ const config = {
 				community_stats: {
 					stat_name: 30,
 					stat_value: 255
+				},
+				tournaments: {
+					name: 255,
+					location: 255
+				},
+				tournament_tags: {
+					tag: 20
+				},
+				events: {
+					event_name: 40,
+					street_address: 255,
+					city: 40,
+					state: 13,
 				}
 			}
 		},
@@ -132,6 +158,11 @@ const config = {
 				min_numbers: 1,
 				min_specials: 1
 			}
+		},
+		privileges: {
+			admin: 1,
+			mod: 2,
+			member: 3
 		}
 	}
 };

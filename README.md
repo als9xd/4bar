@@ -63,9 +63,7 @@ Note: The username and password were shared in the discord channel
 
 ### Start the Production Webserver
 
-1. [Make Sure the Webserver isn't already running](#stop-the-production-webserver)
-2. cd to '4bar/'
-3. type ```sudo node index.js --password p &``` where p is the password for the postgresqsl database
+Right now we are working on finding a way to make the website run persistently ( webserver doesn't stop after you log out of ssh session) without saving the database password. So for the time being you have to start it normally with `sudo node index.js`
 
 # Working with the Repository
 
@@ -96,33 +94,36 @@ Note: this won't remove untracked files or folders
 
 Its probably best to create a new branch for your project and then do a pull request. Here are a couple of links that I used to understand this functionality.
 
-[How a github workflow should look](https://guides.github.com/introduction/flow/)
-[How brances work](https://git-scm.com/book/id/v2/Git-Branching-Branches-in-a-Nutshell)
+- [How a github workflow should look](https://guides.github.com/introduction/flow/)
+- [How brances work](https://git-scm.com/book/id/v2/Git-Branching-Branches-in-a-Nutshell)
 
 Note: before you push your code make sure you aren't pushing any icons/wallpapers
 
 ### Directory Structure
 
-- 4bar/html 
+- 4bar/client/html
     * contains all front end non-handlebars files
 
-- 4bar/views 
+- 4bar/client/views 
     * contains all front end handlebars template files
 
-- 4bar/helpers
-    * contains all back end custom (but generalized) functions
+- 4bar/server/connectors
+    * contains back end objects that initialize and provide an interface to defintions files
 
-- 4bar/connectors
-    * contains all back end custom functions for interacting with specialized objects
-
-- 4bar/community_data
-    * contains all front end media (is available without authentication) 
+- 4bar/server/defintions
+    * contains back end objects that define various back end services in a more manageable and easy to read format
+    
+- 4bar/client/media
+    * contains all front end media files such as community icons, community wallpapers, user avatars, default site images, etc...
 
 - 4bar/config.js
     * contains all configuration settings for the webserver
 
+- 4bar/server/Server.js
+    * main server object (initalizes and holds all connectors)
+
 - 4bar/index.js
-    * main webserver application
+    * initializes the server based on configuration settings
 
 # Postgresql Database
 
@@ -138,8 +139,8 @@ Note: before you push your code make sure you aren't pushing any icons/wallpaper
         1. Install postresql through whatever method is supplied for your os
         2. To open the postgresql prompt type ```sudo -u postgres psql```
         3. To change the 'postgres' user's password type ```\password postgres```. Then enter 'pass' as the password.
-        4. To create the database type ```CREATE DATABASE "4bar"```
-        5. To change the database owner type ```ALTER DATABASE "4bar" OWNER TO postgres```
+        4. To create the database type ```CREATE DATABASE "4bar";```
+        5. To change the database owner type ```ALTER DATABASE "4bar" OWNER TO postgres;```
         6. To exit the psql promp type ```\q```
 
 Note: These are just default settings. They be changed within 'config.js'
