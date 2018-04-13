@@ -54,7 +54,14 @@ module.exports = class Server{
 		}else{
 			console.log("Error: could not find ssl config in\""+config_file+"\"");
 			process.exit(1);
-		}		
+		}	
+
+		//////////////////////////////////////////////////////////////////////
+		// This creates an http proxy server.
+		//////////////////////////////////////////////////////////////////////
+
+		const http_proxy = require('http-proxy');
+		this.http_proxy_server = http_proxy.createProxyServer();	
 
 		//////////////////////////////////////////////////////////////////////
 		// This creates an http server. Right now this is only being used to 
@@ -114,9 +121,9 @@ module.exports = class Server{
 		self.express_conn.build_routes(
 			self.config.root_dir+'/server/definitions/express/express_route_definitions',
 			self.pg_conn,
-			self.socket_io_conn
+			self.socket_io_conn,
+			self.http_proxy_server
 		);
-
 
 		//////////////////////////////////////////////////////////////////////
 		// Attach the express session to socket.io

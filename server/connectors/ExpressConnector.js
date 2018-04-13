@@ -211,7 +211,7 @@ module.exports = class ExpressConnector{
 	// 
 	//////////////////////////////////////////////////////////////////////	
 
-	build_routes(definition_file,pg_conn,socket_io_conn){
+	build_routes(definition_file,pg_conn,socket_io_conn,http_proxy_server){
 		
 		//////////////////////////////////////////////////////////////////////
 		// Load route definitions from the file located at definition_file
@@ -220,7 +220,8 @@ module.exports = class ExpressConnector{
 		this.routes = require(definition_file)(
 			this,
 			pg_conn,
-			socket_io_conn
+			socket_io_conn,
+			http_proxy_server
 		);
 
 		for(let i = 0; i < this.routes.length;i++){

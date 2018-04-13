@@ -29,7 +29,7 @@
 
 'use strict';
 
-module.exports = function(express_conn,pg_conn,socket_io_conn) {
+module.exports = function(express_conn,pg_conn,socket_io_conn,http_proxy_server) {
 
 	let config = express_conn.config;
 
@@ -150,6 +150,18 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 		() => {
 			app.get('/register',function(req,res){
  				res.sendFile(config.root_dir+'/client/html/public/register.html');
+			});
+		},
+
+		/********************************************************************************/
+
+		//////////////////////////////////////////////////////////////////////
+		// This route redirects the user to the forums server
+		//////////////////////////////////////////////////////////////////////
+
+		() => {
+			app.get('/forums',function(req,res){
+				http_proxy_server.web(req,res,{target: 'https://localhost:4567'});
 			});
 		},
 
