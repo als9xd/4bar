@@ -15,6 +15,10 @@ body {
   padding-top: 65px; 
 }
 
+.site-icon{
+  margin-right:5px;
+}
+
 .nav-auto-spacing{
   margin-top: auto;
   margin-bottom: auto;
