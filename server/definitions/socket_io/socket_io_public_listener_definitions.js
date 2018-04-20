@@ -67,7 +67,7 @@ module.exports = function(config,pg_conn,nodebb_conn){
 											username: user_info.rows[0].username,
 											email: user_info.rows[0].email,
 											firstName: user_info.rows[0].name,
-											picture: config.server.hostname+'/'+user_info.rows[0].avatar
+											picture: config.server.hostname+'/avatars/'+user_info.rows[0].avatar
 										},
 										function(err,token){
 											if(err){

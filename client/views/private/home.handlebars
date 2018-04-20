@@ -22,7 +22,7 @@
 
     <!-- Set SSO cookie for nodebb  -->
     <script>
-      document.cookie = "nodebb={{nodebb_token}};domain=."+window.location.hostname;
+      document.cookie = "nodebb={{nodebb.token}};domain=."+window.location.hostname;
     </script>
 
     <script src="/socket.io/socket.io.js"></script>
@@ -113,7 +113,7 @@
                   <a class="active" href="/home">Home</a>
               </li>
               <li>
-                  <a href="{{forums_url}}">Forums</a>
+                  <a href="{{nodebb.address}}">Forums</a>
               </li>
               <li>
                 <a href="/calendar">Calendar</a>
@@ -152,7 +152,6 @@
           
           <div class="container-fluid">
               <h1>Home</h1>
-              Token: {{token}}
               <hr/>
           </div>
       </div>

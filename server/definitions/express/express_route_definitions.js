@@ -172,8 +172,13 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 						},
 						/* Navbar,Sidebar data */
 
-						/* Data for nodebb SSO cookie */
-						nodebb_token: req.session.token
+						/* Data for nodebb forums */
+						nodebb: {
+							address: config.nodebb.address,
+							// SSO token
+							token: req.session.token
+						},
+
 					}
 				);
 			});
@@ -258,8 +263,12 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 						},
 						/* Navbar,Sidebar data */
 
-						/* Data for nodebb SSO cookie */
-						nodebb_token: req.session.token,
+						/* Data for nodebb forums */
+						nodebb: {
+							address: config.nodebb.address,
+							// SSO token
+							token: req.session.token
+						},
 
 				 		results: results
 				 	});
@@ -291,8 +300,12 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 						},
 						/* Navbar,Sidebar data */
 
-						/* Data for nodebb SSO cookie */
-						nodebb_token: req.session.token
+						/* Data for nodebb forums */
+						nodebb: {
+							address: config.nodebb.address,
+							// SSO token
+							token: req.session.token
+						},
 
 					}
 				);
@@ -371,8 +384,12 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 										},
 										/* Navbar,Sidebar data */
 
-										/* Data for nodebb SSO cookie */
-										nodebb_token: req.session.token,
+										/* Data for nodebb forums */
+										nodebb: {
+											address: config.nodebb.address,
+											// SSO token
+											token: req.session.token
+										},
 
 										community_data: community.rows[0]
 									}
@@ -485,8 +502,12 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 													},
 													/* Navbar,Sidebar data */
 
-													/* Data for nodebb SSO cookie */
-													nodebb_token: req.session.token,
+													/* Data for nodebb forums */
+													nodebb: {
+														address: config.nodebb.address,
+														// SSO token
+														token: req.session.token
+													},
 
 													profile_data: {
 														id: profile.rows[0].id,
@@ -534,8 +555,12 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 						},
 						/* Navbar,Sidebar data */
 
-						/* Data for nodebb SSO cookie */
-						nodebb_token: req.session.token
+						/* Data for nodebb forums */
+						nodebb: {
+							address: config.nodebb.address,
+							// SSO token
+							token: req.session.token
+						},
 
 					}
 				);
@@ -620,8 +645,12 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 													},
 													/* Navbar,Sidebar data */
 
-													/* Data for nodebb SSO cookie */
-													nodebb_token: req.session.token,
+													/* Data for nodebb forums */
+													nodebb: {
+														address: config.nodebb.address,
+														// SSO token
+														token: req.session.token
+													},
 
 													community_data: community.rows[0],
 
@@ -720,8 +749,12 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 													},
 													/* Navbar,Sidebar data */
 
-													/* Data for nodebb SSO cookie */
-													nodebb_token: req.session.token,
+													/* Data for nodebb forums */
+													nodebb: {
+														address: config.nodebb.address,
+														// SSO token
+														token: req.session.token
+													},
 
 													community_data: community.rows[0],
 
@@ -822,9 +855,13 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 												},
 												/* Navbar,Sidebar data */
 
-												/* Data for nodebb SSO cookie */
-												nodebb_token: req.session.token,
-									  		
+												/* Data for nodebb forums */
+												nodebb: {
+													address: config.nodebb.address,
+													// SSO token
+													token: req.session.token
+												},
+									  	
 												community_data: community.rows[0]
 									  		});
 
@@ -947,8 +984,12 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 																},
 																/* Navbar,Sidebar data */
 
-																/* Data for nodebb SSO cookie */
-																nodebb_token: req.session.token,
+																/* Data for nodebb forums */
+																nodebb: {
+																	address: config.nodebb.address,
+																	// SSO token
+																	token: req.session.token
+																},
 													  		
 													  			community_data: community.rows[0],
 
@@ -988,8 +1029,13 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 						},
 						/* Navbar,Sidebar data */
 
-						/* Data for nodebb SSO cookie */
-						nodebb_token: req.session.token
+						/* Data for nodebb forums */
+						nodebb: {
+							address: config.nodebb.address,
+							// SSO token
+							token: req.session.token
+						},
+
 			  		});				
 			});
 		},
@@ -1022,8 +1068,12 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 								},
 								/* Navbar,Sidebar data */
 
-								/* Data for nodebb SSO cookie */
-								nodebb_token: req.session.token,
+								/* Data for nodebb forums */
+								nodebb: {
+									address: config.nodebb.address,
+									// SSO token
+									token: req.session.token
+								},
 
 								locations: locations.rows
 							});
@@ -1060,8 +1110,12 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 					},
 					/* Navbar,Sidebar data */
 
-					/* Data for nodebb SSO cookie */
-					nodebb_token: req.session.token
+					/* Data for nodebb forums */
+					nodebb: {
+						address: config.nodebb.address,
+						// SSO token
+						token: req.session.token
+					},
 
 			  });				
 			});
