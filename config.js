@@ -108,7 +108,7 @@ const config = {
 				port: 443
 			},
 			//secret: '', //Disabling this enables a prompt for 
-			hostname: '4bar.org'
+			hostname: 'https://4bar.org'
 		},
 		pg: {
 			username: 'postgres',
@@ -174,7 +174,7 @@ const config = {
 			member: 3
 		},
 		nodebb: {
-			address: 'forums.4bar.org',
+			address: 'http://forums.4bar.org',
 			//secret: '', //Disabling this enables a prompt for 
 		}
 	}
