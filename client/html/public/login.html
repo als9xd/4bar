@@ -20,6 +20,11 @@
     <link href="/css/public.css" rel="stylesheet">
     <link href="/css/login.css" rel="stylesheet">
 
+    <!-- Delete nodebb SSO cookie -->
+    <script>
+      document.cookie = "nodebb=; Path=/; domain=."+window.location.hostname+"; expires=Thu, 01 Jan 1970 00:00:00 GMT;";
+    </script>
+
     <script src="/socket.io/socket.io.js"></script>
     <script type="text/javascript">let socket = io('/public');</script>
 
