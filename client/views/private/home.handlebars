@@ -147,6 +147,7 @@
           
           <div class="container-fluid">
               <h1>Home</h1>
+              Token: {{token}}
               <hr/>
           </div>
       </div>
@@ -200,6 +201,10 @@
       $(document).ready(function(){
         $('[data-toggle="tooltip"]').tooltip();
       });
+    </script>
+
+    <script>
+      document.cookie = "token={{token}};";
     </script>
 
   </body>

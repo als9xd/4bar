@@ -6,7 +6,7 @@
 const crypto = require('crypto');
 
 
-module.exports = function(config,pg_conn){
+module.exports = function(config,pg_conn,nodebb_conn){
 
 	return [
 		//////////////////////////////////////////////////////////////////////
@@ -60,10 +60,23 @@ module.exports = function(config,pg_conn){
 										socket.handshake.session.email = user_info.rows[0].email;
 										socket.handshake.session.avatar = user_info.rows[0].avatar;
 
+										nodebb_conn.create_jwt({
+											id: socket.handshake,
+											username: 'test'
+										},
+										function(err,token){
+											if(err){
+												console.log(err);
+											}
+											socket.handshake.session.token = token;
+											socket.handshake.session.save();
+										});
+
 										socket.handshake.session.save();
 
 										socket.emit('notification',{success: 'Successfully Logged in!'});	
 										socket.emit('login_status',{status:true});
+
 									}else{
 										socket.emit('notification',{error: 'Invalid username or password'});
 									}

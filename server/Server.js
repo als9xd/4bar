@@ -73,6 +73,16 @@ module.exports = class Server{
 
 
 		//////////////////////////////////////////////////////////////////////
+		// Nodebb connector
+		//////////////////////////////////////////////////////////////////////		
+
+		const NodebbConnector = require(config.root_dir+'/server/connectors/NodebbConnector');
+		this.nodebb_conn = new NodebbConnector(
+			config,
+			options.key
+		);
+
+		//////////////////////////////////////////////////////////////////////
 		// Socket.io connector
 		//////////////////////////////////////////////////////////////////////
 
@@ -80,7 +90,8 @@ module.exports = class Server{
 
 		this.socket_io_conn = new SocketIOConnector(
 			config,
-			this.https_server
+			this.https_server,
+			this.nodebb_conn
 		);
 
 	}

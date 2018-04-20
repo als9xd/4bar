@@ -26,7 +26,7 @@ const path = require('path');
 
 module.exports = class SocketIOConnector{
 		
-	constructor(config,https_server){
+	constructor(config,https_server,nodebb_conn){
 
 		//////////////////////////////////////////////////////////////////////
 		// Store config inside class so that it can be accessed from member 
@@ -51,6 +51,8 @@ module.exports = class SocketIOConnector{
 		this.uuidv1 = require('uuid/v1');
 
 		this.SocketIOFile = require('socket.io-file');
+
+		this.nodebb_conn = nodebb_conn;
 
 	}
 
@@ -106,7 +108,7 @@ module.exports = class SocketIOConnector{
 
 		const public_listener_definitions = require(
 			self.config.root_dir+'/server/definitions/socket_io/socket_io_public_listener_definitions'
-		)(this.config,pg_conn);
+		)(this.config,pg_conn,this.nodebb_conn);
 
 		self.public_ns.on('connection',function(socket){
 			for(let i = 0; i < public_listener_definitions.length;i++){
