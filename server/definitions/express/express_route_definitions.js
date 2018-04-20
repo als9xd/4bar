@@ -157,7 +157,6 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 
 		() => {
 			app.get('/home',middleware['check_authorization'],middleware['membership_information'],function(req,res){
-				console.log(req.session.token);
 				res.render(
 					'private/home',
 					{

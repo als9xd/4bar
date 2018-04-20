@@ -60,8 +60,10 @@ module.exports = function(config,pg_conn,nodebb_conn){
 										socket.handshake.session.email = user_info.rows[0].email;
 										socket.handshake.session.avatar = user_info.rows[0].avatar;
 
-										nodebb_conn.create_jwt({
-											id: socket.handshake,
+										nodebb_conn.create_jwt(
+										config,
+										{
+											id: socket.handshake.user_id,
 											username: 'test'
 										},
 										function(err,token){

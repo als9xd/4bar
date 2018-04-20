@@ -78,8 +78,7 @@ module.exports = class Server{
 
 		const NodebbConnector = require(config.root_dir+'/server/connectors/NodebbConnector');
 		this.nodebb_conn = new NodebbConnector(
-			config,
-			options.key
+			config
 		);
 
 		//////////////////////////////////////////////////////////////////////

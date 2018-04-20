@@ -13,7 +13,8 @@ const config = {
 	development: {
 		ssl: {
 			key: './ssl/dev/key.pem',
-			cert: './ssl/dev/cert.pem'
+			cert: './ssl/dev/cert.pem',
+			secret: 'secret'
 		},
 		server: {
 			http: {
@@ -21,7 +22,8 @@ const config = {
 			},
 			https:{
 				port: 443
-			}
+			},
+			secret: 'secret'
 		},
 		pg: {
 			username: 'postgres',
@@ -85,13 +87,17 @@ const config = {
 			admin: 1,
 			mod: 2,
 			member: 3
+		},
+		nodebb: {
+			address: 'forums.localhost',
+			secret: 'secret'
 		}
 	},
 
 	production: {
 		ssl: {
 			key: '../ssl/privkey.pem',
-			cert: '../ssl/fullchain.pem'
+			cert: '../ssl/fullchain.pem',
 		},
 		server: {
 			http: {
@@ -99,7 +105,8 @@ const config = {
 			},
 			https:{
 				port: 443
-			}
+			},
+			//secret: '', //Disabling this enables a prompt for 
 		},
 		pg: {
 			username: 'postgres',
@@ -163,6 +170,10 @@ const config = {
 			admin: 1,
 			mod: 2,
 			member: 3
+		},
+		nodebb: {
+			address: 'forums.4bar.org',
+			//secret: '', //Disabling this enables a prompt for 
 		}
 	}
 };

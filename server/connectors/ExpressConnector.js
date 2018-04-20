@@ -29,8 +29,21 @@
 
 'use strict';
 
+const readlineSync = require('readline-sync');
+
 module.exports = class ExpressConnector{
 	constructor(config,pg_conn){
+
+		//////////////////////////////////////////////////////////////////////
+		// If secret doesn't exist within config file prompt for it on the
+		// command line
+		//////////////////////////////////////////////////////////////////////
+
+		if(typeof config.server.secret === 'undefined'){
+			config.server.secret = readlineSync.question("Express session secret: ",{
+				hideEchoBack: true
+			});
+		}
 
 		//////////////////////////////////////////////////////////////////////
 		// Store config inside class so that it can be accessed from member 
@@ -111,7 +124,7 @@ module.exports = class ExpressConnector{
 		//////////////////////////////////////////////////////////////////////
 
 		this.session = require('express-session')({
-		    secret: 'secret',
+		    secret: config.server.secret,
 		    resave: true,
 		    saveUninitialized: true
 		});
