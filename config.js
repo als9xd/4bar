@@ -108,7 +108,7 @@ const config = {
 				port: 443
 			},
 			//secret: '', //Disabling this enables a prompt for 
-			hostname: 'https://4bar.org'
+			hostname: '4bar.org'
 		},
 		pg: {
 			username: 'postgres',

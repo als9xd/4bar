@@ -60,15 +60,20 @@ module.exports = function(config,pg_conn,nodebb_conn){
 										socket.handshake.session.email = user_info.rows[0].email;
 										socket.handshake.session.avatar = user_info.rows[0].avatar;
 
-										nodebb_conn.create_jwt(
-										config,
-										{
+										let payload = {
 											id: user_info.rows[0].id,
 											username: user_info.rows[0].username,
 											email: user_info.rows[0].email,
-											firstName: user_info.rows[0].name,
-											picture: config.server.hostname+'/avatars/'+user_info.rows[0].avatar
-										},
+											firstName: user_info.rows[0].name											
+										};
+
+										if(user_info.rows[0].avatar){
+											payload.picture = config.server.hostname+'/avatars/'+user_info.rows[0].avatar;
+										}
+
+										nodebb_conn.create_jwt(
+										config,
+										payload,
 										function(err,token){
 											if(err){
 												console.log(err);
