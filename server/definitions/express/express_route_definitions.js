@@ -167,10 +167,13 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 							email: req.session.email,
 							avatar: req.session.avatar,
 							communities: req.membership_information.communities,
-							tournaments: req.membership_information.tournaments
+							tournaments: req.membership_information.tournaments,
+							forums_url: config.nodebb.address
 						},
 						/* Navbar,Sidebar data */
-						token: req.session.token
+
+						/* Data for nodebb SSO cookie */
+						nodebb_token: req.session.token
 					}
 				);
 			});
@@ -250,9 +253,13 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 							email: req.session.email,
 							avatar: req.session.avatar,
 							communities: req.membership_information.communities,
-							tournaments: req.membership_information.tournaments
+							tournaments: req.membership_information.tournaments,
+							forums_url: config.nodebb.address
 						},
 						/* Navbar,Sidebar data */
+
+						/* Data for nodebb SSO cookie */
+						nodebb_token: req.session.token,
 
 				 		results: results
 				 	});
@@ -279,9 +286,13 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 							email: req.session.email,
 							avatar: req.session.avatar,
 							communities: req.membership_information.communities,
-							tournaments: req.membership_information.tournaments
-						}
+							tournaments: req.membership_information.tournaments,
+							forums_url: config.nodebb.address
+						},
 						/* Navbar,Sidebar data */
+
+						/* Data for nodebb SSO cookie */
+						nodebb_token: req.session.token
 
 					}
 				);
@@ -355,9 +366,13 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 											email: req.session.email,
 											avatar: req.session.avatar,
 											communities: req.membership_information.communities,
-											tournaments: req.membership_information.tournaments
+											tournaments: req.membership_information.tournaments,
+											forums_url: config.nodebb.address
 										},
 										/* Navbar,Sidebar data */
+
+										/* Data for nodebb SSO cookie */
+										nodebb_token: req.session.token,
 
 										community_data: community.rows[0]
 									}
@@ -465,9 +480,13 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 														email: req.session.email,
 														avatar: req.session.avatar,
 														communities: req.membership_information.communities,
-														tournaments: req.membership_information.tournaments
+														tournaments: req.membership_information.tournaments,
+														forums_url: config.nodebb.address
 													},
 													/* Navbar,Sidebar data */
+
+													/* Data for nodebb SSO cookie */
+													nodebb_token: req.session.token,
 
 													profile_data: {
 														id: profile.rows[0].id,
@@ -510,9 +529,13 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 							email: req.session.email,
 							avatar: req.session.avatar,
 							communities: req.membership_information.communities,
-							tournaments: req.membership_information.tournaments
-						}
+							tournaments: req.membership_information.tournaments,
+							forums_url: config.nodebb.address
+						},
 						/* Navbar,Sidebar data */
+
+						/* Data for nodebb SSO cookie */
+						nodebb_token: req.session.token
 
 					}
 				);
@@ -592,9 +615,13 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 														email: req.session.email,
 														avatar: req.session.avatar,
 														communities: req.membership_information.communities,
-														tournaments: req.membership_information.tournaments
+														tournaments: req.membership_information.tournaments,
+														forums_url: config.nodebb.address
 													},
 													/* Navbar,Sidebar data */
+
+													/* Data for nodebb SSO cookie */
+													nodebb_token: req.session.token,
 
 													community_data: community.rows[0],
 
@@ -688,9 +715,13 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 														email: req.session.email,
 														avatar: req.session.avatar,
 														communities: req.membership_information.communities,
-														tournaments: req.membership_information.tournaments
+														tournaments: req.membership_information.tournaments,
+														forums_url: config.nodebb.address
 													},
 													/* Navbar,Sidebar data */
+
+													/* Data for nodebb SSO cookie */
+													nodebb_token: req.session.token,
 
 													community_data: community.rows[0],
 
@@ -786,9 +817,13 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 													email: req.session.email,
 													avatar: req.session.avatar,
 													communities: req.membership_information.communities,
-													tournaments: req.membership_information.tournaments
+													tournaments: req.membership_information.tournaments,
+													forums_url: config.nodebb.address
 												},
 												/* Navbar,Sidebar data */
+
+												/* Data for nodebb SSO cookie */
+												nodebb_token: req.session.token,
 									  		
 												community_data: community.rows[0]
 									  		});
@@ -907,9 +942,13 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 																	email: req.session.email,
 																	avatar: req.session.avatar,
 																	communities: req.membership_information.communities,
-																	tournaments: req.membership_information.tournaments
+																	tournaments: req.membership_information.tournaments,
+																	forums_url: config.nodebb.address
 																},
 																/* Navbar,Sidebar data */
+
+																/* Data for nodebb SSO cookie */
+																nodebb_token: req.session.token,
 													  		
 													  			community_data: community.rows[0],
 
@@ -944,9 +983,13 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 							email: req.session.email,
 							avatar: req.session.avatar,
 							communities: req.membership_information.communities,
-							tournaments: req.membership_information.tournaments
-						}
+							tournaments: req.membership_information.tournaments,
+							forums_url: config.nodebb.address
+						},
 						/* Navbar,Sidebar data */
+
+						/* Data for nodebb SSO cookie */
+						nodebb_token: req.session.token
 			  		});				
 			});
 		},
@@ -974,9 +1017,14 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 									email: req.session.email,
 									avatar: req.session.avatar,
 									communities: req.membership_information.communities,
-									tournaments: req.membership_information.tournaments
+									tournaments: req.membership_information.tournaments,
+									forums_url: config.nodebb.address
 								},
 								/* Navbar,Sidebar data */
+
+								/* Data for nodebb SSO cookie */
+								nodebb_token: req.session.token,
+
 								locations: locations.rows
 							});
 						}
@@ -1007,9 +1055,13 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 						email: req.session.email,
 						avatar: req.session.avatar,
 						communities: req.membership_information.communities,
-						tournaments: req.membership_information.tournaments
-					}
+						tournaments: req.membership_information.tournaments,
+						forums_url: config.nodebb.address
+					},
 					/* Navbar,Sidebar data */
+
+					/* Data for nodebb SSO cookie */
+					nodebb_token: req.session.token
 
 			  });				
 			});

@@ -21,6 +21,11 @@
     <link rel="stylesheet" href="/css/friends_list.css">
     <link rel="stylesheet" href="/css/results_tables.css">
 
+    <!-- Set SSO cookie for nodebb  -->
+    <script>
+      document.cookie = "nodebb={{nodebb_token}};domain=."+window.location.hostname;
+    </script>
+    
     <script src="/js/public.js"></script>
 
     <script src="/socket.io/socket.io.js"></script>
@@ -111,7 +116,7 @@
                   <a href="/home">Home</a>
               </li>
               <li>
-                  <a href="/marketplace">Marketplace</a>
+                <a href="{{forums_url}}">Forums</a>
               </li>
               <li>
                 <a href="/calendar">Calendar</a>

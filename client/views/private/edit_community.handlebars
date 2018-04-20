@@ -29,6 +29,11 @@
 
     <link rel="stylesheet" href="/css/dragula.css">
 
+    <!-- Set SSO cookie for nodebb  -->
+    <script>
+      document.cookie = "nodebb={{nodebb_token}};domain=."+window.location.hostname;
+    </script>
+
     <script type="text/javascript">    
       function widget_submit(type,input){
         socket.emit('widget_submit_req',
@@ -150,7 +155,7 @@
                   <a href="/home">Home</a>
               </li>
               <li>
-                  <a href="/marketplace">Marketplace</a>
+                <a href="{{forums_url}}">Forums</a>
               </li>
               <li>
                 <a href="/calendar">Calendar</a>

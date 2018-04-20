@@ -23,7 +23,8 @@ const config = {
 			https:{
 				port: 443
 			},
-			secret: 'secret'
+			secret: 'secret',
+			hostname: 'localhost'
 		},
 		pg: {
 			username: 'postgres',
@@ -107,6 +108,7 @@ const config = {
 				port: 443
 			},
 			//secret: '', //Disabling this enables a prompt for 
+			hostname: '4bar.org'
 		},
 		pg: {
 			username: 'postgres',

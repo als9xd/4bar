@@ -63,8 +63,11 @@ module.exports = function(config,pg_conn,nodebb_conn){
 										nodebb_conn.create_jwt(
 										config,
 										{
-											id: socket.handshake.user_id,
-											username: 'test'
+											id: user_info.rows[0].id,
+											username: user_info.rows[0].username,
+											email: user_info.rows[0].email,
+											firstName: user_info.rows[0].name,
+											picture: config.server.hostname+'/'+user_info.rows[0].avatar
 										},
 										function(err,token){
 											if(err){
