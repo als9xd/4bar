@@ -90,7 +90,7 @@ const config = {
 			member: 3
 		},
 		nodebb: {
-			address: 'http://forums.localhost',
+			address: 'https://forums.localhost',
 			secret: 'secret'
 		}
 	},
@@ -174,7 +174,7 @@ const config = {
 			member: 3
 		},
 		nodebb: {
-			address: 'http://forums.4bar.org',
+			address: 'https://forums.4bar.org',
 			//secret: '', //Disabling this enables a prompt for 
 		}
 	}
