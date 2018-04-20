@@ -24,7 +24,7 @@ const config = {
 				port: 443
 			},
 			secret: 'secret',
-			hostname: 'localhost'
+			hostname: 'https://localhost'
 		},
 		pg: {
 			username: 'postgres',
@@ -90,7 +90,7 @@ const config = {
 			member: 3
 		},
 		nodebb: {
-			address: 'forums.localhost',
+			address: 'http://forums.localhost',
 			secret: 'secret'
 		}
 	},
@@ -108,7 +108,7 @@ const config = {
 				port: 443
 			},
 			//secret: '', //Disabling this enables a prompt for 
-			hostname: '4bar.org'
+			hostname: 'https://4bar.org'
 		},
 		pg: {
 			username: 'postgres',
