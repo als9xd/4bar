@@ -67,7 +67,7 @@ module.exports = function(config,pg_conn,nodebb_conn){
 											firstName: user_info.rows[0].name											
 										};
 
-										if(user_info.rows[0].avatar){
+										if(user_info.rows[0].avatar !== null){
 											payload.picture = config.server.hostname+'/avatars/'+user_info.rows[0].avatar;
 										}
 
@@ -262,6 +262,25 @@ module.exports = function(config,pg_conn,nodebb_conn){
 											socket.handshake.session.username = data.username;
 											socket.handshake.session.full_name = data.full_name;
 											socket.handshake.session.email = data.email;
+
+											let payload = {
+												id: user_id.rows[0].id,
+												username: data.username,
+												email: data.email,
+												firstName: data.full_name											
+											};
+
+											nodebb_conn.create_jwt(
+											config,
+											payload,
+											function(err,token){
+												if(err){
+													console.log(err);
+												}
+												socket.handshake.session.token = token;
+												socket.handshake.session.save();
+											});
+
 											socket.handshake.session.save();
 
 											socket.emit('notification',{success:'Successfully registered!'});
