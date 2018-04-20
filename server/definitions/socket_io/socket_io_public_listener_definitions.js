@@ -63,8 +63,6 @@ module.exports = function(config,pg_conn,nodebb_conn){
 										let payload = {
 											id: user_info.rows[0].id,
 											username: user_info.rows[0].username,
-											email: user_info.rows[0].email,
-											firstName: user_info.rows[0].name											
 										};
 
 										if(user_info.rows[0].avatar !== null){
@@ -263,8 +261,6 @@ module.exports = function(config,pg_conn,nodebb_conn){
 											let payload = {
 												id: user_id.rows[0].id,
 												username: data.username,
-												email: data.email,
-												firstName: data.full_name											
 											};
 
 											nodebb_conn.create_jwt(
