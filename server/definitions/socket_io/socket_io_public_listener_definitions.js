@@ -80,12 +80,9 @@ module.exports = function(config,pg_conn,nodebb_conn){
 											}
 											socket.handshake.session.token = token;
 											socket.handshake.session.save();
+											socket.emit('notification',{success: 'Successfully Logged in!'});	
+											socket.emit('login_status',{status:true});
 										});
-
-										socket.handshake.session.save();
-
-										socket.emit('notification',{success: 'Successfully Logged in!'});	
-										socket.emit('login_status',{status:true});
 
 									}else{
 										socket.emit('notification',{error: 'Invalid username or password'});
@@ -279,12 +276,11 @@ module.exports = function(config,pg_conn,nodebb_conn){
 												}
 												socket.handshake.session.token = token;
 												socket.handshake.session.save();
+												
+												socket.emit('notification',{success:'Successfully registered!'});
+												socket.emit('register_status',{status:true});
 											});
 
-											socket.handshake.session.save();
-
-											socket.emit('notification',{success:'Successfully registered!'});
-											socket.emit('register_status',{status:true});
 										}
 									);    			
 								}
