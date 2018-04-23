@@ -276,7 +276,7 @@ module.exports = class SocketIOConnector{
 										return;
 									}
 
-									this.nodebb_conn.modify_category(
+									self.nodebb_conn.modify_category(
 										fileInfo.data.community_id,
 										{
 											_uid: 1,
