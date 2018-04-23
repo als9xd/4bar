@@ -297,7 +297,7 @@ module.exports = class SocketIOConnector{
 												nodebb_id.rows[0].nodebb_id,
 												{
 													_uid: 1,
-													backgroundImage: self.config.server.host_name+'/icons/'+icon.rows[0].icon
+													backgroundImage: self.config.server.hostname+'/icons/'+icon.rows[0].icon
 												},
 												function(err,response,body){
 													if(!err && response.statusCode == 200){
