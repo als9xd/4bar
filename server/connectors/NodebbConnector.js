@@ -39,7 +39,15 @@ module.exports = class NodebbConnector{
 		jwt.sign(payload,config.nodebb.secret,callback);
 	}
 
-	create_category(name,description,callback){
+	create_category(data,callback){
+		let body = '';
+
+		for(let i in data){
+			if(data.hasOwnProperty(i)){
+				body+=(i+'='+data[i]+'&');
+			}
+		}
+
 		request.post(
 			{
 				url: this.config.nodebb.address+'/api/v2/categories',
@@ -47,7 +55,30 @@ module.exports = class NodebbConnector{
 					'content-type' : 'application/x-www-form-urlencoded',
 					Authorization: "Bearer "+this.config.nodebb.api_key,
 				},
-				body: "_uid=1&name="+name+"&description="+description
+				body: body
+			},
+			// Passed (error,response,body)
+			callback
+		);
+	}
+
+	modify_category(c_id,data,callback){
+		let body = '';
+
+		for(let i in data){
+			if(data.hasOwnProperty(i)){
+				body+=(i+'='+data[i]+'&');
+			}
+		}
+
+		request.put(
+			{
+				url: this.config.nodebb.address+'/api/v2/categories/'+c_id,
+				headers:{
+					'content-type' : 'application/x-www-form-urlencoded',
+					Authorization: "Bearer "+this.config.nodebb.api_key,
+				},
+				body: body
 			},
 			// Passed (error,response,body)
 			callback

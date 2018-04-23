@@ -648,12 +648,30 @@ module.exports = function(config,pg_conn,uuidv1,nodebb_conn){
 														return;
 													}
 													nodebb_conn.create_category(
-														data.name,
-														data.description,
+														{
+															_uid: 1,
+															name: data.name,
+															description: data.description
+														},
 														(err,response,body)=>{
 															if(!err && response.statusCode == 200){
-																socket.emit('notification',{success: 'Successfully created and joined community'});
-																socket.emit('community_creation_status',{status: true,new_community_id: community_id.rows[0].id});
+																body = JSON.parse(body);
+																pg_conn.client.query(
+																	"UPDATE communities SET nodebb_id = $1 WHERE id = $2",
+																	[
+																		body.payload.cid,
+																		community_id.rows[0].id
+																	],
+																	function(err){
+																		if(err){
+																			console.log(err);
+																			socket.emit('notification',{error:'Could not set commmunity nodebb id'});
+																			return;
+																		}
+																		socket.emit('notification',{success: 'Successfully created and joined community'});
+																		socket.emit('community_creation_status',{status: true,new_community_id: community_id.rows[0].id});
+																	}
+																);
 															}else{
 																console.log(err);
 																socket.emit('notification',{error: 'Could not create community forum'});

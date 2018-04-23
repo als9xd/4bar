@@ -276,8 +276,22 @@ module.exports = class SocketIOConnector{
 										return;
 									}
 
-									socket.emit('notification',{success: "Successfully uploaded icon"});
-									socket.emit('icon_upload_status',{status:true});
+									this.nodebb_conn.modify_category(
+										fileInfo.data.community_id,
+										{
+											_uid: 1,
+											backgroundImage: icon.rows[0].icon
+										},
+										function(err,response,body){
+											if(!err && response.statusCode == 200){
+												socket.emit('notification',{success: "Successfully uploaded icon to nodebb"});
+												socket.emit('icon_upload_status',{status:true});
+											}else{
+												socket.emit('notification',{error: 'Could not upload community icon to nodebb'});
+												return;
+											}
+										}
+									);
 								}
 							);
 		    			}

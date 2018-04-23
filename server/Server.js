@@ -158,6 +158,5 @@ module.exports = class Server{
 		self.https_server.listen(self.config.server.https.port,function(){
 			console.log('listening on *:'+self.config.server.https.port);
 		});
-
 	}
 }

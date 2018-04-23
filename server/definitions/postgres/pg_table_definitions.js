@@ -71,6 +71,7 @@ module.exports = function(config){
 		communities: 
 			"CREATE TABLE IF NOT EXISTS communities(\
 				id SERIAL PRIMARY KEY,\
+				nodebb_id NUMERIC UNIQUE, \
 				name VARCHAR("+config.pg.varchar_limits.communities.name+") UNIQUE NOT NULL,\
 				description TEXT,\
 				icon TEXT,\
