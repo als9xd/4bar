@@ -280,7 +280,7 @@ module.exports = class SocketIOConnector{
 										fileInfo.data.community_id,
 										{
 											_uid: 1,
-											backgroundImage: icon.rows[0].icon
+											backgroundImage: config.server.address+'/icons/'+icon.rows[0].icon
 										},
 										function(err,response,body){
 											if(!err && response.statusCode == 200){
