@@ -92,6 +92,7 @@ const config = {
 		nodebb: {
 			address: 'https://forums.localhost',
 			secret: 'secret'
+			// api_key: '' // Disabling this enables a prompt for nodebb api key
 		}
 	},
 
@@ -107,12 +108,12 @@ const config = {
 			https:{
 				port: 443
 			},
-			//secret: '', //Disabling this enables a prompt for 
+			// secret: '', //Disabling this enables a prompt for express session secrets
 			hostname: 'https://4bar.org'
 		},
 		pg: {
 			username: 'postgres',
-			//password: '', // Disabling this enables a prompt for the password
+			// password: '', // Disabling this enables a prompt for the password
 			ip: 'localhost',
 			port: 5432,
 			database_name: '4bar',
@@ -175,7 +176,8 @@ const config = {
 		},
 		nodebb: {
 			address: 'https://forums.4bar.org',
-			//secret: '', //Disabling this enables a prompt for 
+			//secret: '', // Disabling this enables a prompt for nodebb secret
+			// api_key: '' // Disabling this enables a prompt for nodebb api key
 		}
 	}
 };

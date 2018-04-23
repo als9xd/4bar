@@ -103,7 +103,7 @@ module.exports = class SocketIOConnector{
 	// 
 	//////////////////////////////////////////////////////////////////////	
 
-	build_listeners(pg_conn,widget_definitions){
+	build_listeners(pg_conn){
 		let self = this;
 
 		const public_listener_definitions = require(
@@ -118,7 +118,7 @@ module.exports = class SocketIOConnector{
 
 		const private_listener_definitions = require(
 			self.config.root_dir+'/server/definitions/socket_io/socket_io_private_listener_definitions'
-		)(this.config,pg_conn,self.uuidv1);
+		)(this.config,pg_conn,self.uuidv1,this.nodebb_conn);
 		
 		// Add authentication middlware
 		this.private_ns.use(this.middleware_definitions['check_authentication']);

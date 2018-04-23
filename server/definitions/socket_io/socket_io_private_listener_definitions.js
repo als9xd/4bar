@@ -20,7 +20,7 @@ const path = require('path');
 
 const fs = require('fs');
 
-module.exports = function(config,pg_conn,uuidv1){	
+module.exports = function(config,pg_conn,uuidv1,nodebb_conn){	
 	
 	let widget_definitions = pg_conn.widget_definitions;
 
@@ -647,10 +647,19 @@ module.exports = function(config,pg_conn,uuidv1){
 														socket.emit('notification',{error:'Could not join community'});
 														return;
 													}
-
-													// 'name' is used to differentiate between file upload success messages so that we can upload files after the community has been successfully submitted
-													socket.emit('notification',{success: 'Successfully created and joined community'});
-													socket.emit('community_creation_status',{status: true,new_community_id: community_id.rows[0].id});
+													nodebb_conn.create_category(
+														data.name,
+														data.description,
+														(err,response,body)=>{
+															if(!err && response.statusCode == 200){
+																socket.emit('notification',{success: 'Successfully created and joined community'});
+																socket.emit('community_creation_status',{status: true,new_community_id: community_id.rows[0].id});
+															}else{
+																console.log(err);
+																socket.emit('notification',{error: 'Could not create community forum'});
+															}
+														}
+													);
 												}
 											);
 										}
