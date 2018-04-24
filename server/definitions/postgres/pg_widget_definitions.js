@@ -178,6 +178,16 @@ module.exports = function(pg_conn){
 						}
 					);
 			    }
+			},
+			delete: function(widget_id,callback){
+				pg_conn.client.query("DELETE FROM youtube_widget WHERE id = $1",[widget_id],function(err){
+					if(err){
+						console.log(err);
+						callback(false,{error:'Could not delete youtube widget'});
+						return;
+					}
+					callback(true,{success:'Successfully deleted youtube widget'});
+				})
 			}
 
 		},
@@ -250,6 +260,16 @@ module.exports = function(pg_conn){
 						callback(true,{success:'Successfully created Twitter widget!'});
 					}
 				);
+			},
+			delete: function(widget_id,callback){
+				pg_conn.client.query("DELETE FROM twitter_widget WHERE id = $1",[widget_id],function(err){
+					if(err){
+						console.log(err);
+						callback(false,{error:'Could not delete twitter widget'});
+						return;
+					}
+					callback(true,{success:'Successfully deleted twitter widget'});
+				})
 			}
 		},
 
@@ -354,6 +374,16 @@ module.exports = function(pg_conn){
 						callback(true,{success:'Successfully created tournament widget!'});
 					}
 				);
+			},
+			delete: function(widget_id,callback){
+				pg_conn.client.query("DELETE FROM tournaments_widget WHERE id = $1",[widget_id],function(err){
+					if(err){
+						console.log(err);
+						callback(false,{error:'Could not delete tournaments widget'});
+						return;
+					}
+					callback(true,{success:'Successfully deleted tournaments widget'});
+				})
 			}
 
 		},
@@ -423,6 +453,16 @@ module.exports = function(pg_conn){
 						callback(true,{success:'Successfully created markdown widget!'});
 					}
 				);
+			},
+			delete: function(widget_id,callback){
+				pg_conn.client.query("DELETE FROM markdown_widget WHERE id = $1",[widget_id],function(err){
+					if(err){
+						console.log(err);
+						callback(false,{error:'Could not delete markdown widget'});
+						return;
+					}
+					callback(true,{success:'Successfully deleted markdown widget'});
+				})
 			}
 
 		}

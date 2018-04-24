@@ -1422,6 +1422,43 @@ module.exports = function(config,pg_conn,uuidv1,nodebb_conn){
 
 		/********************************************************************************/
 
+		//////////////////////////////////////////////////////////////////////
+		// This listener allows a community to submit a new widget with data
+		// to be loaded into the database
+		//////////////////////////////////////////////////////////////////////
+
+		(socket) => {
+
+			socket.on('widget_delete_req',function(data){
+
+				if(typeof data.widget_id === 'undefined'){
+					socket.emit('notification',{error:'Community id is required'});
+					return;
+				}
+
+				data.widget_id = Number(data.widget_id);
+
+				if(isNaN(data.widget_id)){
+					socket.emit('notification',{error:'Widget id must be a number'});
+					return;
+				}
+				
+				if(typeof widget_definitions[data.type] !== 'undefined'){
+					widget_definitions[data.type].delete(data.widget_id,function(success,notification){
+						notification.name = "widget_submit_res";
+						socket.emit('notification',notification);
+						if(success){
+							socket.emit('widget_submit_status',{status:true});
+						}
+					});			
+				}
+			});
+
+		},
+
+
+		/********************************************************************************/
+
 
 		//////////////////////////////////////////////////////////////////////
 		// This listener allows user to toggle whether they are a member of 
