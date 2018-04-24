@@ -648,7 +648,7 @@ module.exports = function(config,pg_conn,uuidv1,nodebb_conn){
 														return;
 													}
 
-													if(nodebb_conn.enabled){
+													if(nodebb_conn.enabled === true){
 														nodebb_conn.create_category(
 															{
 																_uid: 1,

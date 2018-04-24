@@ -202,7 +202,7 @@
         <div class="container-fluid">
 
         <h1>Edit Community</h1>
-        <h5>Community: <a href="/communities?id={{community_data.id}}"><img src="{{#if icon includeZero=true}}/icons/{{icon}}{{else}}/site/no-icon.jpg{{/if}}" class="community-icon">{{community_data.name}}</a></h5>
+        <h5>Community: <a href="/communities?id={{community_data.id}}"><img src="{{#if community_data.icon includeZero=true}}/icons/{{community_data.icon}}{{else}}/site/no-icon.jpg{{/if}}" class="community-icon" style="margin-right: 5px;">{{community_data.name}}</a></h5>
         
         <hr/>
 

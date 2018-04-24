@@ -9,6 +9,8 @@ const request = require('request');
 module.exports = class NodebbConnector{
 	constructor(config){
 
+		let self = this;
+
 		//////////////////////////////////////////////////////////////////////
 		// If secret doesn't exist within config file prompt for it on the
 		// command line
@@ -31,12 +33,28 @@ module.exports = class NodebbConnector{
 			});
 		}
 
-		this.config = config;
+		self.config = config;
 
-		if(this.config.nodebb.secret.length && this.config.nodebb.api_key){
-			this.enabled = true;
-		}
+	}
 
+	test(callback){
+		request.post(
+			{
+				url: this.config.nodebb.address+'/api/v2',
+				headers:{
+					'content-type' : 'application/x-www-form-urlencoded',
+					Authorization: "Bearer "+this.config.nodebb.api_key,
+				}
+			},
+			// Passed (error,response,body)
+			function(err,response,body){
+				if(err){
+					callback(false);
+					return;
+				}
+				callback(true);
+			}
+		);		
 	}
 
 	create_jwt(config,payload,callback){

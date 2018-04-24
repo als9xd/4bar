@@ -276,41 +276,46 @@ module.exports = class SocketIOConnector{
 										return;
 									}
 
-									pg_conn.client.query(
-										"SELECT nodebb_id FROM communities WHERE id = $1 LIMIT 1",
-										[
-											fileInfo.data.community_id
-										],
-										function(err,nodebb_id){
-											if(err){
-												console.log(err);
-												socket.emit('notification',{error:'Could not get community id'});
-												return;
-											}
-
-											if(typeof nodebb_id === 'undefined' || nodebb_id.rowCount === 0){
-												socket.emit('notification',{error:"No nodebb category found with an id of '"+fileInfo.data.community_id+"'"});
-												return;
-											}											
-
-											self.nodebb_conn.modify_category(
-												nodebb_id.rows[0].nodebb_id,
-												{
-													_uid: 1,
-													backgroundImage: self.config.server.hostname+'/icons/'+icon.rows[0].icon
-												},
-												function(err,response,body){
-													if(!err && response.statusCode == 200){
-														socket.emit('notification',{success: "Successfully uploaded icon to nodebb"});
-														socket.emit('icon_upload_status',{status:true});
-													}else{
-														socket.emit('notification',{error: 'Could not upload community icon to nodebb'});
-														return;
-													}
+									if(self.nodebb_conn.enabled === true){
+										pg_conn.client.query(
+											"SELECT nodebb_id FROM communities WHERE id = $1 LIMIT 1",
+											[
+												fileInfo.data.community_id
+											],
+											function(err,nodebb_id){
+												if(err){
+													console.log(err);
+													socket.emit('notification',{error:'Could not get community id'});
+													return;
 												}
-											);
-										}
-									);
+
+												if(typeof nodebb_id === 'undefined' || nodebb_id.rowCount === 0){
+													socket.emit('notification',{error:"No nodebb category found with an id of '"+fileInfo.data.community_id+"'"});
+													return;
+												}											
+
+												self.nodebb_conn.modify_category(
+													nodebb_id.rows[0].nodebb_id,
+													{
+														_uid: 1,
+														backgroundImage: self.config.server.hostname+'/icons/'+icon.rows[0].icon
+													},
+													function(err,response,body){
+														if(!err && response.statusCode == 200){
+															socket.emit('notification',{success: "Successfully uploaded community icon to nodebb"});
+															socket.emit('icon_upload_status',{status:true});
+														}else{
+															socket.emit('notification',{error: 'Could not upload community icon to nodebb'});
+															return;
+														}
+													}
+												);
+											}
+										);
+									}else{
+										socket.emit('notification',{success: "Successfully uploaded community icon"});
+										socket.emit('icon_upload_status',{status:true});										
+									}
 								}
 							);
 		    			}

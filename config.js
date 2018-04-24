@@ -95,8 +95,8 @@ const config = {
 		},
 		nodebb: {
 			address: 'https://forums.localhost',
-			secret: 'secret'
-			// api_key: '' // Disabling this enables a prompt for nodebb api key
+			secret: 'secret',
+			api_key: 'none' // Disabling this enables a prompt for nodebb api key
 		}
 	},
 
