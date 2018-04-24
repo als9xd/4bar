@@ -1423,8 +1423,7 @@ module.exports = function(config,pg_conn,uuidv1,nodebb_conn){
 		/********************************************************************************/
 
 		//////////////////////////////////////////////////////////////////////
-		// This listener allows a community to submit a new widget with data
-		// to be loaded into the database
+		// This listener allows a community to delete a widget
 		//////////////////////////////////////////////////////////////////////
 
 		(socket) => {
@@ -1487,9 +1486,10 @@ module.exports = function(config,pg_conn,uuidv1,nodebb_conn){
 												}
 
 												if(typeof widget_definitions[data.type] !== 'undefined'){
-													widget_definitions[data.type].delete(data.widget_id,function(success,notification){														socket.emit('notification',notification);
-														if(success){
-															socket.emit('widget_delete_status',{status:true});
+													widget_definitions[data.type].delete(data.widget_id,function(success,notification){														
+														socket.emit('notification',notification);
+														if(success !== false){
+															socket.emit('widget_delete_status',{status:true,id:data.widget_id});
 														}
 													});			
 												}else{

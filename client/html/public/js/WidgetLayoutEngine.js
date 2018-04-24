@@ -249,6 +249,11 @@ let WidgetLayoutEngine = function(widget_ui_definitions,parent,background_parent
     return new_row;
   }
 
+  socket.on('widget_delete_status',function(data) {
+    if(data.status === true){
+      document.querySelector('[data-widget-id="'+data.id+'"]').style.display = 'none';
+    }
+  });
 
   __wle.build_widget_container = function(type,id){
     let widget_container = document.createElement('div');
@@ -259,7 +264,6 @@ let WidgetLayoutEngine = function(widget_ui_definitions,parent,background_parent
       delete_btn.innerHTML = 'x';
       delete_btn.onclick = function(){
         socket.emit('widget_delete_req',{type:type,widget_id:id});
-        widget_container.style.display = 'none';
       }
       widget_container.appendChild(delete_btn);
     }
