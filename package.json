@@ -18,6 +18,7 @@
     "pg": "^7.4.1",
     "readline-sync": "^1.4.7",
     "request": "^2.85.0",
+    "showdown": "^1.8.6",
     "socket.io": "^2.0.4",
     "socket.io-file": "^2.0.2",
     "socket.io-file-client": "^2.0.2",

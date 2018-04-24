@@ -33,6 +33,10 @@ module.exports = class NodebbConnector{
 
 		this.config = config;
 
+		if(this.config.nodebb.secret.length && this.config.nodebb.api_key){
+			this.enabled = true;
+		}
+
 	}
 
 	create_jwt(config,payload,callback){

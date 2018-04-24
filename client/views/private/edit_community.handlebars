@@ -29,6 +29,13 @@
 
     <link rel="stylesheet" href="/css/dragula.css">
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/1.8.6/showdown.min.js"></script>
+    <script>
+    var converter = new showdown.Converter();
+    </script>
+
+    <script src="/js/jscolor.min.js"></script>
+
     <!-- Set SSO cookie for nodebb  -->
     <script>
       document.cookie = "nodebb={{nodebb.token}}; Path=/; domain=."+window.location.hostname;
@@ -269,6 +276,7 @@
                   <option value="youtube-modal">Youtube</option>
                   <option value="twitter-modal">Twitter</option>
                   <option value="tournaments-list-modal">Tournaments List</option>
+                  <option value="markdown-modal">Markdown</option>
                 </select>
               </div>                  
             </div>
@@ -292,13 +300,17 @@
             </div>
             <div class="modal-body">
               <div class="form-group">
+                <label for="bg_color_youtube"><span class="req">* </span> Background Color: </label>
+                <input required class="jscolor form-control" id="bg_color_youtube"/> 
+              </div>
+              <div class="form-group">
                 <label for="youtube_url"><span class="req">* </span> Url: </label>
                 <input required type="text" id="youtube_url" class="form-control" autocomplete="off" /> 
               </div>
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-              <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="socket.emit('widget_submit_req',{community_id:'{{{community_data.id}}}',type:'youtube',data:{url:document.getElementById('youtube_url').value}});">Create</button>
+              <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="socket.emit('widget_submit_req',{community_id:'{{{community_data.id}}}',type:'youtube',data:{url:document.getElementById('youtube_url').value,bg_color:document.getElementById('bg_color_youtube').value}});">Create</button>
             </div>
           </div>
         </div>
@@ -316,13 +328,21 @@
             </div>
             <div class="modal-body">
               <div class="form-group">
-                <label for="youtube_url"><span class="req">* </span> Accout Name: </label>
+                <label for="text_color_twitter"><span class="req">* </span> Text Color: </label>
+                <input required class="jscolor form-control" id="text_color_twitter"/> 
+              </div>
+              <div class="form-group">
+                <label for="bg_color_twitter"><span class="req">* </span> Background Color: </label>
+                <input required class="jscolor form-control" id="bg_color_twitter"/> 
+              </div>
+              <div class="form-group">
+                <label for="twitter_screen_name"><span class="req">* </span> Account Name: </label>
                 <input required type="text" id="twitter_screen_name" class="form-control" autocomplete="off" /> 
               </div>
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-              <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="widget_submit('twitter',{screen_name:document.getElementById('twitter_screen_name').value});">Create</button>
+              <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="widget_submit('twitter',{screen_name:document.getElementById('twitter_screen_name').value,text_color:document.getElementById('text_color_twitter').value,bg_color:document.getElementById('bg_color_twitter').value});">Create</button>
             </div>
           </div>
         </div>
@@ -340,12 +360,50 @@
             </div>
             <div class="modal-body">
               <div class="form-group">
-                No Available Settings
+                <label for="text_color_tournament"><span class="req">* </span> Text Color: </label>
+                <input required class="jscolor form-control" id="text_color_tournament"/> 
+              </div>
+              <div class="form-group">
+                <label for="bg_color_tournament"><span class="req">* </span> Background Color: </label>
+                <input required class="jscolor form-control" id="bg_color_tournament"/> 
               </div>
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-              <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="widget_submit('tournaments');">Create</button>
+              <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="widget_submit('tournaments',{text_color:document.getElementById('text_color_tournament').value,bg_color:document.getElementById('bg_color_tournament').value});">Create</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+      <!-- Markdown Text Modal -->
+      <div class="modal fade" id="markdown-modal" tabindex="-1" role="dialog" aria-labelledby="markdown-modal-title" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="markdown-modal-title">Tournaments List Widget</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <div class="form-group">
+                <label for="text_color_markdown"><span class="req">* </span> Text Color: </label>
+                <input required class="jscolor form-control" id="text_color_markdown"/> 
+              </div>
+              <div class="form-group">
+                <label for="bg_color_markdown"><span class="req">* </span> Background Color: </label>
+                <input required class="jscolor form-control" id="bg_color_markdown"/> 
+              </div>
+              <div class="form-group">
+                <label for="markdown_input"><span class="req">* </span> Markdown : </label>
+                <textarea required type="text" id="markdown_input" class="form-control" autocomplete="off" /></textarea>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+              <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="widget_submit('markdown',{markdown:document.getElementById('markdown_input').value,text_color:document.getElementById('text_color_markdown').value,bg_color:document.getElementById('bg_color_markdown').value});">Create</button>
             </div>
           </div>
         </div>

@@ -60,11 +60,15 @@ const config = {
 				tournament_tags: {
 					tag: 20
 				},
-        events: {
+       			events: {
 					event_name: 40,
 					street_address: 255,
 					city: 40,
 					state: 13,
+				},
+				widgets: {
+					text_color: 6,
+					bg_color: 6
 				}
 			}
 		},
@@ -150,6 +154,10 @@ const config = {
 					street_address: 255,
 					city: 40,
 					state: 13,
+				},
+				widgets: {
+					text_color: 6,
+					bg_color: 6
 				}
 			}
 		},
