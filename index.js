@@ -14,6 +14,55 @@
 'use strict';
 
 //////////////////////////////////////////////////////////////////////
+// Parse arguments passed to node from the command line
+//////////////////////////////////////////////////////////////////////
+
+const argv = require('minimist')(
+	process.argv.slice(2),
+	{
+		string: [
+			'environment'
+		],
+		boolean: [
+			'help',
+			'build',
+			'destroy',
+			'rebuild',
+			'clean'
+		],
+		alias: {
+			h: 'help',
+			
+			e: 'environment',
+			
+			b: 'build',
+			d: 'destroy',
+			r: 'rebuild',
+
+			c: 'clean'
+		}
+	}
+);
+
+if(argv['help']){
+    console.log(
+		"\n"+
+		"usage: node index.js [--help] [--environment env] [--build] [--destroy] [--rebuild] [--clean]\n"+
+		"\n"+
+		"  -h, --help                   : display usage information\n"+		
+		"  -e env, --environment env    : where env is the environment to use defined within '4bar/config.js'\n"+
+		"  -b, --build                  : build the postgresql tables defined within '4bar/definitions/pg_table_definitions'\n"+
+		"  -d, --destroy                : destroy the postgresql tables\n"+
+		"  -r, --rebuild                : destroy and rebuild the postgresql tables defined within '4bar/definitions/pg_table_definitions'\n"+
+		"  -c, --clean                  : delete all community data files (wallpapers and icons)\n"+		
+		"\n"+
+		"example: node index.js --environment development --password pass --rebuild\n"
+    );
+    process.exit(0);
+}
+
+
+//////////////////////////////////////////////////////////////////////
 // Load configuration settings for an envirnoment
 //
 // The two currently available environments are:
@@ -47,13 +96,12 @@ const config = require(config_file);
 // within '4bar\config.js'
 //////////////////////////////////////////////////////////////////////
 
-const env = process.env.NODE_ENV || 'development';
+let env = argv['environment'] || process.env.NODE_ENV || 'development';
 
 if(typeof config === 'undefined' || typeof config[env] === 'undefined'){
 	console.log(new Error("Could not find environment \""+env+"\" in \""+config_file+"\""));
 	process.exit(1);
 }
-
 
 //////////////////////////////////////////////////////////////////////
 // Set the applications root directory so that we don't have to use 
@@ -61,55 +109,6 @@ if(typeof config === 'undefined' || typeof config[env] === 'undefined'){
 //////////////////////////////////////////////////////////////////////
 
 config[env].root_dir = __dirname;
-
-//////////////////////////////////////////////////////////////////////
-// Parse arguments passed to node from the command line
-//////////////////////////////////////////////////////////////////////
-
-const argv = require('minimist')(
-	process.argv.slice(2),
-	{
-		string: [
-			'password',
-			'environment'
-		],
-		boolean: [
-			'help',
-			'build',
-			'destroy',
-			'rebuild',
-			'clean'
-		],
-		alias: {
-			h: 'help',
-			
-			a: 'environment',
-			
-			b: 'build',
-			d: 'destroy',
-			r: 'rebuild',
-
-			c: 'clean'
-		}
-	}
-);
-
-if(argv['help']){
-    console.log(
-		"\n"+
-		"usage: node index.js [--help] [--environment env] [--build] [--destroy] [--rebuild] [--clean]\n"+
-		"\n"+
-		"  -h, --help                   : display usage information\n"+		
-		"  -e env, --environment env    : where env is the environment to use defined within '4bar/config.js'\n"+
-		"  -b, --build                  : build the postgresql tables defined within '4bar/definitions/pg_table_definitions'\n"+
-		"  -d, --destroy                : destroy the postgresql tables\n"+
-		"  -r, --rebuild                : destroy and rebuild the postgresql tables defined within '4bar/definitions/pg_table_definitions'\n"+
-		"  -c, --clean                  : delete all community data files (wallpapers and icons)\n"+		
-		"\n"+
-		"example: node index.js --environment development --password pass --rebuild\n"
-    );
-    process.exit(0);
-}
 
 //////////////////////////////////////////////////////////////////////
 // Delete all user submitted media files if --clean,-c is passed as
@@ -128,7 +127,7 @@ if(argv['clean'] === true){
 
 	let dir_promises = [];
 
-	for(let i = 0;i < dirs.length;i++){
+	for(let i = 0; i < dirs.length;i++){
 		dir_promises.push(
 			new Promise(
 				(resolve,reject) => {
@@ -187,6 +186,13 @@ if(argv['clean'] === true){
 let Server = require(config[env].root_dir+'/server/Server.js');
 let server = new Server(config[env]);
 
+//////////////////////////////////////////////////////////////////////
+// Initialize database connection for initial testing/modifying of 
+// database
+//////////////////////////////////////////////////////////////////////
+
+let pg_conn = new server.PgConnector(config[env]);
+
 switch (true){
 	
 	//////////////////////////////////////////////////////////////////////
@@ -195,14 +201,14 @@ switch (true){
 
 	case argv['build']:
 		console.log("Building database");
-		server.pg_conn.build_database(
+		pg_conn.build_database(
 			err => {
 				if(err){
 					console.log(err);
 					process.exit(1);
 				}
 
-				server.pg_conn.verify_database(err => {
+				pg_conn.verify_database(err => {
 					if(err){
 						console.log(err);
 						process.exit(1);
@@ -221,7 +227,7 @@ switch (true){
 
 	case argv['destroy']:
 		console.log("Destroying Database");
-		server.pg_conn.destroy_database(
+		pg_conn.destroy_database(
 			err => {
 				if(err){
 					console.log(err);
@@ -240,20 +246,20 @@ switch (true){
 
 	case argv['rebuild']:
 		console.log("Rebuilding Database");
-		server.pg_conn.destroy_database(
+		pg_conn.destroy_database(
 			err => {
 				if(err){
 					console.log(err);
 					process.exit(1);
 				}
-				server.pg_conn.build_database( 
+				pg_conn.build_database( 
 					err => {
 						if(err){
 							console.log(err);
 							process.exit(1);
 						}
 
-						server.pg_conn.verify_database(err => {
+						pg_conn.verify_database(err => {
 							if(err){
 								console.log(err);
 								process.exit(1);
@@ -272,12 +278,13 @@ switch (true){
 	//////////////////////////////////////////////////////////////////////
 
 	default:
-		server.pg_conn.verify_database(
+		pg_conn.verify_database(
 			err => {
 				if(err){
 					console.log(err);
 					process.exit(1);
 				}
+				pg_conn.client.end();
 				server.start();
 			}
 		);

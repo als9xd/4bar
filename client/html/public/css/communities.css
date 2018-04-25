@@ -11,4 +11,5 @@ body{
 	background-size: cover;
 	background-image: no-repeat;
 	background-image: center center;
+	overflow: auto;
 }

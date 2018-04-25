@@ -28,31 +28,27 @@ module.exports = class Server{
 		// Postgresql connector
 		//////////////////////////////////////////////////////////////////////
 
-		const PgConnector = require(config.root_dir+'/server/connectors/PgConnector');
-
-		this.pg_conn = new PgConnector(config);
+		this.PgConnector = require(config.root_dir+'/server/connectors/PgConnector');
 
 		//////////////////////////////////////////////////////////////////////
 		// Express connector
 		//////////////////////////////////////////////////////////////////////
 
-		const ExpressConnector = require(config.root_dir+'/server/connectors/ExpressConnector');
-
-		this.express_conn = new ExpressConnector(config,this.pg_conn);
+		this.ExpressConnector = require(config.root_dir+'/server/connectors/ExpressConnector');
 
 		//////////////////////////////////////////////////////////////////////
 		// Setup ssl key and certification
 		//////////////////////////////////////////////////////////////////////
 
 		const fs = require('fs');
-		let options = null;
-		if(config.ssl){
-			options = {
-				key: fs.readFileSync(config.ssl.key,'utf8'),
-				cert: fs.readFileSync(config.ssl.cert,'utf8')
+		this.https_options = null;
+		if(this.config.ssl){
+			this.https_options = {
+				key: fs.readFileSync(this.config.ssl.key,'utf8'),
+				cert: fs.readFileSync(this.config.ssl.cert,'utf8')
 			};
 		}else{
-			console.log("Error: could not find ssl config in\""+config_file+"\"");
+			console.log("Error: could not find ssl config in\""+this.config.ssl+"\"");
 			process.exit(1);
 		}		
 
@@ -61,27 +57,26 @@ module.exports = class Server{
 		// redirect traffic to the https server.
 		//////////////////////////////////////////////////////////////////////
 
-		const http = require('http');
-		this.http_server = http.createServer(this.express_conn.app);
+		this.http = require('http');
 
 		//////////////////////////////////////////////////////////////////////
 		// This creates an https server.
 		//////////////////////////////////////////////////////////////////////
 
-		const https = require('https');
-		this.https_server = https.createServer(options,this.express_conn.app);
+		this.https = require('https');
+
+		//////////////////////////////////////////////////////////////////////
+		// Nodebb connector
+		//////////////////////////////////////////////////////////////////////		
+
+		this.NodebbConnector = require(this.config.root_dir+'/server/connectors/NodebbConnector');
 
 
 		//////////////////////////////////////////////////////////////////////
 		// Socket.io connector
 		//////////////////////////////////////////////////////////////////////
 
-		const SocketIOConnector = require(config.root_dir+'/server/connectors/SocketIOConnector');
-
-		this.socket_io_conn = new SocketIOConnector(
-			config,
-			this.https_server
-		);
+		this.SocketIOConnector = require(this.config.root_dir+'/server/connectors/SocketIOConnector');
 
 	}
 
@@ -101,53 +96,85 @@ module.exports = class Server{
 	start(){
 		let self = this;	
 
-		//////////////////////////////////////////////////////////////////////
-		// Load the widget definitions
-		//////////////////////////////////////////////////////////////////////		
+		self.pg_conn = new self.PgConnector(self.config);
 
-		self.pg_conn.load_widgets(self.config.root_dir+'/server/definitions/postgres/pg_widget_definitions');
-		
-		//////////////////////////////////////////////////////////////////////
-		// Build Express routes
-		//////////////////////////////////////////////////////////////////////
+		self.express_conn = new self.ExpressConnector(self.config,self.pg_conn);
 
-		self.express_conn.build_routes(
-			self.config.root_dir+'/server/definitions/express/express_route_definitions',
-			self.pg_conn,
-			self.socket_io_conn
+		self.http_server = self.http.createServer(this.express_conn.app);
+
+		self.https_server = self.https.createServer(self.https_options,self.express_conn.app);
+
+		self.nodebb_conn = new self.NodebbConnector(
+			self.config
 		);
 
 
 		//////////////////////////////////////////////////////////////////////
-		// Attach the express session to socket.io
+		// Test communication with nodebb
 		//////////////////////////////////////////////////////////////////////		
 
-		self.socket_io_conn.attach_session(self.express_conn.session);
+		self.nodebb_conn.test(
+			function(success){
+				self.nodebb_conn.enabled = success;
+				if(success === false){
+					console.log('Warning: Could not connect to nodebb at '+self.config.nodebb.address+'\nNodebb integration will be disabled.');
+				}
 
-		//////////////////////////////////////////////////////////////////////
-		// Build the socket.io lisenteners
-		//////////////////////////////////////////////////////////////////////				
+				self.socket_io_conn = new self.SocketIOConnector(
+					self.config,
+					self.https_server,
+					self.nodebb_conn
+				);
 
-		self.socket_io_conn.build_listeners(
-			self.pg_conn
+				//////////////////////////////////////////////////////////////////////
+				// Load the widget definitions
+				//////////////////////////////////////////////////////////////////////		
+
+				self.pg_conn.load_widgets(self.config.root_dir+'/server/definitions/postgres/pg_widget_definitions');
+				
+				//////////////////////////////////////////////////////////////////////
+				// Build Express routes
+				//////////////////////////////////////////////////////////////////////
+
+				self.express_conn.build_routes(
+					self.config.root_dir+'/server/definitions/express/express_route_definitions',
+					self.pg_conn,
+					self.socket_io_conn
+				);
+
+
+				//////////////////////////////////////////////////////////////////////
+				// Attach the express session to socket.io
+				//////////////////////////////////////////////////////////////////////		
+
+				self.socket_io_conn.attach_session(self.express_conn.session);
+
+				//////////////////////////////////////////////////////////////////////
+				// Build the socket.io lisenteners
+				//////////////////////////////////////////////////////////////////////				
+
+				self.socket_io_conn.build_listeners(
+					self.pg_conn
+				);
+
+				//////////////////////////////////////////////////////////////////////
+				// Start the http server
+				//////////////////////////////////////////////////////////////////////
+
+
+				self.http_server.listen(self.config.server.http.port,function(){
+					console.log('listening on *:'+self.config.server.http.port);
+				});
+
+				//////////////////////////////////////////////////////////////////////
+				// Start the https server
+				//////////////////////////////////////////////////////////////////////
+
+				self.https_server.listen(self.config.server.https.port,function(){
+					console.log('listening on *:'+self.config.server.https.port);
+				});
+
+			}
 		);
-
-		//////////////////////////////////////////////////////////////////////
-		// Start the http server
-		//////////////////////////////////////////////////////////////////////
-
-
-		self.http_server.listen(self.config.server.http.port,function(){
-			console.log('listening on *:'+self.config.server.http.port);
-		});
-
-		//////////////////////////////////////////////////////////////////////
-		// Start the https server
-		//////////////////////////////////////////////////////////////////////
-
-		self.https_server.listen(self.config.server.https.port,function(){
-			console.log('listening on *:'+self.config.server.https.port);
-		});
-
 	}
 }

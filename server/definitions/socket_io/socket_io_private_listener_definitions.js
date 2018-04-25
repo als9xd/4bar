@@ -20,7 +20,7 @@ const path = require('path');
 
 const fs = require('fs');
 
-module.exports = function(config,pg_conn,uuidv1){	
+module.exports = function(config,pg_conn,uuidv1,nodebb_conn){	
 	
 	let widget_definitions = pg_conn.widget_definitions;
 
@@ -648,9 +648,42 @@ module.exports = function(config,pg_conn,uuidv1){
 														return;
 													}
 
-													// 'name' is used to differentiate between file upload success messages so that we can upload files after the community has been successfully submitted
-													socket.emit('notification',{success: 'Successfully created and joined community'});
-													socket.emit('community_creation_status',{status: true,new_community_id: community_id.rows[0].id});
+													if(nodebb_conn.enabled === true){
+														nodebb_conn.create_category(
+															{
+																_uid: 1,
+																name: data.name,
+																description: data.description
+															},
+															(err,response,body)=>{
+																if(!err && response.statusCode == 200){
+																	body = JSON.parse(body);
+																	pg_conn.client.query(
+																		"UPDATE communities SET nodebb_id = $1 WHERE id = $2",
+																		[
+																			body.payload.cid,
+																			community_id.rows[0].id
+																		],
+																		function(err){
+																			if(err){
+																				console.log(err);
+																				socket.emit('notification',{error:'Could not set commmunity nodebb id'});
+																				return;
+																			}
+																			socket.emit('notification',{success: 'Successfully created and joined community'});
+																			socket.emit('community_creation_status',{status: true,new_community_id: community_id.rows[0].id});
+																		}
+																	);
+																}else{
+																	console.log(err);
+																	socket.emit('notification',{error: 'Could not create community forum'});
+																}
+															}
+														);
+													}else {
+														socket.emit('notification',{success: 'Successfully created and joined community'});
+														socket.emit('community_creation_status',{status: true,new_community_id: community_id.rows[0].id});
+													}
 												}
 											);
 										}
@@ -1386,6 +1419,96 @@ module.exports = function(config,pg_conn,uuidv1){
 			});
 
 		},
+
+		/********************************************************************************/
+
+		//////////////////////////////////////////////////////////////////////
+		// This listener allows a community to delete a widget
+		//////////////////////////////////////////////////////////////////////
+
+		(socket) => {
+
+			socket.on('widget_delete_req',function(data){
+
+				if(typeof data.widget_id === 'undefined'){
+					socket.emit('notification',{error:'Widget id is required'});
+					return;
+				}
+
+				data.widget_id = Number(data.widget_id);
+
+				if(isNaN(data.widget_id)){
+					socket.emit('notification',{error:'Widget id must be a number'});
+					return;
+				}
+				
+				if(typeof widget_definitions[data.type] !== 'undefined'){
+					widget_definitions[data.type].get(data.widget_id,function(success,notification) {
+						if(success !== false){
+							if(typeof success !== 'undefined' && success.length === 1){
+								pg_conn.client.query(
+									"SELECT 1 FROM communities WHERE id = $1",
+									[
+										success[0].community_id
+									],function(err,community_exists){
+										if(err){
+											console.log(err);
+											socket.emit('notification',{error:'Could not check if community exists'});
+											return;
+										}
+
+										if(typeof community_exists === 'undefined' || community_exists.rowCount === 0){
+											socket.emit('notification',{error:'Community with id of '+success[0].community_id+' does not exist'});
+											return;
+										}
+
+										pg_conn.client.query(
+											"SELECT privilege_level FROM community_members WHERE user_id = $1 AND community_id = $2",
+											[
+												socket.handshake.session.user_id,
+												success[0].community_id
+											],
+											function(err,privilege_level){
+												if(err){
+													console.log(err);
+													socket.emit('notification',{error:'Could not get privilege information for community'});
+													return;
+												}
+
+												if(typeof privilege_level === 'undefined' || privilege_level.rowCount === 0){
+													socket.emit('notification',{error:'You must be a member of this community to delete a widget'});
+													return;
+												}
+
+												if(privilege_level.rows[0].privilege_level > config.privileges['admin']){
+													socket.emit('notification',{error:'Insufficient privileges to delete widget'});
+													return;
+												}
+
+												if(typeof widget_definitions[data.type] !== 'undefined'){
+													widget_definitions[data.type].delete(data.widget_id,function(success,notification){														
+														socket.emit('notification',notification);
+														if(success !== false){
+															socket.emit('widget_delete_status',{status:true,id:data.widget_id});
+														}
+													});			
+												}else{
+													socket.emit('notification',{error:"Unknown widget type \'"+data.type+"\'"})
+												}				
+											}
+										);						
+
+									}
+								);
+							}
+						}
+						
+					});		
+				}
+			});
+
+		},
+
 
 		/********************************************************************************/
 

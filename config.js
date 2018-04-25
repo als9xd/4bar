@@ -13,7 +13,8 @@ const config = {
 	development: {
 		ssl: {
 			key: './ssl/dev/key.pem',
-			cert: './ssl/dev/cert.pem'
+			cert: './ssl/dev/cert.pem',
+			secret: 'secret'
 		},
 		server: {
 			http: {
@@ -21,7 +22,9 @@ const config = {
 			},
 			https:{
 				port: 443
-			}
+			},
+			secret: 'secret',
+			hostname: 'https://localhost'
 		},
 		pg: {
 			username: 'postgres',
@@ -57,11 +60,15 @@ const config = {
 				tournament_tags: {
 					tag: 20
 				},
-        events: {
+       			events: {
 					event_name: 40,
 					street_address: 255,
 					city: 40,
 					state: 13,
+				},
+				widgets: {
+					text_color: 6,
+					bg_color: 6
 				}
 			}
 		},
@@ -85,13 +92,18 @@ const config = {
 			admin: 1,
 			mod: 2,
 			member: 3
+		},
+		nodebb: {
+			address: 'https://forums.localhost',
+			secret: 'secret',
+			api_key: 'none' // Disabling this enables a prompt for nodebb api key
 		}
 	},
 
 	production: {
 		ssl: {
 			key: '../ssl/privkey.pem',
-			cert: '../ssl/fullchain.pem'
+			cert: '../ssl/fullchain.pem',
 		},
 		server: {
 			http: {
@@ -99,11 +111,13 @@ const config = {
 			},
 			https:{
 				port: 443
-			}
+			},
+			// secret: '', //Disabling this enables a prompt for express session secrets
+			hostname: 'https://4bar.org'
 		},
 		pg: {
 			username: 'postgres',
-			//password: '', // Disabling this enables a prompt for the password
+			// password: '', // Disabling this enables a prompt for the password
 			ip: 'localhost',
 			port: 5432,
 			database_name: '4bar',
@@ -140,6 +154,10 @@ const config = {
 					street_address: 255,
 					city: 40,
 					state: 13,
+				},
+				widgets: {
+					text_color: 6,
+					bg_color: 6
 				}
 			}
 		},
@@ -163,6 +181,11 @@ const config = {
 			admin: 1,
 			mod: 2,
 			member: 3
+		},
+		nodebb: {
+			address: 'https://forums.4bar.org',
+			//secret: '', // Disabling this enables a prompt for nodebb secret
+			// api_key: '' // Disabling this enables a prompt for nodebb api key
 		}
 	}
 };

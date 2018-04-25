@@ -6,7 +6,7 @@
 const crypto = require('crypto');
 
 
-module.exports = function(config,pg_conn){
+module.exports = function(config,pg_conn,nodebb_conn){
 
 	return [
 		//////////////////////////////////////////////////////////////////////
@@ -60,10 +60,28 @@ module.exports = function(config,pg_conn){
 										socket.handshake.session.email = user_info.rows[0].email;
 										socket.handshake.session.avatar = user_info.rows[0].avatar;
 
-										socket.handshake.session.save();
+										let payload = {
+											id: user_info.rows[0].id,
+											username: user_info.rows[0].username,
+										};
 
-										socket.emit('notification',{success: 'Successfully Logged in!'});	
-										socket.emit('login_status',{status:true});
+										if(user_info.rows[0].avatar !== null){
+											payload.picture = config.server.hostname+'/avatars/'+user_info.rows[0].avatar;
+										}
+
+										nodebb_conn.create_jwt(
+										config,
+										payload,
+										function(err,token){
+											if(err){
+												console.log(err);
+											}
+											socket.handshake.session.token = token;
+											socket.handshake.session.save();
+											socket.emit('notification',{success: 'Successfully Logged in!'});	
+											socket.emit('login_status',{status:true});
+										});
+
 									}else{
 										socket.emit('notification',{error: 'Invalid username or password'});
 									}
@@ -239,10 +257,26 @@ module.exports = function(config,pg_conn){
 											socket.handshake.session.username = data.username;
 											socket.handshake.session.full_name = data.full_name;
 											socket.handshake.session.email = data.email;
-											socket.handshake.session.save();
 
-											socket.emit('notification',{success:'Successfully registered!'});
-											socket.emit('register_status',{status:true});
+											let payload = {
+												id: user_id.rows[0].id,
+												username: data.username,
+											};
+
+											nodebb_conn.create_jwt(
+											config,
+											payload,
+											function(err,token){
+												if(err){
+													console.log(err);
+												}
+												socket.handshake.session.token = token;
+												socket.handshake.session.save();
+												
+												socket.emit('notification',{success:'Successfully registered!'});
+												socket.emit('register_status',{status:true});
+											});
+
 										}
 									);    			
 								}

@@ -41,7 +41,6 @@ let WidgetLayoutEngine = function(widget_ui_definitions,parent,background_parent
 
     wle_available_holder = document.createElement('div');
     wle_available_holder.style.minHeight = "100px";
-    wle_available_holder.style.border = "thin solid #ccc";
     wle_available_holder.style.margin = "10px";
     wle_available_holder.style.padding = '10px';
     wle_available_container.appendChild(wle_available_holder);
@@ -250,14 +249,28 @@ let WidgetLayoutEngine = function(widget_ui_definitions,parent,background_parent
     return new_row;
   }
 
+  socket.on('widget_delete_status',function(data) {
+    if(data.status === true){
+      document.querySelector('[data-widget-id="'+data.id+'"]').style.display = 'none';
+    }
+  });
 
   __wle.build_widget_container = function(type,id){
     let widget_container = document.createElement('div');
 
+    if(settings && settings.template){
+      let delete_btn = document.createElement('span');
+      delete_btn.classList.add('close','widget-delete-btn');
+      delete_btn.innerHTML = 'x';
+      delete_btn.onclick = function(){
+        socket.emit('widget_delete_req',{type:type,widget_id:id});
+      }
+      widget_container.appendChild(delete_btn);
+    }
+
     widget_container.setAttribute('data-widget-type',type);
     widget_container.setAttribute('data-widget-id',id);    
 
-    widget_container.style.border = "thin solid #ccc";
     widget_container.style.borderRadius = "4px";
     widget_container.style.padding = "20px";
     widget_container.style.backgroundColor = "rgb(242,242,242)";
@@ -284,7 +297,8 @@ let WidgetLayoutEngine = function(widget_ui_definitions,parent,background_parent
 
       if(!exists){
         let widget_container = build_widget_container(template.type,template.id);
-
+        widget_container.style.backgroundColor = '#'+template.data.bg_color;
+        widget_container.style.color = '#'+template.data.text_color;
         let widget = widget_ui_definitions[template.type](template.data,widget_container);
 
         widget_container.appendChild(widget);
@@ -317,6 +331,8 @@ let WidgetLayoutEngine = function(widget_ui_definitions,parent,background_parent
     if(widget_ui_definitions[widget.type]){
 
       let widget_container = __wle.build_widget_container(widget.type,widget.id);
+      widget_container.style.backgroundColor = '#'+widget.data.bg_color;
+      widget_container.style.color = '#'+widget.data.text_color;
       let widget_cell = cols[widget.x];
 
       widget_cell.appendChild(widget_container);

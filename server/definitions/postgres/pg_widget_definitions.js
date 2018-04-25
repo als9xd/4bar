@@ -11,6 +11,13 @@
 
 module.exports = function(pg_conn){
 
+	let sanitize_color = function(color_str){
+		if(typeof color_str !== 'string' || color_str.length === 0){
+			return true;
+		}
+		return /^[a-z0-9]+$/i.test(color_str);		
+	}
+
 	let pg_client = pg_conn.client;
 
 	return{
@@ -92,7 +99,7 @@ module.exports = function(pg_conn){
 		youtube: {
 			get: function(widget_id,callback){
 				pg_client.query(
-					"SELECT id,url FROM youtube_widget WHERE id = $1",
+					"SELECT * FROM youtube_widget WHERE id = $1",
 					[
 						widget_id
 					],
@@ -108,7 +115,7 @@ module.exports = function(pg_conn){
 			},
 			available: function(community_id,callback){
 				pg_client.query(
-					"SELECT id,url FROM youtube_widget WHERE community_id = $1",
+					"SELECT * FROM youtube_widget WHERE community_id = $1",
 					[
 						community_id
 					],
@@ -123,6 +130,14 @@ module.exports = function(pg_conn){
 				)
 			},
 			add: function(community_id,data,callback){
+				if(!sanitize_color(data.text_color)){
+			    	callback(false,{error:'Inavlid text color'});
+			    	return;									
+				}
+				if(!sanitize_color(data.background_color)){
+			    	callback(false,{error:'Inavlid background color'});
+			    	return;									
+				}
 
 				if(!data.url || data.url.length == 0){
 			    	callback(false,{error:'Please supply a youtube url'});
@@ -145,10 +160,12 @@ module.exports = function(pg_conn){
 			    let url = decodeURIComponent(results[2].replace(/\+/g, " "));
 			    if(url){
 					pg_client.query(
-						"INSERT INTO youtube_widget (community_id,url) "+
-						"VALUES ($1,$2)",
+						"INSERT INTO youtube_widget (community_id,text_color,bg_color,url) "+
+						"VALUES ($1,$2,$3,$4)",
 						[
 							community_id,
+							data.text_color,
+							data.bg_color,
 							"https://www.youtube.com/embed/"+url
 						],
 						function(err){
@@ -161,6 +178,16 @@ module.exports = function(pg_conn){
 						}
 					);
 			    }
+			},
+			delete: function(widget_id,callback){
+				pg_conn.client.query("DELETE FROM youtube_widget WHERE id = $1",[widget_id],function(err){
+					if(err){
+						console.log(err);
+						callback(false,{error:'Could not delete youtube widget'});
+						return;
+					}
+					callback(true,{success:'Successfully deleted youtube widget'});
+				})
 			}
 
 		},
@@ -170,7 +197,7 @@ module.exports = function(pg_conn){
 		twitter: {
 			get: function(widget_id,callback){
 				pg_client.query(
-					"SELECT id,url FROM twitter_widget WHERE id = $1",
+					"SELECT * FROM twitter_widget WHERE id = $1",
 					[
 						widget_id
 					],
@@ -186,7 +213,7 @@ module.exports = function(pg_conn){
 			},
 			available: function(community_id,callback){
 				pg_client.query(
-					"SELECT id,url FROM twitter_widget WHERE community_id = $1",
+					"SELECT * FROM twitter_widget WHERE community_id = $1",
 					[
 						community_id
 					],
@@ -201,16 +228,27 @@ module.exports = function(pg_conn){
 				);		
 			},
 			add: function(community_id,data,callback){
+				if(!sanitize_color(data.text_color)){
+			    	callback(false,{error:'Inavlid text color'});
+			    	return;									
+				}
+				if(!sanitize_color(data.background_color)){
+			    	callback(false,{error:'Inavlid background color'});
+			    	return;									
+				}
+
 				if(!data.screen_name || data.screen_name.length==0){
 					callback(false,{error:'Please supply a twitter account name'});
 					return;
 				}
 				let url = "https://twitter.com/"+data.screen_name+"?ref_src=twsrc%5Etfw";
 				pg_client.query(
-					"INSERT INTO twitter_widget (community_id,url) "+
-					"VALUES ($1,$2)",
+					"INSERT INTO twitter_widget (community_id,text_color,bg_color,url) "+
+					"VALUES ($1,$2,$3,$4)",
 					[
 						community_id,
+						data.text_color,
+						data.bg_color,
 						url
 					],
 					function(err){
@@ -222,6 +260,16 @@ module.exports = function(pg_conn){
 						callback(true,{success:'Successfully created Twitter widget!'});
 					}
 				);
+			},
+			delete: function(widget_id,callback){
+				pg_conn.client.query("DELETE FROM twitter_widget WHERE id = $1",[widget_id],function(err){
+					if(err){
+						console.log(err);
+						callback(false,{error:'Could not delete twitter widget'});
+						return;
+					}
+					callback(true,{success:'Successfully deleted twitter widget'});
+				})
 			}
 		},
 
@@ -229,7 +277,7 @@ module.exports = function(pg_conn){
 
 			get: function(widget_id,callback){
 				pg_client.query(
-					"SELECT id,community_id FROM tournaments_widget WHERE id = $1",
+					"SELECT * FROM tournaments_widget WHERE id = $1",
 					[
 						widget_id
 					],
@@ -277,7 +325,7 @@ module.exports = function(pg_conn){
 							return;
 						}
 						pg_client.query(
-							"SELECT id FROM tournaments_widget WHERE community_id = $1",
+							"SELECT * FROM tournaments_widget WHERE community_id = $1",
 							[
 								community_id
 							],
@@ -300,12 +348,22 @@ module.exports = function(pg_conn){
 			},
 
 			add: function(community_id,data,callback){
+				if(!sanitize_color(data.text_color)){
+			    	callback(false,{error:'Inavlid text color'});
+			    	return;									
+				}
+				if(!sanitize_color(data.background_color)){
+			    	callback(false,{error:'Inavlid background color'});
+			    	return;									
+				}
 
 				pg_client.query(
-					"INSERT INTO tournaments_widget (community_id) \
-					VALUES ($1)",
+					"INSERT INTO tournaments_widget (community_id,text_color,bg_color) \
+					VALUES ($1,$2,$3)",
 					[
-						community_id
+						community_id,
+						data.text_color,
+						data.bg_color
 					],
 					function(err){
 						if(err){
@@ -316,9 +374,97 @@ module.exports = function(pg_conn){
 						callback(true,{success:'Successfully created tournament widget!'});
 					}
 				);
+			},
+			delete: function(widget_id,callback){
+				pg_conn.client.query("DELETE FROM tournaments_widget WHERE id = $1",[widget_id],function(err){
+					if(err){
+						console.log(err);
+						callback(false,{error:'Could not delete tournaments widget'});
+						return;
+					}
+					callback(true,{success:'Successfully deleted tournaments widget'});
+				})
+			}
+
+		},
+
+		markdown: {
+
+			get: function(widget_id,callback){
+				pg_client.query(
+					"SELECT * FROM markdown_widget WHERE id = $1",
+					[
+						widget_id
+					],
+					function(err,widgets){
+						if(err){
+							console.log(err);
+							callback(false,{error:'Could not get markdown widget'});
+							return;
+						}
+						callback(widgets.rows);		
+					}					
+				);	
+
+			},
+
+			available: function(community_id,callback){
+				pg_client.query(
+					"SELECT * FROM markdown_widget WHERE community_id = $1",
+					[
+						community_id
+					],
+					function(err,results){
+						if(err){
+							console.log(err);
+							callback(false,{error:'Could not get available markdown widgets'});
+							return;
+						}
+						callback(results.rows);	
+					}
+				);	
+			},
+
+			add: function(community_id,data,callback){
+				if(!sanitize_color(data.text_color)){
+			    	callback(false,{error:'Inavlid text color'});
+			    	return;									
+				}
+				if(!sanitize_color(data.background_color)){
+			    	callback(false,{error:'Inavlid background color'});
+			    	return;									
+				}
+
+				pg_client.query(
+					"INSERT INTO markdown_widget (community_id,text_color,bg_color,markdown) \
+					VALUES ($1,$2,$3,$4)",
+					[
+						community_id,
+						data.text_color,
+						data.bg_color,
+						data.markdown
+					],
+					function(err){
+						if(err){
+							console.log(err);
+				    		callback(false,{error:'Could not create markdown widget'});
+				    		return;
+						}
+						callback(true,{success:'Successfully created markdown widget!'});
+					}
+				);
+			},
+			delete: function(widget_id,callback){
+				pg_conn.client.query("DELETE FROM markdown_widget WHERE id = $1",[widget_id],function(err){
+					if(err){
+						console.log(err);
+						callback(false,{error:'Could not delete markdown widget'});
+						return;
+					}
+					callback(true,{success:'Successfully deleted markdown widget'});
+				})
 			}
 
 		}
-
 	}
 };

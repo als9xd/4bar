@@ -26,7 +26,7 @@ const path = require('path');
 
 module.exports = class SocketIOConnector{
 		
-	constructor(config,https_server){
+	constructor(config,https_server,nodebb_conn){
 
 		//////////////////////////////////////////////////////////////////////
 		// Store config inside class so that it can be accessed from member 
@@ -51,6 +51,8 @@ module.exports = class SocketIOConnector{
 		this.uuidv1 = require('uuid/v1');
 
 		this.SocketIOFile = require('socket.io-file');
+
+		this.nodebb_conn = nodebb_conn;
 
 	}
 
@@ -101,12 +103,12 @@ module.exports = class SocketIOConnector{
 	// 
 	//////////////////////////////////////////////////////////////////////	
 
-	build_listeners(pg_conn,widget_definitions){
+	build_listeners(pg_conn){
 		let self = this;
 
 		const public_listener_definitions = require(
 			self.config.root_dir+'/server/definitions/socket_io/socket_io_public_listener_definitions'
-		)(this.config,pg_conn);
+		)(this.config,pg_conn,this.nodebb_conn);
 
 		self.public_ns.on('connection',function(socket){
 			for(let i = 0; i < public_listener_definitions.length;i++){
@@ -116,7 +118,7 @@ module.exports = class SocketIOConnector{
 
 		const private_listener_definitions = require(
 			self.config.root_dir+'/server/definitions/socket_io/socket_io_private_listener_definitions'
-		)(this.config,pg_conn,self.uuidv1);
+		)(this.config,pg_conn,self.uuidv1,this.nodebb_conn);
 		
 		// Add authentication middlware
 		this.private_ns.use(this.middleware_definitions['check_authentication']);
@@ -274,8 +276,46 @@ module.exports = class SocketIOConnector{
 										return;
 									}
 
-									socket.emit('notification',{success: "Successfully uploaded icon"});
-									socket.emit('icon_upload_status',{status:true});
+									if(self.nodebb_conn.enabled === true){
+										pg_conn.client.query(
+											"SELECT nodebb_id FROM communities WHERE id = $1 LIMIT 1",
+											[
+												fileInfo.data.community_id
+											],
+											function(err,nodebb_id){
+												if(err){
+													console.log(err);
+													socket.emit('notification',{error:'Could not get community id'});
+													return;
+												}
+
+												if(typeof nodebb_id === 'undefined' || nodebb_id.rowCount === 0){
+													socket.emit('notification',{error:"No nodebb category found with an id of '"+fileInfo.data.community_id+"'"});
+													return;
+												}											
+
+												self.nodebb_conn.modify_category(
+													nodebb_id.rows[0].nodebb_id,
+													{
+														_uid: 1,
+														backgroundImage: self.config.server.hostname+'/icons/'+icon.rows[0].icon
+													},
+													function(err,response,body){
+														if(!err && response.statusCode == 200){
+															socket.emit('notification',{success: "Successfully uploaded community icon to nodebb"});
+															socket.emit('icon_upload_status',{status:true});
+														}else{
+															socket.emit('notification',{error: 'Could not upload community icon to nodebb'});
+															return;
+														}
+													}
+												);
+											}
+										);
+									}else{
+										socket.emit('notification',{success: "Successfully uploaded community icon"});
+										socket.emit('icon_upload_status',{status:true});										
+									}
 								}
 							);
 		    			}

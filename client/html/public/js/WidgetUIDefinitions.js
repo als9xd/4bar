@@ -105,5 +105,16 @@ const WidgetUIDefinitions = {
 
     widget_container.classList.add('col-sm')
     return widget;
+  },
+
+  markdown: function(data,widget_container){
+    let widget = document.createElement('div');
+    widget.style.textAlign = 'left';
+
+    widget.innerHTML = converter.makeHtml(data.markdown);
+
+    widget_container.classList.add('col-sm')
+    return widget;   
   }
+
 }

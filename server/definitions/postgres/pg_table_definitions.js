@@ -71,6 +71,7 @@ module.exports = function(config){
 		communities: 
 			"CREATE TABLE IF NOT EXISTS communities(\
 				id SERIAL PRIMARY KEY,\
+				nodebb_id NUMERIC UNIQUE, \
 				name VARCHAR("+config.pg.varchar_limits.communities.name+") UNIQUE NOT NULL,\
 				description TEXT,\
 				icon TEXT,\
@@ -120,6 +121,7 @@ module.exports = function(config){
 			"CREATE TABLE IF NOT EXISTS youtube_widget(\
 				id SERIAL PRIMARY KEY,\
 				community_id NUMERIC NOT NULL,\
+				bg_color VARCHAR("+config.pg.varchar_limits.widgets.bg_color+"), \
 				url TEXT NOT NULL\
 			)"
 		,
@@ -130,6 +132,8 @@ module.exports = function(config){
 			"CREATE TABLE IF NOT EXISTS twitter_widget(\
 				id SERIAL PRIMARY KEY,\
 				community_id NUMERIC NOT NULL,\
+				text_color VARCHAR("+config.pg.varchar_limits.widgets.text_color+"), \
+				bg_color VARCHAR("+config.pg.varchar_limits.widgets.bg_color+"), \
 				url TEXT NOT NULL\
 			)"
 		,
@@ -139,7 +143,21 @@ module.exports = function(config){
 		tournaments_widget:
 			"CREATE TABLE IF NOT EXISTS tournaments_widget(\
 				id SERIAL PRIMARY KEY,\
-				community_id NUMERIC NOT NULL\
+				community_id NUMERIC NOT NULL, \
+				text_color VARCHAR("+config.pg.varchar_limits.widgets.text_color+"), \
+				bg_color VARCHAR("+config.pg.varchar_limits.widgets.bg_color+") \
+			)"
+		,
+
+		/********************************************************************************/
+
+		markdown_widget:
+			"CREATE TABLE IF NOT EXISTS markdown_widget(\
+				id SERIAL PRIMARY KEY,\
+				community_id NUMERIC NOT NULL, \
+				text_color VARCHAR("+config.pg.varchar_limits.widgets.text_color+"), \
+				bg_color VARCHAR("+config.pg.varchar_limits.widgets.bg_color+"), \
+				markdown TEXT \
 			)"
 		,
 

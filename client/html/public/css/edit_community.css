@@ -1,5 +1,6 @@
 #page-content-wrapper{
 	height: calc(100vh - 65px);
+	overflow: 	auto;
 }
 
 #widget-creation-row{
