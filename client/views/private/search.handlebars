@@ -196,8 +196,8 @@
                         <td scope="col">Tags</td>
                         <td scope="col" class="extra">Description</td>                     
                         <td scope="col" class="extra">Location</td>                     
-                        <td scope="col">Start Date</td>                     
-                        <td scope="col">Signup Deadline</td>                     
+                        <td scope="col" class="extra">Start Date</td>                     
+                        <td scope="col" class="extra">Signup Deadline</td>                     
                       </tr>
                     </thead>
                     <tbody>
@@ -208,8 +208,8 @@
                         <td>{{#each tags}}<a href="/search?query_field=tournaments&tag={{this}}&active_field=tournaments">{{this}}</a>{{#unless @last}},{{/unless}}{{/each}}</td>
                         <td class="extra">{{description}}</td>
                         <td class="extra">{{location}}</td>
-                        <td><script>document.write(format_date({{start_date}},{includeTime:true}));</script></td>
-                        <td><script>document.write(format_date({{signup_deadline}},{includeTime:true}));</script></td>
+                        <td class="extra"><script>document.write(format_date({{start_date}},{includeTime:true}));</script></td>
+                        <td class="extra"><script>document.write(format_date({{signup_deadline}},{includeTime:true}));</script></td>
                       </tr>
                       {{/each}}
                     </tbody>
