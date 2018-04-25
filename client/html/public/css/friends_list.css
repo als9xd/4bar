@@ -1,10 +1,10 @@
 #friends{
-
+	height:22px;
 	width: 0;
 
 	bottom: 0;
 	left:0;
-	position:fixed;
+	position:absolute;
 	z-index: 1001;
 
 	border:0;
