@@ -160,11 +160,10 @@ module.exports = function(pg_conn){
 			    let url = decodeURIComponent(results[2].replace(/\+/g, " "));
 			    if(url){
 					pg_client.query(
-						"INSERT INTO youtube_widget (community_id,text_color,bg_color,url) "+
-						"VALUES ($1,$2,$3,$4)",
+						"INSERT INTO youtube_widget (community_id,bg_color,url) "+
+						"VALUES ($1,$2,$3)",
 						[
 							community_id,
-							data.text_color,
 							data.bg_color,
 							"https://www.youtube.com/embed/"+url
 						],
