@@ -27,8 +27,9 @@
 	content: none;
 }
 
+
 #friends-toggle{
-	display: none;
+	width: 0;
 	cursor: pointer;
 
 	color:white;
@@ -52,6 +53,10 @@
 
 #friends-toggle h5{
 	margin-bottom: 0;
+	display: none;
+}
+#friends.toggled #friends-toggle h5{
+	display: block;
 }
 
 #friends.toggled{

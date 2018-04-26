@@ -67,7 +67,7 @@ body {
   position: fixed;
   left: 250px;
   width: 0;
-  height: 100%;
+  height: calc(100% - 21px - 66px);
   margin-left: -250px;
   overflow-y: auto;
   background: #171a1c;
