@@ -12,7 +12,7 @@ $(menu_toggle).click(function(e) {
     }
 });
 
-$('html').click(function(evt){    
+$('html').on('click touchstart',function(evt){    
       if($(evt.target).parents('#page-content-wrapper').length || evt.target.id === 'page-content-wrapper' || 
           $(evt.target).parents('#navbar-wrapper').length || evt.target.id === 'navbar-wrapper' 
         ){

@@ -458,13 +458,11 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 								}
 
 								pg_conn.client.query(
-								"SELECT t.name,t.start_date,t.signup_deadline,t.location,t.description,t.id,t.community_id,communities.name as community_name,array_agg(tournament_tags.tag) as tags \
-								FROM tournament_tags,\
-									(SELECT tournaments.* FROM tournaments \
-									INNER JOIN tournament_attendees ON tournament_attendees.tournament_id = tournaments.id \
-									WHERE tournament_attendees.user_id = $1 \
-									GROUP BY tournaments.id) as t INNER JOIN communities ON communities.id = t.community_id \
-								GROUP BY t.name,t.start_date,t.signup_deadline,t.location,t.description,t.id,t.community_id,communities.name",
+									"SELECT tournaments.*,communities.id as community_id,communities.name as community_name,communities.icon as community_icon FROM tournaments \
+									INNER JOIN tournament_attendees ON tournaments.id = tournament_attendees.tournament_id \
+									INNER JOIN communities ON tournaments.community_id = communities.id \
+									WHERE tournament_attendees.user_id = $1\
+									",
 									[
 										profile_id
 									],
@@ -474,7 +472,6 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 											res.render('public/error',{error:'Could not get tournament membership information'});
 											return;
 										}
-			
 										pg_conn.client.query(
 											"SELECT 1 FROM friend_requests WHERE tx_user_id = $1 AND rx_user_id = $2 "+
 											" LIMIT 1",
