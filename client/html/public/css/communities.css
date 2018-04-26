@@ -1,11 +1,3 @@
-html{
-	height: 100vh;
-}
-
-body{
-	height: 100vh;
-}
-
 #page-content-wrapper{
 	height: calc(100vh - 65px);
 	background-size: cover;

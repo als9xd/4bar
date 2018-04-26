@@ -12,23 +12,18 @@ $(menu_toggle).click(function(e) {
     }
 });
 
-let ignore_divs = [
-  '#menu-toggle',
-  '#sidebar-wrapper',
-  '#friends',
-  '#friends-menu'
-]
-
-$('html').click(function(evt){    
-
-      for(let i = 0; i < ignore_divs.length;i++){
-       if($(evt.target).closest(ignore_divs[i]).length)
-          return;   
-      }
-      if(wrapper.hasClass("toggled")){
-        wrapper.toggleClass("toggled");
-        friends_list.toggleClass("toggled");
-        menu_toggle.css('background','transparent');            
+$('html').on('click touchstart',function(evt){    
+      if($(evt.target).parents('#page-content-wrapper').length || evt.target.id === 'page-content-wrapper' || 
+          $(evt.target).parents('#navbar-wrapper').length || evt.target.id === 'navbar-wrapper' 
+        ){
+        if(evt.target.className == 'sidebar-toggler-icon' || evt.target.id == 'menu-toggle'){
+            return;
+        }
+        if(wrapper.hasClass("toggled")){
+          wrapper.toggleClass("toggled");
+          friends_list.toggleClass("toggled");
+          menu_toggle.css('background','transparent');            
+        }
       }
 });
 

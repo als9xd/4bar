@@ -1,14 +1,27 @@
 html {
-    overflow: scroll;
-    overflow-x: hidden;
+  overflow: scroll;
+  overflow-x: hidden;
+  height: 100vh;
 }
 ::-webkit-scrollbar {
     width: 0px;  /* remove scrollbar space */
-    background: transparent;  /* optional: just make scrollbar invisible */
 }
 
 body { 
   padding-top: 65px; 
+  height: 100vh;
+}
+
+#page-content-wrapper{
+  height: 100vh;
+}
+
+.widget-delete-btn {
+  float:right;
+  display:inline-block;
+  padding: 2px 8px;
+  background:#ccc;
+  border-radius: 2px;
 }
 
 .widget-delete-btn {
