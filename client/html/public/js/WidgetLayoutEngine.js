@@ -331,11 +331,16 @@ let WidgetLayoutEngine = function(widget_ui_definitions,parent,background_parent
     if(widget_ui_definitions[widget.type]){
 
       let widget_container = __wle.build_widget_container(widget.type,widget.id);
+      widget_container.setAttribute('data-widget-z',widget.z);
       widget_container.style.backgroundColor = '#'+widget.data.bg_color;
       widget_container.style.color = '#'+widget.data.text_color;
       let widget_cell = cols[widget.x];
 
-      widget_cell.appendChild(widget_container);
+      if(widget_cell.childNodes[0] && widget_cell.childNodes[0].getAttribute('data-widget-z') <= widget.z){
+        widget_cell.appendChild(widget_container);
+      }else{
+        widget_cell.insertBefore(widget_container,widget_cell.firstChild);
+      }
 
       let widget_el = widget_ui_definitions[widget.type](widget.data,widget_container);
       widget_container.appendChild(widget_el);
