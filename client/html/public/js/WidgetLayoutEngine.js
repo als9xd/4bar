@@ -24,6 +24,7 @@ let WidgetLayoutEngine = function(widget_ui_definitions,parent,background_parent
 
   let wle_base = parent;
   wle_base.style = "min-height: 100% !important;width:100%";
+  wle_base.classList.add('container');
   wle_base.style.height = "100%";
 
   //////////////////////////////////////////////////////////////////////
@@ -53,8 +54,8 @@ let WidgetLayoutEngine = function(widget_ui_definitions,parent,background_parent
   if(settings && settings.template){
     let wle_layout_buttons_container = document.createElement('div');
     wle_layout_buttons_container.style.marginBottom = '10px';
-    wle_layout_buttons_container.classList.add('container');
     wle_layout_buttons_container.innerHTML = "Rows:";
+    wle_layout_buttons_container.classList.add('row');
     wle_base.appendChild(wle_layout_buttons_container);
 
     let wle_layout_buttons_group = document.createElement('div');
@@ -92,6 +93,7 @@ let WidgetLayoutEngine = function(widget_ui_definitions,parent,background_parent
   //////////////////////////////////////////////////////////////////////  
 
   let wle_layout_container = document.createElement('div');
+
   wle_layout_container.style.height = "100%";
   wle_layout_container.style.minHeight = "100%";
   wle_layout_container.style.position = "relative";
@@ -121,11 +123,18 @@ let WidgetLayoutEngine = function(widget_ui_definitions,parent,background_parent
   wle_layout_container.appendChild(wle_layout_background);
 
   let wle_layout_holder = document.createElement('div');
+  wle_layout_holder.classList.add('wle-layout-holder');
+
   wle_layout_holder.style = 'transform: translate(-50%,0);';
   wle_layout_holder.style.position = 'absolute';
   wle_layout_holder.style.top = '20px';
   wle_layout_holder.style.left = '50%';
-  wle_layout_holder.style.width = '100%';
+  if(typeof settings !== 'undefined' && settings.template){
+    wle_layout_holder.style.width = 'calc(100% - 15px)';
+  }else{
+    wle_layout_holder.style.width = '100%';
+  }
+  
   wle_layout_container.appendChild(wle_layout_holder);
 
   //////////////////////////////////////////////////////////////////////
@@ -138,7 +147,7 @@ let WidgetLayoutEngine = function(widget_ui_definitions,parent,background_parent
         copy: false
       }
     ).on('drop',function(el,container){
-      __wle.widgets.push(el);
+      // __wle.widgets.push(el);
     });
 
     drake.containers.push(wle_available_holder);
@@ -150,20 +159,29 @@ let WidgetLayoutEngine = function(widget_ui_definitions,parent,background_parent
 
   __wle.add_column = function(row){
     let new_col = document.createElement('div');
+    new_col.classList.add('wle-column');
 
     new_col.style.minHeight = "100px";
     new_col.style.float = "left";
     new_col.style.borderRadius = "10px";
-    new_col.style.padding = "10px";
-    new_col.style.marginRight = "10px";
+    new_col.style.padding = "2px";
+    new_col.style.marginTop = '10px';
+
+    if(row.childNodes.length){
+      new_col.style.marginLeft = '2px';      
+      new_col.style.marginRight = '2px';      
+    }else{
+      new_col.style.marginLeft = '2px';      
+      new_col.style.marginRight = '2px';      
+    }
+
+    new_col.classList.add('col-sm');
 
     if(settings && settings.template){
       new_col.style.border = "thin solid #ccc";
     }
     row.appendChild(new_col);
-    for(let i = 0; i < row.childNodes.length;i++){
-      row.childNodes[i].style.width = "calc("+(Math.floor(100/row.childNodes.length))+"% - 10px)";
-    }
+
     if(settings && settings.template){
       drake.containers.push(new_col);
     }
@@ -177,17 +195,18 @@ let WidgetLayoutEngine = function(widget_ui_definitions,parent,background_parent
       for(let i = 0; i < last_col_widgets.length;i++){
         wle_available_holder.appendChild(last_col_widgets[i]);
       }
-      row.removeChild(row.lastChild);
-      for(let i = 0; i < row.childNodes.length;i++){
-        row.childNodes[i].style.width = "calc("+(Math.floor(100/row.childNodes.length))+"% - 10px)";
-      }           
+      row.removeChild(row.lastChild);          
     }
   }
 
    __wle.add_row = function(){
     let new_widgets_row = __wle.build_widgets_row();
     new_widgets_row.setAttribute('data-row-index',__wle.rows.length);
-    new_widgets_row.style.marginLeft = "10px";
+    new_widgets_row.classList.add('row');
+    if(typeof settings !== 'undefined' && settings.template){
+      new_widgets_row.style.marginLeft = '15px';
+      new_widgets_row.style.marginRight = '15px';
+    }
 
     if(settings && settings.template){
       let new_buttons_row = __wle.build_buttons_row(new_widgets_row);
@@ -256,7 +275,9 @@ let WidgetLayoutEngine = function(widget_ui_definitions,parent,background_parent
   });
 
   __wle.build_widget_container = function(type,id){
+
     let widget_container = document.createElement('div');
+    widget_container.classList.add('wle-widget');
 
     if(settings && settings.template){
       let delete_btn = document.createElement('span');
@@ -310,11 +331,18 @@ let WidgetLayoutEngine = function(widget_ui_definitions,parent,background_parent
 
   __wle.build_widget = function(widget){
     let rows = [];
+    let child_rows = [];
+    for(let i = 0;i < wle_layout_holder.children.length;i++){
+      if(wle_layout_holder.children[i].getAttribute('data-row-index')){
+        child_rows.push(wle_layout_holder.children[i]);
+      }
+    }
+
     for(let y = 0; y <= widget.y;y++){
-      let row = wle_layout_holder.children[y];
+      let row = child_rows[y];
       if(row && row.getAttribute('data-row-index')){
         rows.push(row);
-      }else{
+      }else{ 
         rows.push(__wle.add_row(wle_layout_holder));
       }
     }
@@ -334,7 +362,6 @@ let WidgetLayoutEngine = function(widget_ui_definitions,parent,background_parent
       widget_container.style.backgroundColor = '#'+widget.data.bg_color;
       widget_container.style.color = '#'+widget.data.text_color;
       let widget_cell = cols[widget.x];
-
       widget_cell.appendChild(widget_container);
 
       let widget_el = widget_ui_definitions[widget.type](widget.data,widget_container);
@@ -345,27 +372,34 @@ let WidgetLayoutEngine = function(widget_ui_definitions,parent,background_parent
 
   __wle.summarize_template = function(){
     let summary = [];
-    let unique_widgets = __wle.widgets.filter(function(item, i, ar){ return ar.indexOf(item) === i; });
-    for(let i = 0; i < unique_widgets.length;i++){
-      let widget_el = unique_widgets[i];
-      let container = widget_el.parentNode;
-      let row_index;
-      for(let y in __wle.rows){
-        if(container.parentNode == rows[y]){
-          row_index = y;
+
+    let child_rows = [];
+    for(let i = 0;i < wle_layout_holder.childNodes.length;i++){
+      let y = wle_layout_holder.children[i].getAttribute('data-row-index');
+      if(y !== null){
+        let row = wle_layout_holder.children[i];
+        for(let x = 0; x < row.childNodes.length;x++){
+          if(row.childNodes[x].classList.contains('wle-column')){
+            let column = row.childNodes[x];
+            for(let z = 0; z < column.childNodes.length;z++){
+              if(column.childNodes[z].classList.contains('wle-widget')){
+                let widget = column.childNodes[z];
+                summary.push({
+                  y: y,
+                  x: x,
+                  z: z,
+                  x_length: row.childNodes.length,
+                  z_length: column.childNodes.length,
+                  id: widget.getAttribute('data-widget-id'),
+                  type: widget.getAttribute('data-widget-type')
+                });
+              }
+            }
+          }
         }
       }
-      let widget = {
-        y: Number(row_index),
-        x: Number([].indexOf.call(container.parentNode.children, container)),
-        z: Number([].indexOf.call(container.children, widget_el)),
-        x_length: Number(container.parentNode.children.length),
-        z_length: Number(container.children.length),
-        id: Number(widget_el.getAttribute('data-widget-id')),
-        type: widget_el.getAttribute('data-widget-type')
-      }
-      summary.push(widget);
     }
+
     return summary;
   }
 

@@ -1192,7 +1192,7 @@ module.exports = function(config,pg_conn,uuidv1,nodebb_conn){
 											}
 											if(notification){
 												socket.emit('notification',notification);
-											}	
+											}
 										});
 									}else{
 										socket.emit('notification',{error:"Unknown widget type \'"+layout[i].type+"\'"})
@@ -1200,6 +1200,7 @@ module.exports = function(config,pg_conn,uuidv1,nodebb_conn){
 								}
 							}
 						}
+						socket.emit('widgets_req_status',{status:true});
 					}
 				);		
 			});			
@@ -1329,6 +1330,7 @@ module.exports = function(config,pg_conn,uuidv1,nodebb_conn){
 							if(notification){
 								socket.emit('notification',notification);
 							}
+							socket.emit('available_widgets_status',{status:true});
 						});
 					}else{
 						socket.emit('notification',{error:"Unknown widget type \'"+widget_type+"\'"});
