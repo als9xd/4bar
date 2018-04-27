@@ -3,17 +3,15 @@ $('a[data-toggle="tab"]').on( 'shown.bs.tab', function (e) {
     let table = $('#'+e.target.getAttribute('data-table-id')).closest('.results-table')[0];
     table.style.display = 'block';
 
-    updateQueryStringParam("active_field",e.target.getAttribute('data-table-id').substring(0, e.target.getAttribute('data-table-id').length - '-table'.length));
+    let active_field = e.target.getAttribute('data-table-id').substring(0, e.target.getAttribute('data-table-id').length - '-table'.length);
+    updateQueryStringParam("active_field",active_field);
+    $('input[name="active_field"').val(active_field);
 
     $.fn.dataTable.tables( {visible: true, api: true} ).columns.adjust();
 } );
 
 $(document).ready(function () {
     let active_field = getUrlParameter('active_field');
-
-    if(typeof active_field === 'undefined' && window.location.pathname !== '/profile'){
-      active_field = 'communities';
-    }
 
     $('a[data-table-id="'+active_field+'-table"]').click();
 
@@ -37,5 +35,9 @@ $(document).ready(function () {
           scrollTop: $('a[data-table-id="'+active_field+'-table"]').offset().top},
           'slow');
     }
+
+    let active_field_query = $("<input>").attr("type","hidden").attr("name","active_field").val('communities');
+
+    $('form[action="/search"]').append($(active_field_query));
 });
 
