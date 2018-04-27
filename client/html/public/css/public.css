@@ -6,6 +6,7 @@ html {
 ::-webkit-scrollbar {
     width: 0px;  /* remove scrollbar space */
 }
+
 body { 
   padding-top: 65px; 
   height: 100vh;
@@ -13,6 +14,14 @@ body {
 
 #page-content-wrapper{
   height: 100vh;
+}
+
+.widget-delete-btn {
+  float:right;
+  display:inline-block;
+  padding: 2px 8px;
+  background:#ccc;
+  border-radius: 2px;
 }
 
 .widget-delete-btn {

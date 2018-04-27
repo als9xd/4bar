@@ -7,6 +7,6 @@
 }
 
 #map {
-	min-width: 500px;
+	min-width: 100%;
 	min-height: calc(100% - 65px);
 }

@@ -418,10 +418,6 @@
     <!-- Load Booststrap -->
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script>
 
-    <!-- Request avaiable widgets from server -->
-    <script type="text/javascript">
-      socket.emit('available_widgets_req','{{community_data.id}}');
-    </script>
 
     <!-- Upload files -->
     <script src="/js/socket.io-file-client.js"></script>
@@ -550,8 +546,9 @@
         }
       );
 
-      socket.on('available_widgets_res',
-        function(widget){
+     socket.on('available_widgets_res',
+      function(widget){
+        if(!document.querySelector('[data-widget-id="'+widget.id+'"]')){
           wle.add_available_widget(
             {
               type:widget.type,
@@ -560,7 +557,18 @@
             }
           );
         }
-      );  
+      }
+    ); 
+
+      socket.emit('widgets_req','{{community_data.id}}');
+      socket.on('widgets_res',function (widget_data) {
+          wle.build_widget(widget_data);
+      }); 
+      socket.on('widgets_req_status',function(data){
+        if(typeof data !== 'undefined' && data.status === true){
+          socket.emit('available_widgets_req','{{community_data.id}}');         
+        }
+      });
     </script>
 
     <script>
