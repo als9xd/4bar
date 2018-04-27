@@ -13,7 +13,7 @@ body {
 }
 
 #page-content-wrapper{
-  height: 100vh;
+  height: calc(100vh - 66px);
 }
 
 .widget-delete-btn {
