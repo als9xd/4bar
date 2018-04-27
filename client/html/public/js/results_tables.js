@@ -30,14 +30,10 @@ $(document).ready(function () {
       "responsive" : true
     }); 
 
-    if(typeof active_field !== 'undefined' && window.location.pathname === '/profile'){
+    if(getUrlParameter('scroll_to_table') === 'true'){
       $('html,body').animate({
           scrollTop: $('a[data-table-id="'+active_field+'-table"]').offset().top},
           'slow');
     }
-
-    let active_field_query = $("<input>").attr("type","hidden").attr("name","active_field").val('communities');
-
-    $('form[action="/search"]').append($(active_field_query));
 });
 
