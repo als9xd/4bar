@@ -501,9 +501,23 @@ module.exports = function(config,pg_conn,uuidv1,nodebb_conn){
 																		return;
 																	}
 
-																	// 'name' is used to differentiate between file upload success messages so that we can upload files after the tournament has been successfully submitted
-																	socket.emit('notification',{success: 'Successfully created and joined tournament'});
-																	socket.emit('tournament_creation_status',{status:true,new_tournament_id:tournament_id.rows[0].id});
+																	let date = Date.now();
+
+																	pg_conn.client.query(
+																		"UPDATE communities SET last_activity = $1 WHERE id = $2",
+																		[
+																			date,
+																			data.community_id
+																		],function(err){
+																			if(err){
+																				console.log(err);
+																				socket.emit('notification',{error:'Could not update last activity'});
+																				return;
+																			}
+																			socket.emit('notification',{success: 'Successfully created and joined tournament'});
+																			socket.emit('tournament_creation_status',{status:true,new_tournament_id:tournament_id.rows[0].id});																	
+																		}
+																	);
 																}
 															);
 														}

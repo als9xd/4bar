@@ -194,7 +194,7 @@
                       <td><a href="/communities?id={{id}}"><h6>{{name}}</h6></a></td>
                       <td>{{#each tags}}<a href="/search?query_field=communities&tag={{this}}&active_field=communities">{{this}}</a>{{#unless @last}},{{/unless}}{{/each}}</td>
                       <td id='community-creation-date'></td>
-                      <td id='community-last-activity'></script></td>
+                      <td id='community-last-activity'></td>
                       <td>{{num_members}}</td>
                       <td>{{description}}</td>
                     </tr>
@@ -204,7 +204,7 @@
                       creation_date.removeAttribute('id');
 
                       last_activity = document.getElementById('community-last-activity');
-                      last_activity.innerHTML = format_date({{last_activity}});
+                      last_activity.innerHTML = getTimeDifference({{last_activity}});
                       last_activity.removeAttribute('id');
                     </script>
                     {{/each}}

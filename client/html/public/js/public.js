@@ -77,3 +77,27 @@ var updateQueryStringParam = function (key, value) {
     }
     window.history.replaceState({}, "", baseUrl + params);
 };
+
+function getTimeDifference(old_date){
+
+  let msMinute = 60*1000;
+  let msHour = 60*60*1000;
+  let msDay = 60*60*24*1000;
+
+  let new_date = Date.now();
+
+  let elapsed_min = Math.floor(((new_date - old_date) % msDay) / msMinute);
+  let elapsed_hours = Math.floor(((new_date - old_date) % msDay) / msHour);
+  let elapsed_days = Math.floor((new_date - old_date) / msDay);
+
+  if(elapsed_min === 0){
+    return 'just now';        
+  }else if(elapsed_hours === 0){
+    return elapsed_min+' minute'+(elapsed_min > 1 ? 's':'')+' ago';
+  }
+  else if(elapsed_days === 0){
+    return elapsed_hours+' hour'+(elapsed_hours > 1 ? 's':'')+' ago';
+  }else{
+    return elapsed_min+' days'+(elapsed_min > 1 ? 's':'')+' ago';        
+  }
+};
