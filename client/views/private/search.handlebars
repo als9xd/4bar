@@ -179,10 +179,10 @@
                       <td scope="col" class="empty"></td>
                       <td scope="col">Name</td>
                       <td scope="col">Tags</td>
-                      <td scope="col">Description</td>
                       <td scope="col">Creation Date</td>
                       <td scope="col">Last Activity</td>
                       <td scope="col">Members</td>
+                      <td scope="col">Description</td>
                     </tr>
                   </thead>
                   <tbody>
@@ -191,10 +191,10 @@
                       <td><img src="{{#if icon includeZero=true}}/icons/{{{icon}}}{{else}}/site/no-icon.jpg{{/if}}" class="community-icon"></td>
                       <td><a href="/communities?id={{id}}"><h6>{{name}}</h6></a></td>
                       <td>{{#each tags}}<a href="/search?query_field=communities&tag={{this}}&active_field=communities">{{this}}</a>{{#unless @last}},{{/unless}}{{/each}}</td>
-                      <td>{{description}}</td>
                       <td id='community-creation-date'></td>
                       <td id='community-last-activity'></script></td>
                       <td>{{num_members}}</td>
+                      <td>{{description}}</td>
                     </tr>
                     <script>
                       creation_date = document.getElementById('community-creation-date');
@@ -217,10 +217,10 @@
                       <td scope="col">Host Community</td>
                       <td scope="col">Name</td>
                       <td scope="col">Tags</td>
-                      <td scope="col">Description</td>                     
                       <td scope="col">Location</td>                     
                       <td scope="col">Start Date</td>                     
                       <td scope="col">Signup Deadline</td>                     
+                      <td scope="col">Description</td>                     
                     </tr>
                   </thead>
                   <tbody>
@@ -229,10 +229,10 @@
                       <td><a href="/communities?id={{community_id}}"><h6>{{community_name}}</h6></a></td>
                       <td><a href="/tournaments?id={{id}}"><h6>{{name}}</h6></a></td>
                       <td>{{#each tags}}<a href="/search?query_field=tournaments&tag={{this}}&active_field=tournaments">{{this}}</a>{{#unless @last}},{{/unless}}{{/each}}</td>
-                      <td>{{description}}</td>
                       <td>{{location}}</td>
                       <td id='tournaments-start-date'></td>
                       <td id='tournaments-signup-deadline'></td>
+                      <td>{{description}}</td>
                     </tr>
                     <script>
                       start_date = document.getElementById('tournaments-start-date');
