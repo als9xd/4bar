@@ -1,76 +1,41 @@
-$(document).ready(function($) {
+$('a[data-toggle="tab"]').on( 'shown.bs.tab', function (e) {
+    $('.results-table').css('display','none');
+    let table = $('#'+e.target.getAttribute('data-table-id')).closest('.results-table')[0];
+    table.style.display = 'block';
 
-    let table_titles = $('.search-results-table-title');
+    updateQueryStringParam("active_field",e.target.getAttribute('data-table-id').substring(0, e.target.getAttribute('data-table-id').length - '-table'.length));
 
-    let tables = {};
+    $.fn.dataTable.tables( {visible: true, api: true} ).columns.adjust();
+} );
 
-    for(let i = 0; i < table_titles.length;i++){
-      tables[table_titles[i].id] = document.getElementById(table_titles[i].getAttribute('data-toggle'));
+$(document).ready(function () {
+    let active_field = getUrlParameter('active_field');
+
+    if(typeof active_field === 'undefined' && window.location.pathname !== '/profile'){
+      active_field = 'communities';
     }
 
-    $('html').on('click',function(evt){    
-  
-      if($(evt.target).closest('.search-results-table').length){
-        return;       
-      }  
+    $('a[data-table-id="'+active_field+'-table"]').click();
 
-      for(let i = 0; i < table_titles.length;i++){
-        if($(table_titles[i]).attr('id') !== evt.target.id ){
-            table_titles[i].style.background = '#292b2c';
-            let table = document.getElementById(table_titles[i].getAttribute('data-toggle'));
-            if(table){
-              table_titles[i].parentElement.removeChild(
-                table
-              );
-            }
-            table_titles[i].parentElement.classList.remove('col-sm');
-            table_titles[i].parentElement.classList.add('disabled-col');
-        }else{
-            table_titles[i].style.background = 'rgba(0,0,0,0.7)';
-            table_titles[i].parentElement.appendChild(tables[table_titles[i].id]);
-            table_titles[i].parentElement.classList.remove('disabled-col');
-            table_titles[i].parentElement.classList.add('col-sm');
-            $(tables[table_titles[i].id]).find('.extra').css('display','table-cell');
-        }
-      }
+    $('#communities-table').DataTable({
+      "searching" : false,
+      "responsive" : true
+    });    
 
-      if($(evt.target).closest('#search-results-container').length){
-        return;       
-      }
+    $('#tournaments-table').DataTable({
+      "searching" : false,
+      "responsive" : true
+    });    
 
-      for(let i = 0; i < table_titles.length;i++){
-        table_titles[i].style.background = '#292b2c';
-        table_titles[i].parentElement.appendChild(tables[table_titles[i].id]);
-        table_titles[i].parentElement.classList.remove('disabled-col');
-        table_titles[i].parentElement.classList.add('col-sm');
-        $(tables[table_titles[i].id]).find('.extra').css('display','none');
-      }
+    $('#users-table').DataTable({
+      "searching" : false,
+      "responsive" : true
+    }); 
 
-    });
-
-
+    if(typeof active_field !== 'undefined' && window.location.pathname === '/profile'){
+      $('html,body').animate({
+          scrollTop: $('a[data-table-id="'+active_field+'-table"]').offset().top},
+          'slow');
+    }
 });
 
-let __getUrlParametergetUrlParameter = function getUrlParameter(sParam) {
-    let sPageURL = decodeURIComponent(window.location.search.substring(1)),
-        sURLVariables = sPageURL.split('&'),
-        sParameterName,
-        i;
-
-    for (i = 0; i < sURLVariables.length; i++) {
-        sParameterName = sURLVariables[i].split('=');
-
-        if (sParameterName[0] === sParam) {
-            return sParameterName[1] === undefined ? true : sParameterName[1];
-        }
-    }
-};
-
-window.addEventListener('load',
-  function(){
-    let query_table = document.getElementById(__getUrlParametergetUrlParameter('active_field')+'-title');
-    if(query_table){
-      query_table.click();
-    }
-  }
-);

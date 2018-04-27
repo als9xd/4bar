@@ -19,6 +19,9 @@
     <link rel="stylesheet" href="/css/public.css">
     <link rel="stylesheet" href="/css/sidebar.css">
     <link rel="stylesheet" href="/css/friends_list.css">
+
+    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.2.1/css/responsive.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.16/css/dataTables.bootstrap4.min.css">
     <link rel="stylesheet" href="/css/results_tables.css">
 
     <!-- Set SSO cookie for nodebb  -->
@@ -154,90 +157,118 @@
       <div id="page-content-wrapper">
           
           <div class="container-fluid">
-              <h1 class="ml-auto">Search Results</h1>
-              <hr/>
-              <div class="row" id="search-results-container">
-                <div class="col-sm search-results-column" id="communities-column">
-                  <h5 class="search-results-table-title thead-invert" data-toggle="communities-table" id="communities-title">Communities</h5>
-                  <table class="table table-striped table-hover search-results-table" id="communities-table">
-                    <thead>
-                      <tr>
-                        <td scope="col" class="empty"></td>
-                        <td scope="col">Name</td>
-                        <td scope="col">Tags</td>
-                        <td scope="col" class="extra">Description</td>
-                        <td scope="col" class="extra">Creation Date</td>
-                        <td scope="col" class="extra">Last Activity</td>
-                        <td scope="col" class="extra">Members</td>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {{#each results.communities}}
-                      <tr class="clickable-row" data-href="/communities?id={{id}}">
-                        <td><img src="{{#if icon includeZero=true}}/icons/{{{icon}}}{{else}}/site/no-icon.jpg{{/if}}" class="community-icon"></td>
-                        <td><h6>{{name}}</h6></td>
-                        <td>{{#each tags}}<a href="/search?query_field=communities&tag={{this}}&active_field=communities">{{this}}</a>{{#unless @last}},{{/unless}}{{/each}}</td>
-                        <td class="extra">{{description}}</td>
-                        <td class="extra"><script>document.write(format_date({{creation_date}}));</script></td>
-                        <td class="extra"><script>document.write(format_date({{last_activity}}));</script></td>
-                        <td class="extra">{{num_members}}</td>
-                      </tr>
-                      {{/each}}
-                    </tbody>
-                  </table>
-                </div>
-                <div class="col-sm search-results-column" id="tournaments-column">
-                  <h5 class="search-results-table-title" data-toggle="tournaments-table" id="tournaments-title">Tournaments</h5>
-                  <table class="table table-striped table-hover search-results-table" id="tournaments-table">
-                    <thead>
-                      <tr>
-                        <td scope="col">Host Community</td>
-                        <td scope="col">Name</td>
-                        <td scope="col">Tags</td>
-                        <td scope="col" class="extra">Description</td>                     
-                        <td scope="col" class="extra">Location</td>                     
-                        <td scope="col" class="extra">Start Date</td>                     
-                        <td scope="col" class="extra">Signup Deadline</td>                     
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {{#each results.tournaments}}
-                      <tr class="clickable-row" data-href="/tournaments?id={{id}}">
-                        <td><a href="/communities?id={{community_id}}"><h7>{{community_name}}</h7></a></td>
-                        <td><h7>{{name}}</h7></td>
-                        <td>{{#each tags}}<a href="/search?query_field=tournaments&tag={{this}}&active_field=tournaments">{{this}}</a>{{#unless @last}},{{/unless}}{{/each}}</td>
-                        <td class="extra">{{description}}</td>
-                        <td class="extra">{{location}}</td>
-                        <td class="extra"><script>document.write(format_date({{start_date}},{includeTime:true}));</script></td>
-                        <td class="extra"><script>document.write(format_date({{signup_deadline}},{includeTime:true}));</script></td>
-                      </tr>
-                      {{/each}}
-                    </tbody>
-                  </table>
-                </div>
-                <div class="col-sm search-results-column" id="users-column">
-                  <h5 class="search-results-table-title" data-toggle="users-table" id="users-title">Users</h5>
-                  <table class="table table-striped table-hover search-results-table" id="users-table">
-                    <tbody>
-                    <thead>
-                      <tr>
-                        <td scope="col" class="empty"></td>
-                        <td scope="col">Username</td>
-                        <td scope="col">Name</td>
-                        <td scope="col" class="extra">Email</td>
-                      </tr>
-                    </thead>
-                      {{#each results.users}}
-                      <tr class="clickable-row" data-href="/profile?id={{id}}">
-                        <td><img src="{{#if avatar includeZero=true}}/avatars/{{{avatar}}}{{else}}/site/no-avatar.jpg{{/if}}" class="profile-avatar"></td>
-                        <td><h6>{{username}}</h6></td>
-                        <td>{{name}}</td>
-                        <td class="extra">{{email}}</td>
-                      </tr>
-                      {{/each}}
-                    </tbody>
-                  </table>
-                </div>
+            <div class="row">
+              <ul class="nav nav-tabs">
+                <li class="nav-item">
+                  <a class="nav-link" data-toggle="tab" data-table-id="communities-table" href="">Communities</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" data-toggle="tab" data-table-id="tournaments-table" href="">Tournaments</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" data-toggle="tab" data-table-id="users-table" href="">Users</a>
+                </li>
+              </ul>
+            </div>
+
+            <div class="row mt-4">
+              <div class="col-sm results-table">
+                <table id="communities-table" class="table table-striped table-bordered display nowrap" cellspacing="0" width="100%">
+                  <thead>
+                    <tr>
+                      <td scope="col" class="empty"></td>
+                      <td scope="col">Name</td>
+                      <td scope="col">Tags</td>
+                      <td scope="col">Creation Date</td>
+                      <td scope="col">Last Activity</td>
+                      <td scope="col">Members</td>
+                      <td scope="col">Description</td>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {{#each results.communities}}
+                    <tr>
+                      <td><img src="{{#if icon includeZero=true}}/icons/{{{icon}}}{{else}}/site/no-icon.jpg{{/if}}" class="community-icon"></td>
+                      <td><a href="/communities?id={{id}}"><h6>{{name}}</h6></a></td>
+                      <td>{{#each tags}}<a href="/search?query_field=communities&tag={{this}}&active_field=communities">{{this}}</a>{{#unless @last}},{{/unless}}{{/each}}</td>
+                      <td id='community-creation-date'></td>
+                      <td id='community-last-activity'></script></td>
+                      <td>{{num_members}}</td>
+                      <td>{{description}}</td>
+                    </tr>
+                    <script>
+                      creation_date = document.getElementById('community-creation-date');
+                      creation_date.innerHTML = format_date({{creation_date}});
+                      creation_date.removeAttribute('id');
+
+                      last_activity = document.getElementById('community-last-activity');
+                      last_activity.innerHTML = format_date({{last_activity}});
+                      last_activity.removeAttribute('id');
+                    </script>
+                    {{/each}}
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="col-sm results-table">
+                <table id="tournaments-table" class="table table-striped table-bordered display nowrap" cellspacing="0" width="100%">
+                  <thead>
+                    <tr>
+                      <td scope="col">Name</td>
+                      <td scope="col">Host Community</td>
+                      <td scope="col">Tags</td>
+                      <td scope="col">Location</td>                     
+                      <td scope="col">Start Date</td>                     
+                      <td scope="col">Signup Deadline</td>                     
+                      <td scope="col">Description</td>                     
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {{#each results.tournaments}}
+                    <tr>
+                      <td><a href="/tournaments?id={{id}}"><h6>{{name}}</h6></a></td>
+                      <td><a href="/communities?id={{community_id}}"><h6>{{community_name}}</h6></a></td>
+                      <td>{{#each tags}}<a href="/search?query_field=tournaments&tag={{this}}&active_field=tournaments">{{this}}</a>{{#unless @last}},{{/unless}}{{/each}}</td>
+                      <td>{{location}}</td>
+                      <td id='tournaments-start-date'></td>
+                      <td id='tournaments-signup-deadline'></td>
+                      <td>{{description}}</td>
+                    </tr>
+                    <script>
+                      start_date = document.getElementById('tournaments-start-date');
+                      start_date.innerHTML = format_date({{start_date}});
+                      start_date.removeAttribute('id');
+
+                      signup_deadline = document.getElementById('tournaments-signup-deadline');
+                      signup_deadline.innerHTML = format_date({{signup_deadline}});
+                      signup_deadline.removeAttribute('id');
+                    </script>
+                    {{/each}}
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="col-sm results-table">
+                <table id="users-table" class="table table-striped table-bordered display nowrap" cellspacing="0" width="100%">
+                  <thead>
+                    <tr>
+                      <td scope="col" class="empty"></td>
+                      <td scope="col">Username</td>
+                      <td scope="col">Name</td>
+                      <td scope="col">Email</td>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {{#each results.users}}
+                    <tr>
+                      <td><img src="{{#if avatar includeZero=true}}/avatars/{{{avatar}}}{{else}}/site/no-avatar.jpg{{/if}}" class="profile-avatar"></td>
+                      <td><a href="/profile?id={{id}}"><h6>{{username}}</h6></a></td>
+                      <td>{{name}}</td>
+                      <td>{{email}}</td>
+                    </tr>
+                    {{/each}}
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>
@@ -283,17 +314,10 @@
     <!-- Menu Toggle Script -->
     <script src="/js/Sidebar.js"></script>
 
-    <!-- Make rows clickable -->
-    <script type="text/javascript">
-      $(document).ready(function($) {
-          $(".clickable-row").css('cursor','pointer');
-          $(".clickable-row").click(function() {
-              window.location = $(this).data("href");
-          });
-      });
-    </script>
-
-    <!-- Disable other search results columns -->
+    <!-- Results tables -->
+    <script type="text/javascript" src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.10.16/js/dataTables.bootstrap4.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/responsive/2.2.1/js/dataTables.responsive.min.js"></script>
     <script type="text/javascript" src="js/results_tables.js"></script>
 
   </body>
