@@ -79,7 +79,7 @@ var updateQueryStringParam = function (key, value) {
 };
 
 function getTimeDifference(old_date){
-
+  
   let msMinute = 60*1000;
   let msHour = 60*60*1000;
   let msDay = 60*60*24*1000;

@@ -24,14 +24,6 @@ body {
   border-radius: 2px;
 }
 
-.widget-delete-btn {
-  float:right;
-  display:inline-block;
-  padding: 2px 8px;
-  background:#ccc;
-  border-radius: 2px;
-}
-
 .site-icon{
   margin-right:5px;
 }
