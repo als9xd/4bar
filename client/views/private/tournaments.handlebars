@@ -21,6 +21,8 @@
     <link rel="stylesheet" href="/css/friends_list.css">
     <link rel="stylesheet" href="/css/results_tables.css">
 
+    <link rel="stylesheet" href="/css/jquery.bracket.min.css">
+
     <!-- Set SSO cookie for nodebb  -->
     <script>
       document.cookie = "nodebb={{nodebb.token}}; Path=/; domain=."+window.location.hostname;
@@ -79,6 +81,11 @@
             {{#if c_edit_privileges}}
             <li class="nav-item">
               <a class="nav-link" href="/tournament_creation?id={{community_data.id}}" data-toggle="tooltip" data-placement="bottom" title="Tournament Creation"><img src="/site/trophy.png" class="navbar-icon"></a>
+            </li>
+            {{/if}}
+            {{#if t_edit_privileges}}
+            <li class="nav-item">
+              <a class="nav-link" href="/match_creation?id={{tournament_data.id}}" id="match-creation-icon" data-toggle="tooltip" data-placement="bottom" title="Match Creation"><img src="/site/swords.png" class="navbar-icon"></a>
             </li>
             {{/if}}
             <li class="nav-item">
@@ -182,8 +189,11 @@
             <hr/>
             <button onclick="GenerateTournament()">Generate Tournament Brackets</button> <!--Make button only show up when no rows exist with tournament_id (when coms is empty).-->
             <div class="Tournament_bracket"></div>
-          </div>
-      </div>
+
+            <div id="doubleElimination">
+
+            <div class="demo"></div>
+
       <!-- /Page Content -->
     </div>
     <!-- /Main Wrapper -->
@@ -255,158 +265,30 @@
 
     </script>
 
-    <!-- Bracket Building -->
+    <script type="text/javascript" src="/js/jquery.bracket.min.js">
+    </script>
     <script type="text/javascript">
-    var tournament_ID = Number("{{tournament_data.id}}");
-    var tournament_brackets = socket.emit('get_brackets',{
-        tournament_ID
-        }).bracket_nodes;
-    if (typeof tournament_brackets == 'undefined'){
-      tournament_brackets = [];
-    }
-    //console.log(typeof tournament_ID);
-    var tournament_participants = socket.emit('get_participants',{
-        tournament_ID
-        }).participants;
-    if (typeof tournament_participants == 'undefined'){
-      tournament_participants = [];
-    }
-    $( ".Tournament_bracket" ).append(Display_Brackets(tournament_brackets,null)); //Use jQuery to append html element with already generated brackets  
 
-    function GenerateTournament()
-    {
-      var nodes = tournament_brackets;
-      var teams = tournament_participants;
-      //Should remove entries in forest table with tournament_id. But for the time being it won't.
-      //Just returns if brackets already exist for this tournament.
-      if(nodes.length>0 || teams.length == 0){
-        return;
-      }
-      //Get number of teams
-      var teamNum = teams.length;
-      var Depth = Math.floor(Math.log(teamNum));
-      generate_tree(null, Depth, nodes, teams);
-      //leafNodes = list of teams in forest with tournament_id
-      var leafNodes = socket.emit('get_bracket_nodes',{
-          tournament_ID
-        }).bracket_nodes;
-      //RemainingTeams = list of teams not in tournament and not in forest.
-      var RemainingTeams = [];
-      var allTeams; //all teams present in leafNodes
-      for(let c in leafNodes){
-        if(leafNodes[c].player_id !=null && allTeams.indexOf(leafNodes[c].player_id)<0/*leafNode[c].player not in allTeams*/){
-          allTeams+=leafNodes[c].player_id;
-        }
-      }
-      for(let t in teams){
-        var found = false;
-        for(let s in allTeams){
-          if(teams[t].user_id == allTeams[s]){
-            found = true;
-          }
-        }
-        if(found==false){
-          RemainingTeams+=teams[t].user_id;
-        }
-      }
-      for(let team in remainingTeams){
-        //Retrieve random leafNode and edit the player to be Null
-        var randNode = leafNodes[Math.floor(Math.random() * leafNodes.length)];
-        socket.emit('update_bracket_node',{ //update row to have null player_id
-          node_id: data.id,
-          player_id: null
-        });
-        //Save a new node with previous leafNode node as parent and leafNode player as player.
-        socket.emit('add_bracket_node',{ //Adds row to table
-          tournament_id : tournament_ID,
-          parent_id: randNode.id,
-          player_id: randNode.player_id
-        });
-        //Save a new node with previous leafNode node as parent and team as player.
-        socket.emit('add_bracket_node',{ //Adds row to table
-          tournament_id : tournament_ID,
-          parent_id: randNode.id,
-          player_id: remainingTeams[team]
-        });
-        //remove leafNode node from leafNode list.
-        var index = leafNodes.indexOf(randNode);
-        if (index > -1) {
-           leafNodes.splice(index, 1);
-        }
-      }
-      nodes = socket.emit('get_bracket_nodes',{
-        tournament_ID
-      }).bracket_nodes;
-      ($Tournament_bracket).append(Display_Brackets(nodes,null)); //Use jQuery to append html element with id == Tournament_bracket with the generated tree.
-      return;
+    let teams = [];
+
+    {{#each matches}}
+    teams.push([{{match_teams}}]);
+    for(let i = 0; i < teams[teams.length - 1].length; i++){
+      if(teams[teams.length - 1][i].length === 0){
+        teams[teams.length - 1][i] = 'No team name';
+      }      
     }
-    function generate_tree(parent, Depth, nodes, teams)
-    {
-      if (teams.length == 0){
-      return;
+    {{/each}}
+    console.log(teams);
+    var doubleEliminationData = {
+        teams : teams,
+        results : [[[1,2],[3,4]],[[5,6],[7,8]]]
       }
-      var allTeams; //all teams present in nodes
-      var notIncluded; //all teams not present in nodes
-      for(let c in nodes){
-        if(nodes[c].player_id !=null && allTeams.indexOf(nodes[c].player_id)<0/*cams[c].player not in allTeams*/){
-          allTeams+=nodes[c].player;
-        }
-      }
-      if(Depth==0){
-        //Save a new node with random player (from list of teams in tournament and not in forest)
-        for(let t in teams){
-          var found = false;
-          for(let s in allTeams){
-            if(teams[t].user_id == allTeams[s]){
-              found = true;
-            }
-          }
-          if(found==false){
-            notIncluded+=teams[t].user_id;
-          }
-        }
-        //data = {parent_id: parent, player_id:notIncluded[Math.floor(Math.random() * notIncluded.length)]};
-        socket.emit('add_bracket_node',{ //Adds row to table
-          tournament_id : tournament_ID,
-          parent_id: parent,
-          player_id: notIncluded[Math.floor(Math.random() * notIncluded.length)]
-        });
-        return;
-      }
-      //Save new node to forest table with id == node_id and parent==parent
-      //data = {parent_id: parent,data.player_id:null};
-      node_id = socket.emit('add_bracket_node',{ //Adds row to table
-            tournament_id : tournament_ID,
-            parent_id: parent,
-            player_id: null
-          }).last_node_id;
-      nodes = socket.emit('get_bracket_nodes',{
-          tournament_ID
-        }).bracket_nodes;
-      generate_tree(node_id, Depth-1, nodes, teams);
-      generate_tree(node_id, Depth-1, nodes, teams);
-      return;
-    }
-    function Display_Brackets(nodes,id)
-    {
-      //children = list of nodes with id as parent
-      if(nodes.length == 0 ){
-      return;
-      }
-      console.log(nodes);
-      var children = nodes.filter(function(element){ return element.parent_id == id; });
-      var thisNode = (nodes.filter(function(element){ return element.id == id; })[0]);
-      var player = (thisNode.player_id == null? "": thisNode.player_id);
-      var NewHTML = "<div>"+player+"</div>";
-      if (children.length>0){
-        NewHTML+="<ul>";
-        for(let child in children){
-          NewHTML+="<li>"+Display_Brackets(nodes,children[child])+"</li>";
-        }
-        NewHTML+="</ul>";
-      }
-      return NewHTML;
-    }
+     
+    $(function() {
+        $('div#doubleElimination .demo').bracket({
+          init: doubleEliminationData})
+      })
     </script>
 
   </body>

@@ -536,33 +536,109 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 		/********************************************************************************/
 
 		() => {
-			app.get('/tournament_creation',middleware['check_authorization'],middleware['membership_information'],function(req,res){
-				res.render(
-					'private/tournament_creation',
-					{
-						/* Navbar,Sidebar data */
-						user_data: {
-							username: req.session.username,
-							id: req.session.user_id,
-							email: req.session.email,
-							avatar: req.session.avatar,
-							communities: req.membership_information.communities,
-							tournaments: req.membership_information.tournaments,
-							forums_url: config.nodebb.address
-						},
-						/* Navbar,Sidebar data */
+			app.get('/match_creation',middleware['check_authorization'],middleware['membership_information'],function(req,res){
+				if(typeof req.query['id'] === 'undefined'){
+					res.render('public/error',{error:'Community id is required'});
+					return;
+				}
 
-						/* Data for nodebb forums */
-						nodebb: {
-							address: config.nodebb.address,
-							// SSO token
-							token: req.session.token
-						},
+				req.query['id'] = Number(req.query['id']);
+
+				if(isNaN(req.query['id'])){
+					res.render('public/error',{error:'Tournament id must be a number'});
+					return;
+				}
+
+				pg_conn.client.query(
+					"SELECT * FROM tournaments WHERE id = $1 LIMIT 1",
+					[
+						req.query['id']
+					],
+					function(err,tournament){
+						if(err){
+							console.log(err);
+							res.render('public/error',{error:'No tournament with id of '+req.query['id']});
+							return;
+						}
+
+						if(typeof tournament === 'undefined' || tournament.rowCount === 0){
+							res.render('public/error',{error: 'Could not get tournament information'});
+							return;
+						}
+
+						pg_conn.client.query(
+							"SELECT * FROM tournament_attendees WHERE user_id = $1 AND tournament_id = $2 LIMIT 1",
+							[
+								req.session.user_id,
+								req.query['id']
+							],
+							function(err,privilege_level){
+								if(err){
+									console.log(err);
+									res.render('public/error',{error:'Could not get privilege information for tournament'});
+									return;
+								}
+
+								if(typeof privilege_level === 'undefined' || privilege_level.rowCount === 0 ){
+									res.render('public/error',{error:'You must be a member of the tournament to create a match'});
+									return;
+								}
+
+								if(Number(privilege_level.rows[0].privilege_level) > config.privileges['mod']){
+									res.render('public/error',{error:'Insufficient privileges to create a match'});
+									return;							
+								}
+
+								pg_conn.client.query(
+									"SELECT users.id,users.username,users.name,users.avatar FROM tournament_attendees INNER JOIN users ON users.id = tournament_attendees.user_id WHERE tournament_attendees.tournament_id = $1",
+									[
+										req.query['id']
+									],
+									function(err,tournament_attendees){
+										if(err){
+											console.log(err);
+											socket.emit('notification',{error:'Could not get tournament attendees'});
+											return;
+										}
+
+										res.render(
+											'private/match_creation',
+											{
+												/* Navbar,Sidebar data */
+												user_data: {
+													username: req.session.username,
+													id: req.session.user_id,
+													email: req.session.email,
+													avatar: req.session.avatar,
+													communities: req.membership_information.communities,
+													tournaments: req.membership_information.tournaments,
+													forums_url: config.nodebb.address
+												},
+												/* Navbar,Sidebar data */
+
+												/* Data for nodebb forums */
+												nodebb: {
+													address: config.nodebb.address,
+													// SSO token
+													token: req.session.token
+												},
+
+												tournament_data: tournament.rows[0],
+												tournament_attendees: tournament_attendees.rows
+											}
+										);
+
+									}
+								);
+							}
+						);
 
 					}
 				);
+
 			});
 		},
+		
 
 		/********************************************************************************/
 
@@ -626,39 +702,56 @@ module.exports = function(express_conn,pg_conn,socket_io_conn) {
 												console.log(err);
 												res.render('public/error',{error:'Could not get tournament membership information'});
 												return;
-											}									
-											res.render(
-												'private/tournaments',  //This is handlebars filename
-											 	{
-													/* Navbar,Sidebar data */
-													user_data: {
-														username: req.session.username,
-														id: req.session.user_id,
-														email: req.session.email,
-														avatar: req.session.avatar,
-														communities: req.membership_information.communities,
-														tournaments: req.membership_information.tournaments,
-														forums_url: config.nodebb.address
-													},
-													/* Navbar,Sidebar data */
+											}
+											pg_conn.client.query(
+												"SELECT matches.id,matches.name,array_agg(match_teams.name) as match_teams FROM match_teams INNER join matches on matches.id = match_teams.match_id WHERE matches.tournament_id = $1 GROUP BY matches.id",
+												[
+													req.query['id']
+												],
+												function(err,matches){
+													if(err){
+														console.log(err);
+														res.render('public/error',{error:'Could not get teams'});
+														return;
+													}
 
-													/* Data for nodebb forums */
-													nodebb: {
-														address: config.nodebb.address,
-														// SSO token
-														token: req.session.token
-													},
+													res.render(
+														'private/tournaments',  //This is handlebars filename
+													 	{
+															/* Navbar,Sidebar data */
+															user_data: {
+																username: req.session.username,
+																id: req.session.user_id,
+																email: req.session.email,
+																avatar: req.session.avatar,
+																communities: req.membership_information.communities,
+																tournaments: req.membership_information.tournaments,
+																forums_url: config.nodebb.address
+															},
+															/* Navbar,Sidebar data */
 
-													community_data: community.rows[0],
+															/* Data for nodebb forums */
+															nodebb: {
+																address: config.nodebb.address,
+																// SSO token
+																token: req.session.token
+															},
 
-											 		tournament_data: tournament.rows[0],
+															community_data: community.rows[0],
 
-											 		// This just determines whether the 'Edit' tournament link is shown and not whether they can access that page
-											 		t_edit_privileges: (typeof attendee !== 'undefined' && attendee.rowCount !== 0 
-											 								&& Number(attendee.rows[0].privilege_level) <= config.privileges['mod']),
-											 		t_is_member: !(typeof attendee === 'undefined' || attendee.rowCount === 0)
+													 		tournament_data: tournament.rows[0],
+
+													 		matches: matches.rows,
+
+													 		// This just determines whether the 'Edit' tournament link is shown and not whether they can access that page
+													 		t_edit_privileges: (typeof attendee !== 'undefined' && attendee.rowCount !== 0 
+													 								&& Number(attendee.rows[0].privilege_level) <= config.privileges['mod']),
+													 		t_is_member: !(typeof attendee === 'undefined' || attendee.rowCount === 0)
+														}
+													);												
+
 												}
-											);
+											);							
 										}
 									);
 

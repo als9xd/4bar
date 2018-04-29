@@ -542,6 +542,294 @@ module.exports = function(config,pg_conn,uuidv1,nodebb_conn){
 		/********************************************************************************/
 
 		(socket) => {
+			socket.on('match_submit',function(data){
+
+				if(typeof data.tournament_id === 'undefined'){
+					socket.emit('notification',{error:'Tournament id is required'});
+					return;
+				}
+
+				data.tournament_id = Number(data.tournament_id);
+
+				if(isNaN(data.tournament_id)){
+					socket.emit('notification',{error:'Tournament id must be a number'});
+					return;
+				}
+
+				data.name = String(data.name);
+				data.description = String(data.description);
+
+				data.time = Date.parse(String(data.time));
+
+				if(isNaN(data.time)){
+					socket.emit('notification',{error:'Invalid match time format'});
+					return;
+				}
+
+				data.location = String(data.location);
+
+				data.team_1_name = String(data.team_1_name);
+				if(data.team_1_name.length === 0){
+					socket.emit('notification',{error:'Both team names are required'});
+					return;
+				}
+
+				data.team_2_name = String(data.team_2_name);
+				if(data.team_2_name.length === 0){
+					socket.emit('notification',{error:'Both team names are required'});
+					return;
+				}
+
+				pg_conn.client.query(
+					"SELECT 1 FROM tournaments WHERE id = $1",
+					[
+						data.tournament_id
+					],
+					function(err,tournament_exists){
+						if(err){
+							console.log(err);
+							socket.emit('notification',{error:'Could not check if tournament exists'});
+							return;
+						}
+
+						if(typeof tournament_exists === 'undefined' || tournament_exists.rowCount === 0){
+							socket.emit('notification',{error:'Tournament with id of '+data.tournament_id+' does not exist'});
+							return;							
+						}
+
+						pg_conn.client.query(
+							"SELECT privilege_level FROM tournament_attendees WHERE user_id = $1 AND tournament_id = $2",
+							[
+								socket.handshake.session.user_id,
+								data.tournament_id
+							],
+							function(err,privilege_level){
+								if(err){
+									console.log(err);
+									socket.emit('notification',{error:'Could not get privilege information for tournament'});
+									return;
+								}
+
+								if(typeof privilege_level === 'undefined' || privilege_level.rowCount === 0 ){
+									socket.emit('notification',{error:'You must be a member of the tournament to create a match'});
+									return;
+								}
+
+								if(Number(privilege_level.rows[0].privilege_level) > config.privileges['mod']){
+									socket.emit('notification',{error:'Insufficient privileges to create a match'});
+									return;							
+								}
+
+
+								if(typeof data.team_1 !== 'object' || data.team_1.length === 0){
+									socket.emit('notification',{error:'Invalid team 1 composition'});
+									return;
+								}
+
+								if(typeof data.team_2 !== 'object' || data.team_2.length === 0){
+									socket.emit('notification',{error:'Invalid team 2 composition'});
+									return;
+								}
+
+
+								function validate_team(team,callback){
+									let team_promises = [];
+									for(let i = 0; i < team.length;i++){
+										team_promises.push(new Promise(function(resolve,reject){
+											pg_conn.client.query(
+												"SELECT 1 FROM users WHERE id = $1",
+												[
+													team[i]
+												],
+												function(err,user_exists){
+													if(err){
+														console.log(err);
+														socket.emit('notification',{error:'Could not look for user'});
+														reject();
+														return;
+													}
+
+													if(typeof user_exists === 'undefined' || user_exists.rowCount === 0){
+														socket.emit('notification',{error:'Could not find user with id of \"'+team[i]+'\"'});
+														reject();
+														return;
+													}
+													pg_conn.client.query(
+														"SELECT 1 FROM tournament_attendees WHERE tournament_id = $1 AND user_id = $2",
+														[
+															data.tournament_id,
+															team[i]
+														],
+														function(err,user_exists_in_t){
+															if(err){
+																console.log(err);
+																socket.emit('notification',{error:'Could not check if user is a member of the tournament'});
+																reject();
+																return;
+															}
+															if(typeof user_exists_in_t === 'undefined' || user_exists_in_t.rowCount === 0){
+																socket.emit('notification',{error:'User \"'+team[i]+'\" is not a member of the tournament'});
+																reject();
+																return;
+															}
+															resolve();
+														}
+													)
+												}
+											);
+										}));
+									}
+									Promise.all(team_promises).then(function(values){callback(values)}).catch(()=>{socket.emit('notification',{error:'Could not validate team'})});
+									return;
+								}
+
+								function add_members_to_team(team,team_id,callback){
+									let team_promises = [];
+									for(let i = 0; i < team.length;i++){
+										team_promises.push(new Promise(function(resolve,reject){
+											pg_conn.client.query(
+												"INSERT INTO match_team_members(team_id,user_id) \
+													VALUES($1,$2) \
+												",
+												[
+													team_id,
+													team[i]
+												],
+												function(err){
+													if(err){
+														console.log(err);
+														reject('Could not add user with id of \"'+team[i]+'\" to team');
+														return;
+													}
+													resolve();
+												}
+											);
+										}));
+									}
+									Promise.all(team_promises).then(callback).catch(
+										reason => {
+											socket.emit('notification',{error:reason});
+										}
+									);
+									return;
+								}
+
+								validate_team(data.team_1,function(){
+									validate_team(data.team_2,function(){
+
+										pg_conn.client.query(
+											"SELECT 1 FROM match_teams INNER JOIN matches ON match_teams.match_id = matches.id INNER JOIN tournaments ON tournaments.id = matches.tournament_id WHERE tournaments.id = $1 AND match_teams.name = $2",
+											[
+												data.tournament_id,
+												data.team_1_name
+											],
+											function(err,team_exists){
+												if(err){
+													console.log(err);
+													socket.emit('notification',{error:'Could not check if team 1 name is already taken'});
+													return;
+												}
+
+												if(typeof team_exists === 'undefined' || team_exists.rowCount !== 0){
+													socket.emit('notification',{error:'A team named \"'+data.team_1_name+'\" already exits'});
+													return;
+												}
+
+												pg_conn.client.query(
+													"SELECT 1 FROM match_teams INNER JOIN matches ON match_teams.match_id = matches.id INNER JOIN tournaments ON tournaments.id = matches.tournament_id WHERE tournaments.id = $1 AND match_teams.name = $2",
+													[
+														data.tournament_id,
+														data.team_1_name
+													],
+													function(err,team_exists){
+														if(err){
+															console.log(err);
+															socket.emit('notification',{error:'Could not check if team 1 name is already taken'});
+															return;
+														}
+														if(typeof team_exists === 'undefined' || team_exists.rowCount !== 0){
+															socket.emit('notification',{error:'A team named \"'+data.team_1_name+'\" already exits'});
+															return;
+														}	
+														pg_conn.client.query(
+															"INSERT INTO matches(tournament_id,name,description,time,location) \
+																VALUES($1,$2,$3,$4,$5) \
+																RETURNING id \
+															",
+															[
+																data.tournament_id,
+																data.name,
+																data.description,
+																data.time,
+																data.location
+															],
+															function(err,match_id){
+																if(err){
+																	console.log(err);
+																	socket.emit('notification',{error:'Could not create match'});
+																	return;
+																}
+
+																pg_conn.client.query(
+																	"INSERT INTO match_teams(match_id,name) "+
+																	"	VALUES($1,$2) "+
+																	"	returning id ",
+																	[
+																		match_id.rows[0].id,
+																		data.team_1_name
+																	],
+																	function(err,team_1_id){
+																		if(err){
+																			console.log(err);
+																			socket.emit('notification',{error:'Could not create team 1'});
+																			return;
+																		}
+
+																		add_members_to_team(data.team_1,team_1_id.rows[0].id,function(){
+																			pg_conn.client.query(
+																				"INSERT INTO match_teams(match_id,name) "+
+																				"	VALUES($1,$2) "+
+																				"	returning id ",
+																				[
+																					match_id.rows[0].id,
+																					data.team_2_name
+																				],
+																				function(err,team_2_id){
+																					if(err){
+																						console.log(err);
+																						socket.emit('notification',{error:'Could not create team 2'});
+																						return;
+																					}
+																					add_members_to_team(data.team_2,team_2_id.rows[0].id,function(){
+																						socket.emit('notification',{success:'Successfully created match'});
+																						return;
+																					})
+																				}
+																			);
+																		});
+																	}
+																);
+
+															}
+														);													
+													}
+												);
+
+											}
+										);
+									});
+								});
+							}
+						);
+					}
+				);
+			});
+
+		},
+
+		/********************************************************************************/
+
+		(socket) => {
 			socket.on('community_submit',function(data){
 
 				if(typeof data.name !== 'string' || data.name.length === 0){
@@ -1728,115 +2016,6 @@ module.exports = function(config,pg_conn,uuidv1,nodebb_conn){
 			});
 
 		},
-
-		/********************************************************************************/
-
-		//////////////////////////////////////////////////////////////////////
-		// This listener adds a node to a brachet tree for a tournament
-		//////////////////////////////////////////////////////////////////////
-
-		// (socket) => {
-		// 	socket.on('add_bracket_node',function(node_data){
-		// 		pg_conn.client.query(
-		// 			"INSERT INTO tournament_brackets (tournament_id,parent_id,player_id) \
-		// 				VALUES ($1,$2,$3) \
-		// 			RETURNING id \
-		// 			",
-		// 			[
-		// 				node_data.tournament_id,
-		// 				node_data.parent_id,
-		// 				node_data.player_id
-		// 			],
-		// 			function(err,results){
-		// 				if(err){
-		// 					console.log(err)
-		// 					socket.emit('notification',{error:'Could not add bracket node'});
-		// 					return;
-		// 				}
-		// 				socket.emit('last_node_id',results.rows[0].id);
-		// 			}
-		// 		);
-		// 	});
-		// },
-
-		// /********************************************************************************/
-		
-		// //////////////////////////////////////////////////////////////////////
-		// // This listener retrieves bracket nodes for a particular tournament
-		// //////////////////////////////////////////////////////////////////////
-
-		// (socket) => {
-		// 	socket.on('get_brackets',function(tournament_id){
-		// 		pg_conn.client.query(
-		// 			"SELECT * FROM tournament_brackets where tournament_id = $1",
-		// 			[
-		// 				tournament_id
-		// 			],
-		// 			function(err,results){
-		// 				if(err){
-		// 					console.log(err)
-		// 					socket.emit('notification',{error:'Could not get bracket nodes'});
-		// 					return;
-		// 				}
-		// 				socket.emit('bracket_nodes',results.rows);
-		// 			}
-		// 		);
-		// 	});
-		// },
-		
-		// //////////////////////////////////////////////////////////////////////
-		// // This listener retrieves participants of a particular tournament
-		// //////////////////////////////////////////////////////////////////////
-
-		// (socket) => {
-		// 	socket.on('get_participants',function(tournament_id){
-		// 		pg_conn.client.query(
-		// 			"SELECT user_id FROM tournament_attendees where tournament_id = $1",
-		// 			[
-		// 				tournament_id
-		// 			],
-		// 			function(err,results){
-		// 				if(err){
-		// 					console.log(err)
-		// 					socket.emit('notification',{error:'Could not get participants'});
-		// 					return;
-		// 				}
-		// 				socket.emit('participants',results.rows);
-		// 			}
-		// 		);
-		// 	});
-		// },
-
-		// /********************************************************************************/
-
-		// //////////////////////////////////////////////////////////////////////
-		// // This listener updates a tournament bracket node 
-		// //////////////////////////////////////////////////////////////////////
-
-		// (socket) => {
-		// 	socket.on('update_bracket_node',function(node_data){
-		// 		pg_conn.client.query(
-		// 			"UPDATE tournament_brackets \
-		// 				SET player_id = $1 \
-		// 				WHERE id = $2 \
-		// 			",
-		// 			[
-		// 				node_data.player_id,
-		// 				node_data.node_id
-		// 			],function(err,results){
-		// 				if(err){
-		// 					console.log(err);
-		// 					socket.emit('notification',{error:'Bracket node could not be updated'});
-		// 					return;
-		// 				}
-		// 				socket.emit('notification',{success:'Successfully updated bracket node'});
-		// 			}
-		// 		);
-		// 	});
-		// }
-
-
-		/********************************************************************************/
 
 	];
 }

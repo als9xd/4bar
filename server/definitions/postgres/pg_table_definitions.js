@@ -200,17 +200,6 @@ module.exports = function(config){
 
 		/********************************************************************************/
 
-		tournament_brackets:
-			"CREATE TABLE IF NOT EXISTS tournament_brackets(\
-				id SERIAL PRIMARY KEY,\
-				tournament_id NUMERIC NOT NULL,\
-				parent_id NUMERIC,\
-				player_id NUMERIC\
-			)"
-    	,
-    
-		/********************************************************************************/
-
 		events:
 			"CREATE TABLE IF NOT EXISTS events(\
 				event_name VARCHAR("+config.pg.varchar_limits.events.event_name+") NOT NULL, \
@@ -246,5 +235,47 @@ module.exports = function(config){
 		,
 		
 		/********************************************************************************/
+
+		matches:
+			"CREATE TABLE IF NOT EXISTS matches( \
+				id SERIAL PRIMARY KEY, \
+				tournament_id NUMERIC NOT NULL, \
+				name TEXT, \
+				description TEXT, \
+				time NUMERIC, \
+				location TEXT \
+			)"
+		,
+
+		/********************************************************************************/
+		
+		match_teams: 
+			"CREATE TABLE IF NOT EXISTS match_teams( \
+				id SERIAL PRIMARY KEY, \
+				match_id NUMERIC NOT NULL, \
+				name TEXT \
+			)"
+		,
+
+		/********************************************************************************/
+
+		match_team_members:
+			"CREATE TABLE IF NOT EXISTS match_team_members( \
+				team_id NUMERIC NOT NULL, \
+				user_id NUMERIC NOT NULL \
+			)"
+		,
+
+		/********************************************************************************/
+
+		match_team_scores:
+			"CREATE TABLE IF NOT EXISTS match_team_scores( \
+				match_id NUMERIC NOT NULL, \
+				team_id_1 NUMERIC NOT NULL, \
+				team_id_2 NUMERIC NOT NULL, \
+				score NUMERIC \
+			)"
+		
+
 	}
 };
