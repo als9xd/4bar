@@ -173,6 +173,7 @@ module.exports = function(config){
 				attendee_limit INTEGER NOT NULL, \
 				signup_deadline NUMERIC, \
 				start_date NUMERIC NOT NULL, \
+				scores TEXT, \
 				UNIQUE (community_id,name) \
 			)"
 		,
@@ -265,17 +266,6 @@ module.exports = function(config){
 				user_id NUMERIC NOT NULL \
 			)"
 		,
-
-		/********************************************************************************/
-
-		match_team_scores:
-			"CREATE TABLE IF NOT EXISTS match_team_scores( \
-				match_id NUMERIC NOT NULL, \
-				team_id_1 NUMERIC NOT NULL, \
-				team_id_2 NUMERIC NOT NULL, \
-				score NUMERIC \
-			)"
-		
 
 	}
 };

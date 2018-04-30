@@ -335,14 +335,19 @@
             let team_1 = [];
             let team_1_els = document.getElementsByClassName('team-1-members');
             for(let i = 0; i < team_1_els.length;i++){
-              team_1.push(team_1_els[i].getAttribute('data-user-id'));
+              if(team_1_els[i].checked === true){
+                team_1.push(team_1_els[i].getAttribute('data-user-id'));
+              }
             }
 
             let team_2 = [];
-            let team_2_els = document.getElementsByClassName('team-1-members');
+            let team_2_els = document.getElementsByClassName('team-2-members');
             for(let i = 0; i < team_2_els.length;i++){
-              team_2.push(team_2_els[i].getAttribute('data-user-id'));
+              if(team_2_els[i].checked === true){
+                  team_2.push(team_2_els[i].getAttribute('data-user-id'));
+              }
             }
+            console.log(team_1,team_2);
             socket.emit('match_submit',{
               tournament_id: '{{tournament_data.id}}',
               name: $('#match-name').val(),

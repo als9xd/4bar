@@ -30,6 +30,12 @@
 
     <script src="/js/public.js"></script>
 
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/1.8.6/showdown.min.js"></script>
+    <script>
+    var converter = new showdown.Converter();
+    </script>
+
     <script src="/socket.io/socket.io.js"></script>
     <script type="text/javascript">let socket = io('/private');</script>
     
@@ -86,6 +92,11 @@
             {{#if t_edit_privileges}}
             <li class="nav-item">
               <a class="nav-link" href="/match_creation?id={{tournament_data.id}}" id="match-creation-icon" data-toggle="tooltip" data-placement="bottom" title="Match Creation"><img src="/site/swords.png" class="navbar-icon"></a>
+            </li>
+            <li class="nav-item">
+              <div data-toggle="modal" data-target="#scores-modal">
+                <div class="nav-link" id="match-creation-icon" data-toggle="tooltip" data-placement="bottom" title="Update Scores" onclick=""><img src="/site/scores.png" class="navbar-icon"></div>
+              </div>
             </li>
             {{/if}}
             <li class="nav-item">
@@ -179,6 +190,111 @@
           </ul>
       </div>
       <!-- /Sidebar -->
+      {{#if t_edit_privileges}}
+       <!-- Update Scores Modal -->
+        <div class="modal fade" id="scores-modal" tabindex="-1" role="dialog" aria-labelledby="community-information-modal-title" aria-hidden="true">
+          <div class="modal-dialog" role="document" style="max-width: 80%">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="scores-modal-title">Scores Data</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                <form id="edit-scores-form">
+                  <div class="form-group">
+                    <textarea class="form-control" rows="20" id="scores-data" style="resize:vertical;" onkeyup="textAreaAdjust(this)" style="overflow:auto"></textarea>
+                    <script>
+                      document.getElementById('scores-data').value = JSON.stringify(JSON.parse('{{tournament_data.scores}}'.replace(/&quot;/g,'"')),null,"\t");
+                    </script>
+                  </div>
+                </form>
+                <div>
+                  <h6><button class="btn btn-primary" data-toggle="collapse" data-target="#single-elim-example">Single eliminition example</button></h6>
+                  <div style="background-color: #F5F5F5;" id="single-elim-example" class="collapse">
+                    <script>
+                       document.write(converter.makeHtml(
+                         "```javascript\n"+
+                         "[\n"+
+                         "\t[\t\t\t\t\t// First bracket \n"+
+                         "\t\t[\t\t\t\t// First round in this bracket \n"+
+                         "\t\t\t[1, 2],\t\t// Team 1 vs Team 2 \n"+
+                         "\t\t\t[3, 4]\t\t// Team 3 vs Team 4 \n"+
+                         "\t\t],\n"+
+                         "\t\t[\t\t\t\t// Second round in this bracket\n"+
+                         "\t\t\t[5, null],\t// Match for first place \n"+
+                         "\t\t\t[7, 8]\t\t// Match for 3rd place \n"+
+                         "\t\t]\n"+
+                         "\t]\n"+
+                         "]\n"+
+                         "```"
+                       ));
+                    </script>
+                  </div>
+                </div>
+                <div>
+                  <h6><button class="btn btn-primary" data-toggle="collapse" data-target="#double-elim-example">Double eliminition example</button></h6>
+                  <div style="background-color: #F5F5F5;" id="double-elim-example" class="collapse">
+                    <script>
+                       document.write(converter.makeHtml(
+                        "```javascript\n"+
+                        "[                       // List of brackets (three since this is double elimination)\n"+
+                        "  [                     // Winner bracket\n"+
+                        "    [[1, 2], [3, 4]],   // First round and results\n"+
+                        "    [[5, 6]]            // Second round\n"+
+                        "    ],\n"+
+                        "  [                     // Loser bracket\n"+
+                        "     [[7, 8]],           // First round\n"+
+                        "     [[9, 10]]           // Second round\n"+
+                        "  ],\n"+
+                        "  [                     // Final bracket\n"+
+                        "    [                   // First round\n"+
+                        "      [11, 12],         // Match to determine 1st and 2nd\n"+
+                        "      [13, 14]          // Match to determine 3rd and 4th\n"+
+                        "    ],\n"+
+                        "    [                   // Second round\n"+
+                        "      [15, 16]          // LB winner won first round (11-12) so need a final decisive round\n"+
+                        "    ]\n"+
+                        "  ]\n"+
+                        "]\n"+                    
+                        "```"
+                       ));
+                    </script>
+                  </div>
+                </div>
+
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="scores-submit-btn">Save changes</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      {{/if}}
+
+      <div class="modal fade" id="team-information-modal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog" role="document" style="max-width: 80%">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="team-modal-title"></h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+                <h3 id="team-name">Test</h3>
+                <h6>Team Members</h6>
+                <ul id="team-members">
+                </ul>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <!-- Page Content -->
       <div id="page-content-wrapper">
@@ -187,12 +303,12 @@
             <h1>{{tournament_data.name}}</h1>
             <a href="communities?id={{community_data.id}}"><h6>{{community_data.name}}</h6></a>
             <hr/>
-            <button onclick="GenerateTournament()">Generate Tournament Brackets</button> <!--Make button only show up when no rows exist with tournament_id (when coms is empty).-->
-            <div class="Tournament_bracket"></div>
-
+            <div id="team_info">
+            </div>
             <div id="doubleElimination">
-
-            <div class="demo"></div>
+              <div class="demo"></div>
+            </div>
+          </div>
 
       <!-- /Page Content -->
     </div>
@@ -268,27 +384,75 @@
     <script type="text/javascript" src="/js/jquery.bracket.min.js">
     </script>
     <script type="text/javascript">
+    $('#scores-submit-btn').click(function(){
+      socket.emit('scores_submit',{tournament_id:'{{tournament_data.id}}',scores:$('#scores-data').val()});
+    });
 
     let teams = [];
 
     {{#each matches}}
-    teams.push([{{match_teams}}]);
+    teams.push('{{match_teams}}'.split(','));
     for(let i = 0; i < teams[teams.length - 1].length; i++){
       if(teams[teams.length - 1][i].length === 0){
         teams[teams.length - 1][i] = 'No team name';
       }      
     }
     {{/each}}
-    console.log(teams);
+    let team_name = document.getElementById('team-name');
+    let team_members = document.getElementById('team-members');
+    socket.on('team_info_res',function(data){
+      team_name.innerHTML = data[0].team_name;
+      team_members.innerHTML = "";
+      for(let i = 0; i < data.length;i++){
+          team_members.innerHTML += "<li>"+data[i].username+"</li>";
+      }
+      $('#team-information-modal').modal('show');
+    })
+
     var doubleEliminationData = {
         teams : teams,
-        results : [[[1,2],[3,4]],[[5,6],[7,8]]]
+        results : JSON.parse('{{tournament_data.scores}}'.replace(/&quot;/g,'"'))
       }
-     
+    function saveFn(data, userData) {
+      console.log(data.results);
+      if(typeof data.results !== 'object'){
+        socket.emit('scores_submit',{tournament_id:'{{tournament_data.id}}',scores:JSON.stringify(data.results)});
+      }
+    }     
+
     $(function() {
         $('div#doubleElimination .demo').bracket({
-          init: doubleEliminationData})
+          init: doubleEliminationData,
+          save: saveFn,
+          decorator: {
+            edit: function(container, data, doneCb){
+              console.log(data);
+              socket.emit('team_info_req',{tournament_id:'{{tournament_data.id}}',team_name:data});
+              doneCb(data);
+            },
+            render: function(container, data, score, state){
+              switch(state) {
+                case 'empty-bye':
+                  container.append('BYE')
+                  return;
+                case 'empty-tbd':
+                  container.append('TBD')
+                  return;
+             
+                case 'entry-no-score':
+                case 'entry-default-win':
+                case 'entry-complete':
+                  container.append(data[0]);
+                return;              
+              }
+            }
+          }
+
+        });
+        $('.tools').css('display','none');
+        $('.teamContainer .team .label').removeClass('editable');;
       })
+
     </script>
 
   </body>

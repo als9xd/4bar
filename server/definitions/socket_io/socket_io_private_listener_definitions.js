@@ -429,8 +429,8 @@ module.exports = function(config,pg_conn,uuidv1,nodebb_conn){
 											}
 
 											pg_conn.client.query(
-												"INSERT INTO tournaments (community_id,name,description,location,attendee_limit,signup_deadline,start_date) \
-												VALUES ($1,$2,$3,$4,$5,$6,$7) \
+												"INSERT INTO tournaments (community_id,name,description,location,attendee_limit,signup_deadline,start_date,scores) \
+												VALUES ($1,$2,$3,$4,$5,$6,$7,$8) \
 												RETURNING id",
 												[
 													data.community_id,
@@ -439,7 +439,8 @@ module.exports = function(config,pg_conn,uuidv1,nodebb_conn){
 													data.location,
 													data.attendee_limit,
 													data.signup_deadline,
-													data.start_date
+													data.start_date,
+													'[]'
 												],
 												function(err,tournament_id){
 
@@ -539,6 +540,150 @@ module.exports = function(config,pg_conn,uuidv1,nodebb_conn){
 
 		},
 
+
+		/********************************************************************************/
+
+		(socket) => {
+			socket.on('scores_submit',function(data){
+
+				if(typeof data.tournament_id === 'undefined'){
+					socket.emit('notification',{error:'Tournament id is required'});
+					return;
+				}
+
+				data.tournament_id = Number(data.tournament_id);
+
+				if(isNaN(data.tournament_id)){
+					socket.emit('notification',{error:'Tournament id must be a number'});
+					return;
+				}
+
+				function parseJSON(json){
+					let parsed;
+					try{
+						parsed = JSON.parse(json);
+					} catch(e){
+					}
+					return parsed;
+				}
+
+				let parseFailed = false;
+				data.scores = parseJSON(data.scores,(key,value) =>{
+					value = Number(value);
+					if(isNaN(value)){
+						parsedFailed = true;
+						return;
+					}else{
+						return value;
+					}
+				});
+
+				if(typeof data.scores === 'undefined' || parseFailed === true){
+					socket.emit('notification',{error:'Invalid scores format'});
+					return;
+				}
+
+				pg_conn.client.query(
+					"SELECT 1 FROM tournaments WHERE id = $1",
+					[
+						data.tournament_id
+					],
+					function(err,tournament_exists){
+						if(err){
+							console.log(err);
+							socket.emit('notification',{error:'Could not check if tournament exists'});
+							return;
+						}
+
+						if(typeof tournament_exists === 'undefined' || tournament_exists.rowCount === 0){
+							socket.emit('notification',{error:'Tournament with id of '+data.tournament_id+' does not exist'});
+							return;							
+						}
+
+						pg_conn.client.query(
+							"SELECT privilege_level FROM tournament_attendees WHERE user_id = $1 AND tournament_id = $2",
+							[
+								socket.handshake.session.user_id,
+								data.tournament_id
+							],
+							function(err,privilege_level){
+								if(err){
+									console.log(err);
+									socket.emit('notification',{error:'Could not get privilege information for tournament'});
+									return;
+								}
+
+								if(typeof privilege_level === 'undefined' || privilege_level.rowCount === 0 ){
+									socket.emit('notification',{error:'You must be a member of the tournament to edit scores'});
+									return;
+								}
+
+								if(Number(privilege_level.rows[0].privilege_level) > config.privileges['mod']){
+									socket.emit('notification',{error:'Insufficient privileges to edit scores'});
+									return;							
+								}
+
+								pg_conn.client.query(
+									"UPDATE tournaments SET scores = $1 WHERE id = $2",
+									[
+										JSON.stringify(data.scores),
+										data.tournament_id
+									],
+									function(err){
+										if(err){
+											console.log(err);
+											socket.emit('notification',{error:'Could not update scores'});
+											return;
+										}
+										socket.emit('notification',{success:'Successfully updated scores'});
+									}
+								);
+							}
+						);
+					}
+				);
+			});
+		},
+
+		/********************************************************************************/
+		
+		(socket) => {
+			socket.on('team_info_req',function(data){
+
+				if(typeof data.tournament_id === 'undefined'){
+					socket.emit('notification',{error:'Tournament id is required'});
+					return;
+				}
+
+				data.tournament_id = Number(data.tournament_id);
+
+				if(isNaN(data.tournament_id)){
+					socket.emit('notification',{error:'Tournament id must be a number'});
+					return;
+				}
+
+				pg_conn.client.query(
+					"SELECT match_teams.name as team_name,users.id,users.username,users.name,users.avatar FROM match_team_members \
+							INNER JOIN users ON users.id = match_team_members.user_id \
+							INNER JOIN match_teams ON match_teams.id = match_team_members.team_id \
+							INNER JOIN matches ON matches.id = match_teams.match_id	\
+					 WHERE matches.tournament_id = $1 AND match_teams.name = $2",
+					 [
+					 	data.tournament_id,
+					 	data.team_name
+					 ],
+					 function(err,results){
+					 	if(err){
+					 		console.log(err);
+					 		socket.emit('notification',{error:'Could not get team information'});
+					 		return;
+					 	}
+					 	socket.emit('team_info_res',results.rows);
+					 }
+				);
+			})
+		},
+
 		/********************************************************************************/
 
 		(socket) => {
@@ -621,13 +766,24 @@ module.exports = function(config,pg_conn,uuidv1,nodebb_conn){
 								}
 
 
-								if(typeof data.team_1 !== 'object' || data.team_1.length === 0){
+								if(typeof data.team_1 !== 'object'){
 									socket.emit('notification',{error:'Invalid team 1 composition'});
 									return;
 								}
 
-								if(typeof data.team_2 !== 'object' || data.team_2.length === 0){
+								if(data.team_1.length === 0){
+									socket.emit('notification',{error:'Team 2 requires at least one member'});
+									return;
+								}
+
+
+								if(typeof data.team_2 !== 'object'){
 									socket.emit('notification',{error:'Invalid team 2 composition'});
+									return;
+								}
+
+								if(data.team_2.length === 0){
+									socket.emit('notification',{error:'Team 2 requires at least one member'});
 									return;
 								}
 
