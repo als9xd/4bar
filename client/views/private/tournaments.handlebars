@@ -184,7 +184,7 @@
               </li>
               {{#each user_data.communities}}
               <li>
-                  <a href="/communities?id={{id}}"><img src="{{#if icon includeZero=true}}/icons/{{icon}}{{else}}/site/no-icon.jpg{{/if}}">{{name}}</a>
+                  <a href="/communities?id={{community_data.id}}"><img src="{{#if community_data.icon includeZero=true}}/icons/{{community_data.icon}}{{else}}/site/no-icon.jpg{{/if}}">{{name}}</a>
               </li>
               {{/each}}
               <li>
