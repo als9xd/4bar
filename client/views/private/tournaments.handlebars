@@ -184,7 +184,7 @@
               </li>
               {{#each user_data.communities}}
               <li>
-                  <a href="/communities?id={{community_data.id}}"><img src="{{#if community_data.icon includeZero=true}}/icons/{{community_data.icon}}{{else}}/site/no-icon.jpg{{/if}}">{{name}}</a>
+                  <a href="/communities?id={{id}}"><img src="{{#if icon includeZero=true}}/icons/{{icon}}{{else}}/site/no-icon.jpg{{/if}}">{{name}}</a>
               </li>
               {{/each}}
               <li>
@@ -421,8 +421,8 @@
       <div id="page-content-wrapper">
         <div class="container-fluid">
           <h1>{{tournament_data.name}}</h1>
-          <h6>Host Community: <img class="site-icon" src="{{#if icon includeZero=true}}/icons/{{{icon}}}{{else}}/site/no-icon.jpg{{/if}}"><a href="communities?id={{community_data.id}}">
-          {{community_data.name}}</a></h6>
+          <h6>Host Community: <a href="communities?id={{community_data.id}}">
+          <img class="site-icon" src="{{#if community_data.icon includeZero=true}}/icons/{{{community_data.icon}}}{{else}}/site/no-icon.jpg{{/if}}">{{community_data.name}}</a></h6>
           <hr>
           <h6>Description: </h6>{{tournament_data.description}}
           <h6>Location: </h6>{{tournament_data.location}}
