@@ -12,6 +12,10 @@ body {
   height: 100vh;
 }
 
+.nav-link{
+  cursor: pointer;
+}
+
 #page-content-wrapper{
   height: calc(100vh - 66px);
 }
