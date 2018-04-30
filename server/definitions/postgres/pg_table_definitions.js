@@ -240,11 +240,7 @@ module.exports = function(config){
 		matches:
 			"CREATE TABLE IF NOT EXISTS matches( \
 				id SERIAL PRIMARY KEY, \
-				tournament_id NUMERIC NOT NULL, \
-				name TEXT, \
-				description TEXT, \
-				time NUMERIC, \
-				location TEXT \
+				tournament_id NUMERIC NOT NULL \
 			)"
 		,
 

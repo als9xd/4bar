@@ -20,7 +20,7 @@ const path = require('path');
 
 const fs = require('fs');
 
-module.exports = function(config,pg_conn,uuidv1,nodebb_conn){	
+module.exports = function(config,pg_conn,uuidv1,nodebb_conn,tournament_rooms,io){	
 	
 	let widget_definitions = pg_conn.widget_definitions;
 
@@ -52,8 +52,8 @@ module.exports = function(config,pg_conn,uuidv1,nodebb_conn){
 				
 				pg_conn.client.query(
 					"SELECT users.id,users.username,users.avatar FROM users "+
-					  "INNER JOIN friend_requests ON users.id = friend_requests.rx_user_id "+
-					  "WHERE friend_requests.tx_user_id = $1 AND "+
+					  "INNER JOIN friend_requests ON users.id = friend_requests.tx_user_id "+
+					  "WHERE friend_requests.rx_user_id = $1 AND "+
 					  "EXISTS (SELECT 1 FROM friend_requests WHERE tx_user_id = $1 AND rx_user_id = friend_requests.rx_user_id)"
 					  ,
 					[
@@ -209,7 +209,7 @@ module.exports = function(config,pg_conn,uuidv1,nodebb_conn){
 																	{
 																		id: socket.handshake.session.user_id,
 																		username: socket.handshake.session.username,
-																		avatar: socket.handshake.session.avatar,
+																		avatar: typeof socket.handshake.session.avatar === 'undefined' ? null : socket.handshake.session.avatar,
 																		date: ntf_date,
 																		// Display as a friend request 
 																		type: 'REQUEST'
@@ -238,9 +238,9 @@ module.exports = function(config,pg_conn,uuidv1,nodebb_conn){
 																		friend_requests: 
 																		[
 																			{
-																				id: data.recipient_user_id,
-																				username: recipient_user_data.rows[0].username,
-																				avatar: recipient_user_data.rows[0].avatar,
+																				id: socket.handshake.session.user_id,
+																				username: socket.handshake.session.username,
+																				avatar: socket.handshake.session.avatar,
 																				date: ntf_date,
 																				type: 'ACCEPT'
 																			}
@@ -515,6 +515,9 @@ module.exports = function(config,pg_conn,uuidv1,nodebb_conn){
 																				socket.emit('notification',{error:'Could not update last activity'});
 																				return;
 																			}
+
+																			tournament_rooms[tournament_id.rows[0].id] = io.of('/tournaments-id='+tournament_id.rows[0].id);
+
 																			socket.emit('notification',{success: 'Successfully created and joined tournament'});
 																			socket.emit('tournament_creation_status',{status:true,new_tournament_id:tournament_id.rows[0].id});																	
 																		}
@@ -539,7 +542,6 @@ module.exports = function(config,pg_conn,uuidv1,nodebb_conn){
 			});
 
 		},
-
 
 		/********************************************************************************/
 
@@ -635,6 +637,9 @@ module.exports = function(config,pg_conn,uuidv1,nodebb_conn){
 											socket.emit('notification',{error:'Could not update scores'});
 											return;
 										}
+
+										tournament_rooms[data.tournament_id].emit('scores_update',{scores: JSON.stringify(data.scores)});
+
 										socket.emit('notification',{success:'Successfully updated scores'});
 									}
 								);
@@ -663,7 +668,7 @@ module.exports = function(config,pg_conn,uuidv1,nodebb_conn){
 				}
 
 				pg_conn.client.query(
-					"SELECT match_teams.name as team_name,users.id,users.username,users.name,users.avatar FROM match_team_members \
+					"SELECT match_teams.name as team_name,users.id,users.username,users.name,users.avatar,users.email FROM match_team_members \
 							INNER JOIN users ON users.id = match_team_members.user_id \
 							INNER JOIN match_teams ON match_teams.id = match_team_members.team_id \
 							INNER JOIN matches ON matches.id = match_teams.match_id	\
@@ -701,18 +706,6 @@ module.exports = function(config,pg_conn,uuidv1,nodebb_conn){
 					return;
 				}
 
-				data.name = String(data.name);
-				data.description = String(data.description);
-
-				data.time = Date.parse(String(data.time));
-
-				if(isNaN(data.time)){
-					socket.emit('notification',{error:'Invalid match time format'});
-					return;
-				}
-
-				data.location = String(data.location);
-
 				data.team_1_name = String(data.team_1_name);
 				if(data.team_1_name.length === 0){
 					socket.emit('notification',{error:'Both team names are required'});
@@ -722,6 +715,11 @@ module.exports = function(config,pg_conn,uuidv1,nodebb_conn){
 				data.team_2_name = String(data.team_2_name);
 				if(data.team_2_name.length === 0){
 					socket.emit('notification',{error:'Both team names are required'});
+					return;
+				}
+
+				if(data.team_1_name === data.team_2_name){
+					socket.emit('notification',{error:'Teams names must be different'});
 					return;
 				}
 
@@ -772,7 +770,7 @@ module.exports = function(config,pg_conn,uuidv1,nodebb_conn){
 								}
 
 								if(data.team_1.length === 0){
-									socket.emit('notification',{error:'Team 2 requires at least one member'});
+									socket.emit('notification',{error:'Team 1 requires at least one member'});
 									return;
 								}
 
@@ -908,16 +906,12 @@ module.exports = function(config,pg_conn,uuidv1,nodebb_conn){
 															return;
 														}	
 														pg_conn.client.query(
-															"INSERT INTO matches(tournament_id,name,description,time,location) \
-																VALUES($1,$2,$3,$4,$5) \
+															"INSERT INTO matches(tournament_id) \
+																VALUES($1) \
 																RETURNING id \
 															",
 															[
-																data.tournament_id,
-																data.name,
-																data.description,
-																data.time,
-																data.location
+																data.tournament_id
 															],
 															function(err,match_id){
 																if(err){
@@ -957,7 +951,21 @@ module.exports = function(config,pg_conn,uuidv1,nodebb_conn){
 																						return;
 																					}
 																					add_members_to_team(data.team_2,team_2_id.rows[0].id,function(){
+																						pg_conn.client.query(
+																							"SELECT matches.id,array_agg(match_teams.name) as match_teams FROM match_teams INNER join matches on matches.id = match_teams.match_id WHERE matches.tournament_id = $1 GROUP BY matches.id",
+																							[data.tournament_id],
+																							function(err,matches){
+																								if(err){
+																									console.log(err);
+																									socket.emit('notification',{error:'Could not get matches'});
+																									return;
+																								}
+																								tournament_rooms[data.tournament_id].emit('match_update',{matches: matches.rows})
+																							}
+																						);
+																						
 																						socket.emit('notification',{success:'Successfully created match'});
+																						socket.emit('match_submit_status',{status:true,teams: [data.team_1_name,data.team_2_name]});
 																						return;
 																					})
 																				}

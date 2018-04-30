@@ -42,11 +42,13 @@ module.exports = class SocketIOConnector{
 		// encrypted)
 		//////////////////////////////////////////////////////////////////////	
 
-		let io = require('socket.io')(https_server);
+		this.io = require('socket.io')(https_server);
 
-		this.public_ns = io.of('/public');
+		this.public_ns = this.io.of('/public');
 
-		this.private_ns = io.of('/private');
+		this.private_ns = this.io.of('/private');
+
+		this.tournaments_rooms = {};
 
 		this.uuidv1 = require('uuid/v1');
 
@@ -106,6 +108,19 @@ module.exports = class SocketIOConnector{
 	build_listeners(pg_conn){
 		let self = this;
 
+		pg_conn.client.query(
+			"SELECT id FROM tournaments",
+			function(err,tournaments){
+				if(err){
+					console.log(err);
+					return;
+				}
+				for(let i = 0; i < tournaments.rowCount;i++){
+					self.tournaments_rooms[tournaments.rows[i].id] = self.io.of('/tournaments-id='+tournaments.rows[i].id);
+				}
+			}
+		);
+
 		const public_listener_definitions = require(
 			self.config.root_dir+'/server/definitions/socket_io/socket_io_public_listener_definitions'
 		)(this.config,pg_conn,this.nodebb_conn);
@@ -118,7 +133,7 @@ module.exports = class SocketIOConnector{
 
 		const private_listener_definitions = require(
 			self.config.root_dir+'/server/definitions/socket_io/socket_io_private_listener_definitions'
-		)(this.config,pg_conn,self.uuidv1,this.nodebb_conn);
+		)(this.config,pg_conn,self.uuidv1,this.nodebb_conn,this.tournaments_rooms,this.io);
 		
 		// Add authentication middlware
 		this.private_ns.use(this.middleware_definitions['check_authentication']);

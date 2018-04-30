@@ -251,7 +251,7 @@
                   <label for="tournament-tags">Tags: </label>
                   <input name="tags" id="tournament-tags"/>
                 </div>
-                <button class="btn btn-primary" id='tournament-submit-btn'>Submit</button>
+                <button class="btn btn-primary" id='tournament-submit-btn' type="button">Submit</button>
               </form>
           </div>
         </div>
@@ -419,7 +419,7 @@
         $('#tournament-submit-btn').click(
           () => {
             socket.emit('tournament_submit',{
-              community_id: '{{community_data.id}}',
+              community_id: Number('{{community_data.id}}'),
               name: $('#tournament-name').val(),
               description: $('#tournament-description').val(),
               location: $('#tournament-location').val(),

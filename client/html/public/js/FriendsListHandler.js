@@ -1,6 +1,12 @@
 let FriendsListHandler = function (socket) {
 	let friends_menu = document.getElementById('friends-menu');
 	socket.emit('friends_req');
+	setInterval(function(){
+		socket.emit('friends_req');
+	},
+	1000*3 // Update every 3 seconds
+	);
+	
 	socket.on('friends_res',function(friends){
 
 		while(friends_menu.firstChild){
