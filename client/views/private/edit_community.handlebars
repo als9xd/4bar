@@ -16,6 +16,8 @@
 
     <link href="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" rel="stylesheet"/>
 
+    <link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/bootstrap.daterangepicker/2/daterangepicker.css" />
+
     <link rel="stylesheet" href="/css/jquery.tagsinput.css">
 
     <link rel="stylesheet" href="/css/public.css">
@@ -472,6 +474,8 @@
     <!-- Load jquery -->
     <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.21.0/moment.min.js"></script>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb" crossorigin="anonymous"></script>
 
     <!-- Load Booststrap -->
@@ -556,6 +560,33 @@
       $(document).ready(function(){
         $('[data-toggle="tooltip"]').tooltip();
       });
+    </script>
+
+    <!-- Select date/time -->
+    <script type="text/javascript" src="//cdn.jsdelivr.net/bootstrap.daterangepicker/2/daterangepicker.js"></script>
+    <script type="text/javascript">
+      $('#tournament-signup-deadline').daterangepicker(       
+        {
+          autoApply: true,
+          timePicker: true,
+          singleDatePicker: true,
+          showDropdowns: true,
+          locale: {
+              format: 'MM/DD/YYYY h:mm A'
+          }                   
+        }
+      );
+      $('#tournament-start-date').daterangepicker(       
+        {
+          autoApply: true,
+          timePicker: true,
+          singleDatePicker: true,
+          showDropdowns: true,
+          locale: {
+              format: 'MM/DD/YYYY h:mm A'
+          }         
+        }
+      );      
     </script>
 
     <!-- Enable tags input -->    
