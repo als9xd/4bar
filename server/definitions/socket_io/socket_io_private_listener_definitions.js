@@ -240,7 +240,7 @@ module.exports = function(config,pg_conn,uuidv1,nodebb_conn,tournament_rooms,io)
 																			{
 																				id: socket.handshake.session.user_id,
 																				username: socket.handshake.session.username,
-																				avatar: socket.handshake.session.avatar,
+																				avatar: typeof socket.handshake.session.avatar === 'undefined' ? null : socket.handshake.session.avatar,
 																				date: ntf_date,
 																				type: 'ACCEPT'
 																			}
