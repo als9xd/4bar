@@ -289,16 +289,6 @@ let WidgetLayoutEngine = function(widget_ui_definitions,parent,background_parent
       widget_container.appendChild(delete_btn);
     }
 
-    if(settings && settings.template){
-      let delete_btn = document.createElement('span');
-      delete_btn.classList.add('close','widget-delete-btn');
-      delete_btn.innerHTML = 'x';
-      delete_btn.onclick = function(){
-        socket.emit('widget_delete_req',{type:type,widget_id:id});
-      }
-      widget_container.appendChild(delete_btn);
-    }
-
     widget_container.setAttribute('data-widget-type',type);
     widget_container.setAttribute('data-widget-id',id);    
 

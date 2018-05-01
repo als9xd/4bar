@@ -173,6 +173,7 @@ module.exports = function(config){
 				attendee_limit INTEGER NOT NULL, \
 				signup_deadline NUMERIC, \
 				start_date NUMERIC NOT NULL, \
+				scores TEXT, \
 				UNIQUE (community_id,name) \
 			)"
 		,
@@ -198,17 +199,6 @@ module.exports = function(config){
 			)"
 		,
 
-		/********************************************************************************/
-
-		tournament_brackets:
-			"CREATE TABLE IF NOT EXISTS tournament_brackets(\
-				id SERIAL PRIMARY KEY,\
-				tournament_id NUMERIC NOT NULL,\
-				parent_id NUMERIC,\
-				player_id NUMERIC\
-			)"
-    	,
-    
 		/********************************************************************************/
 
 		events:
@@ -246,5 +236,32 @@ module.exports = function(config){
 		,
 		
 		/********************************************************************************/
+
+		matches:
+			"CREATE TABLE IF NOT EXISTS matches( \
+				id SERIAL PRIMARY KEY, \
+				tournament_id NUMERIC NOT NULL \
+			)"
+		,
+
+		/********************************************************************************/
+		
+		match_teams: 
+			"CREATE TABLE IF NOT EXISTS match_teams( \
+				id SERIAL PRIMARY KEY, \
+				match_id NUMERIC NOT NULL, \
+				name TEXT \
+			)"
+		,
+
+		/********************************************************************************/
+
+		match_team_members:
+			"CREATE TABLE IF NOT EXISTS match_team_members( \
+				team_id NUMERIC NOT NULL, \
+				user_id NUMERIC NOT NULL \
+			)"
+		,
+
 	}
 };

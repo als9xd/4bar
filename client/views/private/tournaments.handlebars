@@ -16,10 +16,14 @@
 
     <link href="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" rel="stylesheet"/>
 
+    <link rel="stylesheet" href="/css/jquery.tagsinput.css">
+
     <link rel="stylesheet" href="/css/public.css">
     <link rel="stylesheet" href="/css/sidebar.css">
     <link rel="stylesheet" href="/css/friends_list.css">
     <link rel="stylesheet" href="/css/results_tables.css">
+
+    <link rel="stylesheet" href="/css/jquery.bracket.min.css">
 
     <!-- Set SSO cookie for nodebb  -->
     <script>
@@ -28,8 +32,17 @@
 
     <script src="/js/public.js"></script>
 
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/1.8.6/showdown.min.js"></script>
+    <script>
+    var converter = new showdown.Converter();
+    </script>
+
     <script src="/socket.io/socket.io.js"></script>
     <script type="text/javascript">let socket = io('/private');</script>
+    <script type="text/javascript">
+    let tournament_room = io('/tournaments-id={{tournament_data.id}}');
+  </script>
     
  </head>
 
@@ -69,8 +82,10 @@
           </ul>
           <ul class="navbar-nav ml-auto">
             {{#if t_edit_privileges}}
-            <li class="nav-item nav-auto-spacing edit-tournament-btn">
-                <a href="/edit_tournament?id={{tournament_data.id}}"><button class="btn btn-outline-primary my-2 my-sm-0">Edit Tournament</button></a>
+            <li class="nav-item nav-auto-spacing">
+                <div data-toggle="modal" data-target="#edit-tournament-modal">
+                  <button class="btn btn-outline-primary my-2 my-sm-0">Edit Tournament</button>
+                </div>
             </li>
             {{/if}}
             <li class="nav-item nav-auto-spacing">
@@ -79,6 +94,18 @@
             {{#if c_edit_privileges}}
             <li class="nav-item">
               <a class="nav-link" href="/tournament_creation?id={{community_data.id}}" data-toggle="tooltip" data-placement="bottom" title="Tournament Creation"><img src="/site/trophy.png" class="navbar-icon"></a>
+            </li>
+            {{/if}}
+            {{#if t_edit_privileges}}
+            <li class="nav-item">
+              <div data-toggle="modal" data-target="#match-creation-modal">
+                <div class="nav-link" id="match-creation-icon" data-toggle="tooltip" data-placement="bottom" title="Match Creation" onclick=""><img src="/site/swords.png" class="navbar-icon"></div>
+              </div>
+            </li>
+            <li class="nav-item">
+              <div data-toggle="modal" data-target="#scores-modal">
+                <div class="nav-link" id="match-creation-icon" data-toggle="tooltip" data-placement="bottom" title="Advanced Scores Editor" onclick=""><img src="/site/scores.png" class="navbar-icon"></div>
+              </div>
             </li>
             {{/if}}
             <li class="nav-item">
@@ -125,8 +152,10 @@
                   <a href="/community_creation">Community Creation</a>
               </li>
               {{#if t_edit_privileges}}
-              <li class="sidebar-collapse sidebar-btn edit-tournament-btn">
-                  <a href="/edit_tournament?id={{tournament_data.id}}"><button class="btn btn-outline-primary my-2 my-sm-0">Edit Tournament</button></a>
+              <li class="sidebar-collapse sidebar-btn">
+                <div data-toggle="modal" data-target="#edit-tournament-modal">
+                  <button class="btn btn-outline-primary my-2 my-sm-0">Edit Tournament</button>
+                </div>
               </li>
               {{/if}}
               <li class="sidebar-collapse sidbar-btn">
@@ -172,18 +201,260 @@
           </ul>
       </div>
       <!-- /Sidebar -->
+      {{#if t_edit_privileges}}
+       <!-- Update Scores Modal -->
+        <div class="modal fade" id="scores-modal" tabindex="-1" role="dialog" aria-labelledby="community-information-modal-title" aria-hidden="true">
+          <div class="modal-dialog" role="document" style="max-width: 80%">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="scores-modal-title">Scores Data</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                <form id="edit-scores-form">
+                  <div class="form-group">
+                    <textarea class="form-control" rows="20" id="scores-data" style="resize:vertical;" onkeyup="textAreaAdjust(this)" style="overflow:auto"></textarea>
+                    <script>document.getElementById('scores-data').value = JSON.stringify(JSON.parse('{{tournament_data.scores}}'.replace(/&quot;/g,'"')),null,"\t");</script>
+                  </div>
+                </form>
+                <div>
+                  <h6><button class="btn btn-primary" data-toggle="collapse" data-target="#single-elim-example">Single eliminition example</button></h6>
+                  <div style="background-color: #F5F5F5;" id="single-elim-example" class="collapse">
+                    <script>
+                       document.write(converter.makeHtml(
+                         "```javascript\n"+
+                         "[\n"+
+                         "\t[\t\t\t\t\t// First bracket \n"+
+                         "\t\t[\t\t\t\t// First round in this bracket \n"+
+                         "\t\t\t[1, 2],\t\t// Team 1 vs Team 2 \n"+
+                         "\t\t\t[3, 4]\t\t// Team 3 vs Team 4 \n"+
+                         "\t\t],\n"+
+                         "\t\t[\t\t\t\t// Second round in this bracket\n"+
+                         "\t\t\t[5, null],\t// Match for first place \n"+
+                         "\t\t\t[7, 8]\t\t// Match for 3rd place \n"+
+                         "\t\t]\n"+
+                         "\t]\n"+
+                         "]\n"+
+                         "```"
+                       ));
+                    </script>
+                  </div>
+                </div>
+                <div>
+                  <h6><button class="btn btn-primary" data-toggle="collapse" data-target="#double-elim-example">Double eliminition example</button></h6>
+                  <div style="background-color: #F5F5F5;" id="double-elim-example" class="collapse">
+                    <script>
+                       document.write(converter.makeHtml(
+                        "```javascript\n"+
+                        "[                       // List of brackets (three since this is double elimination)\n"+
+                        "  [                     // Winner bracket\n"+
+                        "    [[1, 2], [3, 4]],   // First round and results\n"+
+                        "    [[5, 6]]            // Second round\n"+
+                        "    ],\n"+
+                        "  [                     // Loser bracket\n"+
+                        "     [[7, 8]],           // First round\n"+
+                        "     [[9, 10]]           // Second round\n"+
+                        "  ],\n"+
+                        "  [                     // Final bracket\n"+
+                        "    [                   // First round\n"+
+                        "      [11, 12],         // Match to determine 1st and 2nd\n"+
+                        "      [13, 14]          // Match to determine 3rd and 4th\n"+
+                        "    ],\n"+
+                        "    [                   // Second round\n"+
+                        "      [15, 16]          // LB winner won first round (11-12) so need a final decisive round\n"+
+                        "    ]\n"+
+                        "  ]\n"+
+                        "]\n"+                    
+                        "```"
+                       ));
+                    </script>
+                  </div>
+                </div>
+
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="saved-advacned-scores-btn">Save changes</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      {{/if}}
+
+      {{#if t_edit_privileges}}
+      <!-- Edit Tournament Modal -->
+      <div class="modal fade" id="edit-tournament-modal" tabindex="-1" role="dialog" aria-labelledby="edit-tournament-modal-title" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="edit-tournament-modal-title">Edit Tournament</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <form>
+                <div class="form-group">
+                  <label for="tournament-name"><span class="req">* </span>Name: </label>
+                    <input required type="text" id="tournament-name" class="form-control" autocomplete="off" value="{{tournament_data.name}}"/> 
+                </div>
+                <div class="form-group">
+                  <label for="tournament-description">Description: </label>
+                  <textarea class="form-control" rows="5" id="tournament-description" value="{{tournament_data.description}}"></textarea>
+                </div>
+                <label for="tournament-location">Location: </label>
+                <div class="form-group">
+                  <div class="input-group">
+                    <input required class="form-control" type="text" id="tournament-location" class="form-control" autocomplete="off" value="{{tournament_data.location}}"/>
+                    <span class="input-group-btn">
+                      <button class="btn btn-secondary" type="button" onclick="geolocate()">Find My Location</button>
+                    </span>
+                  </div> 
+                </div>
+                <div class="form-group">
+                  <label for="tournament-attendee-limit">Attendee Limit: </label>
+                  <input required type="text" id="tournament-attendee-limit" class="form-control" autocomplete="off" value="{{tournament_data.attendee_limit}}"/> 
+                </div>
+                <div class="form-group">
+                  <label for="tournament-signup-deadline"><span class="req">* </span> Signup Deadline: </label>
+                  <input type="text" class="form-control" id="tournament-signup-deadline"/>
+                  <script>document.getElementById('tournament-signup-deadline').value = format_date({{tournament_data.signup_deadline}},{includeTime:true})</script>
+                </div>
+
+                <div class="form-group">
+                  <label for="tournament-start-date"><span class="req">* </span> Start Date: </label>
+                  <input type="text" class="form-control" id="tournament-start-date"/>
+                  <script>document.getElementById('tournament-start-date').value = format_date({{tournament_data.start_date}},{includeTime:true})</script>
+                </div>
+                <div class="form-group">
+                  <label for="tournament-tags">Tags: </label>
+                  <input name="tags" id="tournament-tags" value="{{#each tournament_data.tags}}{{tag}}{{#unless @last}},{{/unless}}{{/each}}"/>
+                </div>
+                <button class="btn btn-primary tournament-submit-btn" type="button">Submit</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Match Creation Modal -->
+      <div class="modal fade" id="match-creation-modal" tabindex="-1" role="dialog" aria-labelledby="match-creation-modal-title" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="match-creation-modal-title">Match Creation</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <form>
+                <div class="form-group">
+                  <h5><label for="match-team-1"><span class="req">* </span>Team 1: </label></h5>
+                    <input required type="text" id="match-team-1" class="form-control" autocomplete="off" placeholder="Team name"/>                        
+                </div>
+                <div class="form-group">
+                  <table id="team-1-table" class="table table-striped table-bordered display nowrap" cellspacing="0" width="100%">
+                    <thead>
+                      <tr>
+                        <td scope="col" class="empty"></td>
+                        <td scope="col" class="empty"></td>
+                        <td scope="col">Username</td>
+                        <td scope="col">Name</td>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {{#each tournament_attendees}}
+                      <tr>
+                        <td>
+                            <input type="checkbox" class="team-1-members" data-user-id="{{id}}">
+                        </td>
+                        <td><img src="{{#if avatar includeZero=true}}/avatars/{{{avatar}}}{{else}}/site/no-avatar.jpg{{/if}}" class="profile-avatar"></td>
+                        <td><a href="/profile?id={{id}}"><h6>{{username}}</h6></a></td>
+                        <td>{{name}}</td>
+                      </tr>
+                      {{/each}}
+                    </tbody>
+                  </table>
+                </div>
+                <hr>
+                <div class="form-group">
+                  <h5><label for="match-team-2"><span class="req">* </span>Team 2: </label></h5>
+                    <input required type="text" id="match-team-2" class="form-control" autocomplete="off" placeholder="Team name" /> 
+                </div>
+                <div class="form-group">
+                  <table id="team-2-table" class="table table-striped table-bordered display nowrap" cellspacing="0" width="100%">
+                    <thead>
+                      <tr>
+                        <td scope="col" class="empty"></td>
+                        <td scope="col" class="empty"></td>
+                        <td scope="col">Username</td>
+                        <td scope="col">Name</td>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {{#each tournament_attendees}}
+                      <tr>
+                        <td>
+                            <input type="checkbox" class="team-2-members" data-user-id="{{id}}">
+                        </td>
+                        <td><img src="{{#if avatar includeZero=true}}/avatars/{{{avatar}}}{{else}}/site/no-avatar.jpg{{/if}}" class="profile-avatar"></td>
+                        <td><a href="/profile?id={{id}}"><h6>{{username}}</h6></a></td>
+                        <td>{{name}}</td>
+                      </tr>
+                      {{/each}}
+                    </tbody>
+                  </table>
+                </div>
+                <button class="btn btn-primary" id='match-submit-btn' type="button">Submit</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {{/if}}
+
 
       <!-- Page Content -->
       <div id="page-content-wrapper">
-          
-          <div class="container-fluid">
-            <h1>{{tournament_data.name}}</h1>
-            <a href="communities?id={{community_data.id}}"><h6>{{community_data.name}}</h6></a>
-            <hr/>
-            <button onclick="GenerateTournament()">Generate Tournament Brackets</button> <!--Make button only show up when no rows exist with tournament_id (when coms is empty).-->
-            <div class="Tournament_bracket"></div>
+        <div class="container-fluid">
+          <h1>{{tournament_data.name}}</h1>
+          <h6>Host Community: <a href="communities?id={{community_data.id}}">
+          <img class="site-icon" src="{{#if community_data.icon includeZero=true}}/icons/{{{community_data.icon}}}{{else}}/site/no-icon.jpg{{/if}}">{{community_data.name}}</a></h6>
+          <hr>
+          <h6>Description: </h6>{{tournament_data.description}}
+          <h6>Location: </h6>{{tournament_data.location}}
+          <h6>Signup Deadline: </h6><div id="tournament-info-signup-deadline"></div>
+          <h6>Start Date: </h6><div id="tournament-info-start-date"></div>
+          <hr/>
+          <div class="row">
+            <div id="bracketData" class="col-sm mb-3">
+              <div class="bracketTree"></div>
+              {{#if t_edit_privileges}}
+              <button class="btn btn-primary" id="save-bracket-scores-btn" style="margin-top:10px;display: none;">Save Changes</button>
+              {{/if}}
+            </div>
+            <div class="col-sm">
+              <h4>Team Info</h4>
+              <hr>
+              <h6 id="team-info-name">Team Name:</h6>
+              <table id="team-info-table" class="table table-striped table-bordered display nowrap" cellspacing="0" width="100%">
+                <thead>
+                  <tr>
+                    <td scope="col" class="empty"></td>
+                    <td scope="col">Username</td>
+                    <td scope="col">Name</td>
+                    <td scope="col">Email</td>
+                  </tr>
+                </thead>
+                <tbody id='team-info-table-body'>
+                </tbody>
+              </table>
+            </div>
           </div>
-      </div>
+        </div>
       <!-- /Page Content -->
     </div>
     <!-- /Main Wrapper -->
@@ -255,160 +526,314 @@
 
     </script>
 
-    <!-- Bracket Building -->
+    <script type="text/javascript" src="/js/jquery.bracket.min.js">
+    </script>
     <script type="text/javascript">
-    var tournament_ID = Number("{{tournament_data.id}}");
-    var tournament_brackets = socket.emit('get_brackets',{
-        tournament_ID
-        }).bracket_nodes;
-    if (typeof tournament_brackets == 'undefined'){
-      tournament_brackets = [];
-    }
-    //console.log(typeof tournament_ID);
-    var tournament_participants = socket.emit('get_participants',{
-        tournament_ID
-        }).participants;
-    if (typeof tournament_participants == 'undefined'){
-      tournament_participants = [];
-    }
-    $( ".Tournament_bracket" ).append(Display_Brackets(tournament_brackets,null)); //Use jQuery to append html element with already generated brackets  
 
-    function GenerateTournament()
-    {
-      var nodes = tournament_brackets;
-      var teams = tournament_participants;
-      //Should remove entries in forest table with tournament_id. But for the time being it won't.
-      //Just returns if brackets already exist for this tournament.
-      if(nodes.length>0 || teams.length == 0){
-        return;
-      }
-      //Get number of teams
-      var teamNum = teams.length;
-      var Depth = Math.floor(Math.log(teamNum));
-      generate_tree(null, Depth, nodes, teams);
-      //leafNodes = list of teams in forest with tournament_id
-      var leafNodes = socket.emit('get_bracket_nodes',{
-          tournament_ID
-        }).bracket_nodes;
-      //RemainingTeams = list of teams not in tournament and not in forest.
-      var RemainingTeams = [];
-      var allTeams; //all teams present in leafNodes
-      for(let c in leafNodes){
-        if(leafNodes[c].player_id !=null && allTeams.indexOf(leafNodes[c].player_id)<0/*leafNode[c].player not in allTeams*/){
-          allTeams+=leafNodes[c].player_id;
-        }
-      }
-      for(let t in teams){
-        var found = false;
-        for(let s in allTeams){
-          if(teams[t].user_id == allTeams[s]){
-            found = true;
-          }
-        }
-        if(found==false){
-          RemainingTeams+=teams[t].user_id;
-        }
-      }
-      for(let team in remainingTeams){
-        //Retrieve random leafNode and edit the player to be Null
-        var randNode = leafNodes[Math.floor(Math.random() * leafNodes.length)];
-        socket.emit('update_bracket_node',{ //update row to have null player_id
-          node_id: data.id,
-          player_id: null
-        });
-        //Save a new node with previous leafNode node as parent and leafNode player as player.
-        socket.emit('add_bracket_node',{ //Adds row to table
-          tournament_id : tournament_ID,
-          parent_id: randNode.id,
-          player_id: randNode.player_id
-        });
-        //Save a new node with previous leafNode node as parent and team as player.
-        socket.emit('add_bracket_node',{ //Adds row to table
-          tournament_id : tournament_ID,
-          parent_id: randNode.id,
-          player_id: remainingTeams[team]
-        });
-        //remove leafNode node from leafNode list.
-        var index = leafNodes.indexOf(randNode);
-        if (index > -1) {
-           leafNodes.splice(index, 1);
-        }
-      }
-      nodes = socket.emit('get_bracket_nodes',{
-        tournament_ID
-      }).bracket_nodes;
-      ($Tournament_bracket).append(Display_Brackets(nodes,null)); //Use jQuery to append html element with id == Tournament_bracket with the generated tree.
-      return;
+    let teams = [];
+    {{#each matches}}
+    teams.push('{{match_teams}}'.split(','));
+    for(let i = 0; i < teams[teams.length - 1].length; i++){
+      if(teams[teams.length - 1][i].length === 0){
+        teams[teams.length - 1][i] = 'No team name';
+      }      
     }
-    function generate_tree(parent, Depth, nodes, teams)
-    {
-      if (teams.length == 0){
-      return;
+    {{/each}}
+
+    let team_name = document.getElementById('team-info-name');
+    let team_table = document.getElementById('team-info-table');
+    let team_table_body = document.getElementById('team-info-table-body');
+
+    socket.on('team_info_res',function(data){
+      team_name.innerHTML = "Team Name: "+data[0].team_name;
+      team_table_body.innerHTML = "";
+      for(let i = 0; i < data.length;i++){
+          team_table_body.innerHTML += 
+          "<tr>"+
+          "<td><img src=\""+(data[i].avatar === null ? "/site/no-avatar.jpg":"/avatars/"+data[i].avatar)+"\" class=\"profile-avatar\"></td>"+
+          "<td><a href=\"/profile?id="+data[i].id+"\"><h6>"+data[i].username+"</h6></a></td>"+
+          "<td>"+data[i].name+"</td>"+
+          "<td>"+data[i].email+"</td>"+
+          "</tr>";
       }
-      var allTeams; //all teams present in nodes
-      var notIncluded; //all teams not present in nodes
-      for(let c in nodes){
-        if(nodes[c].player_id !=null && allTeams.indexOf(nodes[c].player_id)<0/*cams[c].player not in allTeams*/){
-          allTeams+=nodes[c].player;
-        }
-      }
-      if(Depth==0){
-        //Save a new node with random player (from list of teams in tournament and not in forest)
-        for(let t in teams){
-          var found = false;
-          for(let s in allTeams){
-            if(teams[t].user_id == allTeams[s]){
-              found = true;
+    });
+
+    var bracket_data = {
+        teams : teams,
+        results : JSON.parse('{{tournament_data.scores}}'.replace(/&quot;/g,'"'))
+    }
+
+    let bracket_container = $('div#bracketData .bracketTree');
+
+    function create_bracket(data){
+      if (bracket_data.teams.length && (bracket_data.teams.length & (bracket_data.teams.length - 1)) === 0) {
+        bracket_container.bracket({
+            init: data,
+            save: () => {},
+            disableToolbar: true,
+            decorator: {
+                edit: function(container, data, doneCb) {
+                    socket.emit('team_info_req', {
+                        tournament_id: '{{tournament_data.id}}',
+                        team_name: data
+                    });
+                    doneCb(data);
+                },
+                render: function(container, data, score, state) {
+                    switch (state) {
+                        case 'empty-bye':
+                            container.append('BYE')
+                            return;
+                        case 'empty-tbd':
+                            container.append('TBD')
+                            return;
+
+                        case 'entry-no-score':
+                        case 'entry-default-win':
+                        case 'entry-complete':
+                            container.append(data);
+                            return;
+                    }
+                }
             }
-          }
-          if(found==false){
-            notIncluded+=teams[t].user_id;
-          }
-        }
-        //data = {parent_id: parent, player_id:notIncluded[Math.floor(Math.random() * notIncluded.length)]};
-        socket.emit('add_bracket_node',{ //Adds row to table
-          tournament_id : tournament_ID,
-          parent_id: parent,
-          player_id: notIncluded[Math.floor(Math.random() * notIncluded.length)]
         });
-        return;
+ 
+        $('#save-bracket-scores-btn').click(
+            function() {
+                socket.emit('scores_submit', {
+                    tournament_id: '{{tournament_data.id}}',
+                    scores: JSON.stringify($('div#bracketData .bracketTree').bracket('data')['results'])
+                });
+                document.getElementById('scores-data').value = JSON.stringify($('div#bracketData .bracketTree').bracket('data')['results'], null, "\t")
+            }
+        );
+
+        $('#save-advanced-scores-btn').click(function() {
+            socket.emit('scores_submit', {
+                tournament_id: '{{tournament_data.id}}',
+                scores: $('#scores-data').val()
+            });
+        });
+        $('#save-bracket-scores-btn').css('display','block');
+
+      }else{
+        if(bracket_data.teams.length !== 0){
+          ntf_hndlr.build_notification({
+              error: 'There ' + (bracket_data.teams.length === 1 ? 'is' : 'are') + ' ' + bracket_data.teams.length + ' match' + (bracket_data.teams.length === 1 ? '' : 'es') + '. The number of matches must be power of two'
+          });
+          $('#save-bracket-scores-btn').css('display','none');
+        }else{
+          bracket_container[0].innerHTML = 'No matches have been created yet.';
+        }        
       }
-      //Save new node to forest table with id == node_id and parent==parent
-      //data = {parent_id: parent,data.player_id:null};
-      node_id = socket.emit('add_bracket_node',{ //Adds row to table
-            tournament_id : tournament_ID,
-            parent_id: parent,
-            player_id: null
-          }).last_node_id;
-      nodes = socket.emit('get_bracket_nodes',{
-          tournament_ID
-        }).bracket_nodes;
-      generate_tree(node_id, Depth-1, nodes, teams);
-      generate_tree(node_id, Depth-1, nodes, teams);
-      return;
     }
-    function Display_Brackets(nodes,id)
-    {
-      //children = list of nodes with id as parent
-      if(nodes.length == 0 ){
-      return;
-      }
-      console.log(nodes);
-      var children = nodes.filter(function(element){ return element.parent_id == id; });
-      var thisNode = (nodes.filter(function(element){ return element.id == id; })[0]);
-      var player = (thisNode.player_id == null? "": thisNode.player_id);
-      var NewHTML = "<div>"+player+"</div>";
-      if (children.length>0){
-        NewHTML+="<ul>";
-        for(let child in children){
-          NewHTML+="<li>"+Display_Brackets(nodes,children[child])+"</li>";
+
+
+    $(function() {
+
+      create_bracket(bracket_data);
+      tournament_room.on('scores_update',function(data){
+        bracket_data.results = JSON.parse(data.scores);
+        create_bracket(bracket_data);
+      });
+      tournament_room.on('match_update',function(data){
+        let new_matches = data.matches;
+        teams = []
+        for(let i = 0; i < new_matches.length;i++){
+          teams.push(new_matches[i].match_teams);
         }
-        NewHTML+="</ul>";
-      }
-      return NewHTML;
-    }
+        bracket_data.teams = teams;
+        create_bracket(bracket_data);
+      })
+    });
     </script>
 
+    <!-- Enable tags input -->    
+    <script src="/js/jquery.tagsinput.js"></script>
+    <script type="text/javascript">
+      $('#tournament-tags').tagsInput();
+    </script>
+
+    <script type="text/javascript">
+      $(document).ready(function(){
+        $('.tournament-submit-btn').click(
+          () => {
+            socket.emit('edit_tournament',{
+              tournament_id: '{{tournament_data.id}}',
+              name: $('#tournament-name').val(),
+              description: $('#tournament-description').val(),
+              location: $('#tournament-location').val(),
+              attendee_limit: $('#tournament-attendee-limit').val(),
+              signup_deadline: $('#tournament-signup-deadline').val(),
+              start_date: $('#tournament-start-date').val(),
+              tags: $('#tournament-tags').val()
+            });
+          }
+        );
+      });
+    </script>
+
+    <!-- Select date/time -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.21.0/moment.min.js"></script>
+    <script type="text/javascript" src="//cdn.jsdelivr.net/bootstrap.daterangepicker/2/daterangepicker.js"></script>
+    <script type="text/javascript">
+      $('#tournament-signup-deadline').daterangepicker(       
+        {
+          autoApply: true,
+          timePicker: true,
+          singleDatePicker: true,
+          showDropdowns: true,
+          locale: {
+              format: 'MM/DD/YYYY h:mm A'
+          }                   
+        }
+      );
+      $('#tournament-start-date').daterangepicker(       
+        {
+          autoApply: true,
+          timePicker: true,
+          singleDatePicker: true,
+          showDropdowns: true,
+          locale: {
+              format: 'MM/DD/YYYY h:mm A'
+          }         
+        }
+      );      
+    </script>
+
+    <!-- Google maps autocomplete -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC-WvQjzOOtExbBjLCwRflnSS2wL1gKN6w&libraries=places&callback=initGoogleMaps"
+        async defer></script>
+    <script>
+
+      let placeSearch, autocomplete,geocoder;
+
+      function initAutocomplete() {
+        // Create the autocomplete object, restricting the search to geographical
+        // location types.
+        autocomplete = new google.maps.places.Autocomplete(
+            /** @type {!HTMLInputElement} */(document.getElementById('tournament-location')),
+            {types: ['geocode']});
+
+        // When the user selects an address from the dropdown, populate the address
+        // fields in the form.
+        autocomplete.addListener('place_changed', fillInAddress);
+      }
+
+      function initGeocoder() {
+        geocoder = new google.maps.Geocoder;
+      }
+
+      function initGoogleMaps(argument) {
+        initAutocomplete();
+        initGeocoder();
+      }
+
+      function fillInAddress() {
+        let place = autocomplete.getPlace();
+      }
+
+      function geolocate() {
+        if (navigator.geolocation) {
+          ntf_hndlr.build_notification({success:'Getting Location...'});
+          navigator.geolocation.getCurrentPosition(function(position) {
+            let geolocation = {
+              lat: position.coords.latitude,
+              lng: position.coords.longitude
+            };
+            let circle = new google.maps.Circle({
+              center: geolocation,
+              radius: position.coords.accuracy
+            });
+            autocomplete.setBounds(circle.getBounds());
+          
+            geocoder.geocode({'location':{lat:position.coords.latitude,lng:position.coords.longitude}},function(results,status) {
+              if(status === 'OK'){
+                if(results[0]){
+                  document.getElementById('tournament-location').value = results[0].formatted_address;
+                  ntf_hndlr.build_notification({success:'Location Found!'});
+                }
+              }
+            });
+          },function(error){
+            if(error.code == error.PERMISSION_DENIED){
+              ntf_hndlr.build_notification({error:'Please enable location services in your browser'});
+            }
+          }
+          );
+        }
+      }
+    </script>
+
+    <script type="text/javascript">
+      document.getElementById('tournament-info-signup-deadline').innerHTML = moment(Number('{{tournament_data.signup_deadline}}')).format('MM/DD/YYYY');
+      document.getElementById('tournament-info-start-date').innerHTML = moment(Number('{{tournament_data.start_date}}')).format('MM/DD/YYYY');
+    </script>
+
+    <!-- Select date/time -->
+    <script type="text/javascript" src="//cdn.jsdelivr.net/bootstrap.daterangepicker/2/daterangepicker.js"></script>
+    <script type="text/javascript">
+      $('#match-start-time').daterangepicker(       
+        {
+          autoApply: true,
+          timePicker: true,
+          singleDatePicker: true,
+          showDropdowns: true,
+          locale: {
+              format: 'MM/DD/YYYY h:mm A'
+          }         
+        }
+      );      
+    </script>
+
+    <script type="text/javascript">
+      $(document).ready(function(){
+        $('#match-submit-btn').click( 
+          () => {
+            let team_1 = [];
+            let team_1_els = document.getElementsByClassName('team-1-members');
+            for(let i = 0; i < team_1_els.length;i++){
+              if(team_1_els[i].checked === true){
+                team_1.push(team_1_els[i].getAttribute('data-user-id'));
+              }
+            }
+
+            let team_2 = [];
+            let team_2_els = document.getElementsByClassName('team-2-members');
+            for(let i = 0; i < team_2_els.length;i++){
+              if(team_2_els[i].checked === true){
+                  team_2.push(team_2_els[i].getAttribute('data-user-id'));
+              }
+            }
+            socket.emit('match_submit',{
+              tournament_id: '{{tournament_data.id}}',
+              name: $('#match-name').val(),
+              description: $('#match-description').val(),
+              location: $('#match-location').val(),
+              time: $('#match-start-time').val(),
+              team_1_name: $('#match-team-1').val(),
+              team_1: team_1,
+              team_2_name: $('#match-team-2').val(),
+              team_2: team_2
+            });
+          }
+        );
+      });
+    </script>
+
+    <script type="text/javascript" src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.10.16/js/dataTables.bootstrap4.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/responsive/2.2.1/js/dataTables.responsive.min.js"></script>
+    <script>
+    $(document).ready(function () {
+        $('#team-1-table').DataTable({
+          "responsive" : true
+        });    
+        $('#team-2-table').DataTable({
+          "responsive" : true
+        });    
+    });
+    </script>
   </body>
 
 </html>

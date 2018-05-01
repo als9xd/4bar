@@ -101,3 +101,8 @@ function getTimeDifference(old_date){
     return elapsed_min+' days'+(elapsed_min > 1 ? 's':'')+' ago';        
   }
 };
+
+function textAreaAdjust(o) {
+  o.style.height = "1px";
+  o.style.height = (25+o.scrollHeight)+"px";
+}

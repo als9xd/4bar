@@ -12,6 +12,10 @@ body {
   height: 100vh;
 }
 
+.nav-link{
+  cursor: pointer;
+}
+
 #page-content-wrapper{
   height: calc(100vh - 66px);
 }
@@ -26,6 +30,8 @@ body {
 
 .site-icon{
   margin-right:5px;
+  width: 30px;
+  height: 30px;
 }
 
 .nav-auto-spacing{
