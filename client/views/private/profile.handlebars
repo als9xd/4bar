@@ -32,6 +32,9 @@
     </script>
 
     <script src="/js/public.js"></script>
+    <script>
+      window.onload = ()=>{updateQueryStringParam("scroll_to_table","false")};
+    </script>
 
     <script src="/socket.io/socket.io.js"></script>
     <script type="text/javascript">let socket = io('/private');</script>
@@ -65,6 +68,7 @@
             <li class="nav-item nav-auto-spacing">
               <form id="search-form" class="form-inline my-2 my-md-0" action="/search" method="GET">
                 <input name="query" class="form-control mr-sm-2">
+                <input type="hidden" name="active_field" value="communities">
               </form>
             </li>
             <li class="nav-item nav-auto-spacing">
@@ -112,6 +116,7 @@
               <li class="sidebar-collapse">
                 <form class="form-inline my-2 my-md-0" action="/search" method="GET">
                   <input name="query" class="form-control mr-sm-2 search-query-input">
+                  <input type="hidden" name="active_field" value="communities">
                   <button class="btn btn-outline-success my-2 my-sm-0" type="submit" >Search</button>
                 </form>
               </li>
@@ -147,7 +152,7 @@
                 <hr>
               </li>
               <li>
-                <a class="sidebar-title" href="/profile?active_field=communities"><h5>Communities</h5></a>
+                <a class="sidebar-title" href="/profile?active_field=communities&scroll_to_table=true"><h5>Communities</h5></a>
               </li>
               {{#each user_data.communities}}
               <li>
@@ -158,7 +163,7 @@
                 <hr>
               </li>
               <li>
-                <a class="sidebar-title" href="/profile?active_field=tournaments"><h5>Tournaments</h5></a>
+                <a class="sidebar-title" href="/profile?active_field=tournaments&scroll_to_table=true"><h5>Tournaments</h5></a>
               </li>
               {{#each user_data.tournaments}}
               <li>
@@ -239,7 +244,8 @@
                       creation_date.removeAttribute('id');
 
                       last_activity = document.getElementById('community-last-activity');
-                      last_activity.innerHTML = format_date({{last_activity}});
+                      last_activity.innerHTML = getTimeDifference({{last_activity}});
+
                       last_activity.removeAttribute('id');
                     </script>
                     {{/each}}
