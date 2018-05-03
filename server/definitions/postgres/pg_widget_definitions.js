@@ -287,7 +287,7 @@ module.exports = function(pg_conn){
 							return;
 						}
 
-						if(typeof widgets === 'undefined' || widget.rowCount === 0){
+						if(typeof widgets === 'undefined' || widgets.rowCount === 0){
 							callback(widgets.rows);	
 							return;
 						}
