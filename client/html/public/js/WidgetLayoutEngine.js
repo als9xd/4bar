@@ -270,7 +270,7 @@ let WidgetLayoutEngine = function(widget_ui_definitions,parent,background_parent
 
   socket.on('widget_delete_status',function(data) {
     if(data.status === true){
-      document.querySelector('[data-widget-id="'+data.id+'"]').style.display = 'none';
+      document.querySelector('[data-widget-id="'+data.id+'"][data-widget-type="'+data.type+'"]').style.display = 'none';
     }
   });
 

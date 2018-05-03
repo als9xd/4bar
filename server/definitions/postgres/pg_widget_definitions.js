@@ -160,11 +160,10 @@ module.exports = function(pg_conn){
 			    let url = decodeURIComponent(results[2].replace(/\+/g, " "));
 			    if(url){
 					pg_client.query(
-						"INSERT INTO youtube_widget (community_id,text_color,bg_color,url) "+
-						"VALUES ($1,$2,$3,$4)",
+						"INSERT INTO youtube_widget (community_id,bg_color,url) "+
+						"VALUES ($1,$2,$3)",
 						[
 							community_id,
-							data.text_color,
 							data.bg_color,
 							"https://www.youtube.com/embed/"+url
 						],
@@ -287,6 +286,12 @@ module.exports = function(pg_conn){
 							callback(false,{error:'Could not get tournament widget'});
 							return;
 						}
+
+						if(typeof widgets === 'undefined' || widgets.rowCount === 0){
+							callback(widgets.rows);	
+							return;
+						}
+
 						pg_client.query(
 							"SELECT id,name,description FROM tournaments WHERE community_id = $1",
 							[

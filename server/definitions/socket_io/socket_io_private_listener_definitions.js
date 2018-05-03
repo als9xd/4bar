@@ -1957,7 +1957,7 @@ module.exports = function(config,pg_conn,uuidv1,nodebb_conn,tournament_rooms,io)
 													widget_definitions[data.type].delete(data.widget_id,function(success,notification){														
 														socket.emit('notification',notification);
 														if(success !== false){
-															socket.emit('widget_delete_status',{status:true,id:data.widget_id});
+															socket.emit('widget_delete_status',{status:true,id:data.widget_id,type:data.type});
 														}
 													});			
 												}else{
