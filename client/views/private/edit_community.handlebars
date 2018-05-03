@@ -638,7 +638,7 @@
 
      socket.on('available_widgets_res',
       function(widget){
-        if(!document.querySelector('[data-widget-id="'+widget.id+'"]')){
+        if(!document.querySelector('[data-widget-id="'+widget.id+'"][data-widget-type="'+widget.type+'"')){
           wle.add_available_widget(
             {
               type:widget.type,
