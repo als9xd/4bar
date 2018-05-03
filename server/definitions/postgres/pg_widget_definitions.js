@@ -286,6 +286,12 @@ module.exports = function(pg_conn){
 							callback(false,{error:'Could not get tournament widget'});
 							return;
 						}
+
+						if(typeof widgets === 'undefined' || widget.rowCount === 0){
+							callback(widgets.rows);	
+							return;
+						}
+
 						pg_client.query(
 							"SELECT id,name,description FROM tournaments WHERE community_id = $1",
 							[
